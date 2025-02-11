@@ -1,0 +1,82 @@
+ input, a, li, ul, textarea, span, p, h1, h2, h3, ol, aside, main{
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+body{
+    margin: 0;
+}
+.flexColumn{
+    display: flex;
+    flex-direction: column;
+}
+ul li{
+    padding: 10px;
+}
+a{
+    text-decoration: none;
+}
+
+ul li a{
+    color: black;
+    text-decoration: none;
+}
+.formRegister{
+    margin: 10px 0 0 0;
+    background-color: white;
+    height: 400px;
+
+}
+.loginForm{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loginForm button{
+    margin: 0 0 0px 0px;
+}
+
+.FlexContainer {
+    position: absolute;
+    width: 100%;
+    align-items: center;
+}
+
+
+.card{
+    padding-right: 10%;
+    display: block;
+    margin: 0 auto;
+    padding-left: 10%;
+    padding-top: 10%;
+    padding-bottom: 8%;
+}
+.clearStyle{
+    display: inline-table;
+    margin: 0 auto;
+}
+
+.padding10px{
+    padding-left: 2%;
+    padding-right: 2%;
+}
+.card div{
+    /* margin: 21px 40px 53px 44px; */
+    padding-right: 1%;
+    display: block;
+    margin: 0 auto;
+}
+.card div form{
+    padding-left: 1rem;
+}
+.container{
+    width: 100%;
+    max-width: 1250px;
+    padding: 0 20px;
+    display: block;
+    margin: 0 auto;
+}
+
+.header{
+    background-color: yellow;
+}
