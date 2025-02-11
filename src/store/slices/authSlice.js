@@ -294,6 +294,7 @@ export const { setError,clearError,setUploadProgress,
 //         },
 //       };
 
+
 //       axios.post(`${END_POINT}/api/auth/login`, {
 //         email: decodedToken.email,
 //         password: decodedToken.password,
@@ -398,33 +399,9 @@ export const  getUserInfo=async(dispatch)=>{
 
 
 
-export const useTokenInitialization = () => {
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    // console.log('TOKENNNNNNNNNnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn', token)
-    if (token) {
-      try {
-        let decodedToken = jwt_decode(token);
-        // console.log('decode token', decodedToken)
-        // Dispatch the authorize action with user data from the token
-        dispatch(
-          authorize({
-            token: token,
-            id: decodedToken.id,
-            email: decodedToken.email,
-            name: decodedToken.name,
-            username: decodedToken.username,
-            password: decodedToken.password,
-          })
-        );
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        localStorage.removeItem('token'); // Remove invalid token
-      }
-    }
-  }, [dispatch]);
+export const useTokenInitialization = (dispatch) => {
+ 
+  
 
   return null;
 };

@@ -20,7 +20,7 @@ const RegisterPage = () => {
     console.log('Password:', password);
     dispatch(createUser({email,password}));
     // Перенаправление на страницу входа после успешной регистрации
-    router.push('/login');
+    // router.push('/login');
   };
 
   return (
