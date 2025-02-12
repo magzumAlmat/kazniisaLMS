@@ -16,13 +16,15 @@ import TextField from "@mui/material/TextField";
 import jwtDecode from "jwt-decode";
 // const API_KEY = "d11ae1cd-cdbf-4395-a8b0-19c5b6584b84";
 // const API_KEY = "b83b032d-0418-41de-bbaa-b028ca3fdb9b"
-
+import { fetchCourses } from "@/store/slices/authSlice";
 export default function Layout() {
       
       const isAuth=useSelector((state)=>state.auth.isAuth)
      
       const userData=useSelector((state)=>state.auth.currentUser)
      
+      const { courses, loadingCourses, coursesError } = useSelector((state) => state.auth);
+
       const dispatch=useDispatch()
 
 if(isAuth==true){
@@ -43,11 +45,39 @@ if(isAuth==true){
     return;
   }
 
+  useEffect(() => {
+    dispatch(fetchCourses()); // Загружаем курсы при монтировании компонента
+    
+}, [dispatch]);
+
+  if (loadingCourses) {
+    return <div>Загрузка курсов...</div>;
+  }
+
+  if (coursesError) {
+    return <div>Ошибка: {coursesError}</div>;
+  }
+
+
 
 
   return (
     <>
       <h1>hi logged in User</h1>
+      <ol>
+      <li> Показать все Курсы студента</li>
+      <li> При нажатии на курс провалиться в него</li>
+
+      </ol>
+      <ul>
+        {courses.map((course) => (
+          <li key={course.id}>
+            <h2>{course.title}</h2>
+            <p>{course.description}</p>
+          </li>
+        ))}
+      </ul>
+      
     </>
   );
 }

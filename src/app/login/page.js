@@ -1,45 +1,39 @@
 'use client'
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // Используем next/navigation вместо next/router
 import { Container, Typography, TextField, Button, Box, Link, Grid } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
-import { useDispatch ,useSelector} from 'react-redux';
-import { authorize ,createUser, loginAction} from '@/store/slices/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { authorize, loginAction } from '@/store/slices/authSlice';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
-  const router=useRouter()
-  
-  const isAuth=useSelector((state)=>state.auth.isAuth)
-  
-  if( isAuth==true){
-    console.log('Вы залогинены')
-    // router.push('/layout');
-  }
+  const isAuth = useSelector((state) => state.auth.isAuth); // Получаем состояние авторизации
+  const dispatch = useDispatch();
+  const router = useRouter();
 
-  const dispatch=useDispatch()
+  // Эффект для отслеживания изменения isAuth
+  useEffect(() => {
+    if (isAuth) {
+      router.push('/layout'); // Перенаправляем на /layout, если isAuth === true
+    }
+  }, [isAuth, router]);
 
   const handleSubmit = (e) => {
-    
     e.preventDefault();
-    // Здесь можно добавить логику для отправки данных на сервер
-    console.log('Email:', email);
-    console.log('Password:', password);
-
-   dispatch(loginAction({email,password}))
-   
-    router.push('/layout');
-    // Перенаправление на главную страницу после успешного входа
-    
-
+    dispatch(loginAction({ email, password }))
+      .then(() => {
+        dispatch(authorize(true)); // Устанавливаем авторизацию
+      })
+      .catch((error) => {
+        console.error('Ошибка при входе:', error);
+        // Здесь можно добавить отображение ошибки пользователю
+      });
   };
 
   return (
-    
     <Container component="main" maxWidth="xs">
-     1
       <Box
         sx={{
           marginTop: 8,
