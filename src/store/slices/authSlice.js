@@ -445,34 +445,34 @@ export const createUserAction = ({email, password} ) => async (dispatch) => {
   }
 };
 
-export const createTeacherAction = ({email, password}) => async(dispatch) => {
-  console.log('1 creatTeacher запустился ', email, password);
+export const createTeacherAction = ({email, password} ) => async (dispatch) => {
+  console.log('1 createUser запустился ', email, password);
   dispatch({ type: 'REGISTER_USER_REQUEST' }); // Запрос начат
 
   try {
-    // Отправка данных на сервер
-    const response = await axios.post('http://localhost:4000/api/auth/sendmail', {
-        email: email,
-        name: 'notcompleted',
-        lastname: 'notcompleted',
-        phone:'+2342454535',
-        password: password,
-        roleId:3
-    });
-
-    // Если регистрация успешна
-    if (response.status === 201) {
-      dispatch({
-        type: 'REGISTER_USER_SUCCESS',
-        payload: response.data.message, // Сообщение от сервера
-      });
-    } else {
-      // Если сервер вернул ошибку
+    // Проверка, существует ли пользователь с таким email
+    const checkUserResponse = await axios.get(`http://localhost:4000/api/auth/check-email?email=${email}`);
+    
+    if (checkUserResponse.data.exists) {
+      
+      // Если пользователь с таким email уже существует
       dispatch({
         type: 'REGISTER_USER_FAILURE',
-        payload: response.data.error || 'Ошибка при регистрации',
+        payload: 'Пользователь с таким email уже существует',
       });
+      console.log('Существует такой email')
+      return; // Прерываем выполнение функции
     }
+
+    // Если пользователя с таким email нет, продолжаем регистрацию
+    await axios.post('http://localhost:4000/api/register', {
+       email,
+     
+      password,
+      roleId: 3,
+    });
+
+
   } catch (error) {
     // Обработка ошибок сети или сервера
     dispatch({
@@ -480,19 +480,56 @@ export const createTeacherAction = ({email, password}) => async(dispatch) => {
       payload: error.response?.data?.error || error.message,
     });
   }
-  // await axios.post(`http://localhost:4000/api/auth/sendmail`, {
-  //   email: email,
-  //   name: 'not completed',
-  //   lastname: 'not completed',
-  //   phone:'2342454535',
-  //   password: password,
-
-  // }).then((res) => {
-  //   dispatch(authorize(res.data));
-  // }).catch((error)=>{
-  //   console.log('error')
-  // });
 };
+
+// export const createTeacherAction = ({email, password}) => async(dispatch) => {
+//   console.log('1 creatTeacher запустился ', email, password);
+//   dispatch({ type: 'REGISTER_USER_REQUEST' }); // Запрос начат
+
+//   try {
+//     // Отправка данных на сервер
+//     const response = await axios.post('http://localhost:4000/api/auth/sendmail', {
+//         email: email,
+//         name: 'notcompleted',
+//         lastname: 'notcompleted',
+//         phone:'+2342454535',
+//         password: password,
+//         roleId:3
+//     });
+
+//     // Если регистрация успешна
+//     if (response.status === 201) {
+//       dispatch({
+//         type: 'REGISTER_USER_SUCCESS',
+//         payload: response.data.message, // Сообщение от сервера
+//       });
+//     } else {
+//       // Если сервер вернул ошибку
+//       dispatch({
+//         type: 'REGISTER_USER_FAILURE',
+//         payload: response.data.error || 'Ошибка при регистрации',
+//       });
+//     }
+//   } catch (error) {
+//     // Обработка ошибок сети или сервера
+//     dispatch({
+//       type: 'REGISTER_USER_FAILURE',
+//       payload: error.response?.data?.error || error.message,
+//     });
+//   }
+//   // await axios.post(`http://localhost:4000/api/auth/sendmail`, {
+//   //   email: email,
+//   //   name: 'not completed',
+//   //   lastname: 'not completed',
+//   //   phone:'2342454535',
+//   //   password: password,
+
+//   // }).then((res) => {
+//   //   dispatch(authorize(res.data));
+//   // }).catch((error)=>{
+//   //   console.log('error')
+//   // });
+// };
 
 
 

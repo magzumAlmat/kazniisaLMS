@@ -231,9 +231,11 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { createUserAction } from '@/store/slices/authSlice';
+import { createUserAction,createTeacherAction } from '@/store/slices/authSlice';
 import { Container, Typography, TextField, Button, Box, Link, Grid, Snackbar, Alert } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
+import Checkbox from '@mui/material/Checkbox';
+
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
@@ -242,6 +244,7 @@ const RegisterPage = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [isTeacher, setIsTeacher] = useState(false); 
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -266,9 +269,20 @@ const RegisterPage = () => {
 
     try {
      
-      await dispatch(createUserAction({ email, password }));
-      setSuccessMessage('Регистрация прошла успешно!');
-      setOpenSnackbar(true);
+      console.log('Is Teacher:', isTeacher); // Выводим состояние isTeacher
+    
+        if (isTeacher===false){
+          await dispatch(createUserAction({ email, password }));  
+          setSuccessMessage('Регистрация прошла успешно!');
+          setOpenSnackbar(true);
+        }else{
+          console.log('Ветка учителя',isTeacher)
+          dispatch(createTeacherAction({ email, password }));
+        }
+      
+
+     
+    
 
       setTimeout(() => {
         // router.push('/login');
@@ -297,6 +311,11 @@ const RegisterPage = () => {
         <Typography component="h1" variant="h5">
           Регистрация
         </Typography>
+        <Checkbox
+            checked={isTeacher} // Передаем текущее состояние isTeacher
+            onChange={(e) => setIsTeacher(e.target.checked)} // Обновляем состояние isTeacher
+            inputProps={{ 'aria-label': 'Я преподаватель' }}
+          />
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12}>

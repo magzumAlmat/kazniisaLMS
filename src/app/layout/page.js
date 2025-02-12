@@ -17,6 +17,7 @@ import jwtDecode from "jwt-decode";
 // const API_KEY = "d11ae1cd-cdbf-4395-a8b0-19c5b6584b84";
 // const API_KEY = "b83b032d-0418-41de-bbaa-b028ca3fdb9b"
 import { fetchCourses } from "@/store/slices/authSlice";
+
 export default function Layout() {
       
       const isAuth=useSelector((state)=>state.auth.isAuth)
@@ -46,7 +47,7 @@ if(isAuth==true){
   }
 
   useEffect(() => {
-    dispatch(fetchCourses()); // Загружаем курсы при монтировании компонента
+   
     
 }, [dispatch]);
 
@@ -70,12 +71,12 @@ if(isAuth==true){
 
       </ol>
       <ul>
-        {courses.map((course) => (
+        {/* {courses.map((course) => (
           <li key={course.id}>
             <h2>{course.title}</h2>
             <p>{course.description}</p>
           </li>
-        ))}
+        ))} */}
       </ul>
       
     </>
