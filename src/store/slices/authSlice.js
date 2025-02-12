@@ -3,8 +3,9 @@ import axios from 'axios';
 import END_POINT from '@/components/config/index';
 import jwt_decode from 'jwt-decode';
 import { useEffect } from 'react';
-
 import { useDispatch } from 'react-redux'; // Import useDispatch
+
+
 const initialState = {
   isAuth: false,
   currentUser: null,
@@ -18,9 +19,6 @@ const initialState = {
   allRevises:'',
   error:'',
   uploadProgress: 0,
-  courses: [], // Добавляем новое поле для хранения курсов
-  loadingCourses: false, // Для отслеживания загрузки курсов
-  coursesError: null, // Для хранения ошибок при загрузке курсов
 };
 const token = localStorage.getItem('token');
 
@@ -83,42 +81,21 @@ export const authSlice = createSlice({
     },
 
     loginReducer:(state,action)=>{
-              // console.log('Login reducer ')
-              // localStorage.setItem('token', action.payload.token);
+     
+              localStorage.setItem('token', action.payload.token);
+              axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
               // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-              // // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-              // const decoded = jwt_decode(action.payload.token);
+              const decoded = jwt_decode(action.payload.token);
         
-              // state.currentUser = {
-              //   id: decoded.id,
-              //   email: decoded.email,
-              //   name: decoded.name,
-              //   username: decoded.username,
-              //   password: decoded.password,
-              // };
-              // state.isAuth = true;
-              // console.log('this is currentUser- ',state.currentUser,'isAuth=',state.isAuth)
-           
-                console.log('Login reducer');
-                localStorage.setItem('token', action.payload.token);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-              
-                const decoded = jwt_decode(action.payload.token);
-              
-                state.currentUser = {
-                  id: decoded.id,
-                  email: decoded.email,
-                  name: decoded.name,
-                  username: decoded.username,
-                  password: decoded.password,
-                };
-                state.isAuth = true;
-                console.log('this is currentUser- ', state.currentUser, 'isAuth=', state.isAuth);
-            
-            },
-
-            isAuthReducer: (state, action) => {
-              state.isAuth = action.payload;
+              state.currentUser = {
+                id: decoded.id,
+                email: decoded.email,
+                name: decoded.name,
+                username: decoded.username,
+                password: decoded.password,
+              };
+              state.isAuth = true;
+              console.log('this is currentUser- ',state.currentUser,'isAuth=',state.isAuth)
             },
 
     ReviseReducer:(state,action)=>{
@@ -194,10 +171,7 @@ export const authSlice = createSlice({
     loginAuthorize: (state, action) => {
 
       state.someVar=action.payload
-      
       console.log('PAYLOAD=',action.payload,'codeFromServer=',state.currentUser)
-
-      
     },
 
     sendCodeReducer: (state, action) => {
@@ -285,32 +259,12 @@ export const authSlice = createSlice({
           state.currentUser = null;
           state.isAuth = false;
           state.authToken = null;
-      },
-      
-      fetchCoursesStart: (state) => {
-        state.loadingCourses = true;
-        state.coursesError = null;
-      },
-  
-      // Редюсер для успешной загрузки курсов
-      fetchCoursesSuccess: (state, action) => {
-        state.courses = action.payload;
-        state.loadingCourses = false;
-        state.coursesError = null;
-      },
-  
-      // Редюсер для ошибки при загрузке курсов
-      fetchCoursesFailure: (state, action) => {
-        state.loadingCourses = false;
-        state.coursesError = action.payload;
-      },
+      }
   }
 });
 
-
-
 // Action creators are generated for each case reducer function
-export const { isAuthReducer,fetchCoursesStart,fetchCoursesSuccess,fetchCoursesFailure,setError,clearError,setUploadProgress,
+export const { setError,clearError,setUploadProgress,
   clearUploadProgress,sendErrorReducer,
   getAllRevisesReducer,ReviseReducer,authorize, logout, editVar ,
   sendCodeReducer,sendUserDataReducer,setCurrentUser,
@@ -356,11 +310,6 @@ export const { isAuthReducer,fetchCoursesStart,fetchCoursesSuccess,fetchCoursesF
 //   console.log('Token не найден');
 //   return null;
 // };
-
-
-export const isAuthAction = (isAuth) => async (dispatch) => {
-  dispatch(isAuthReducer(isAuth));
-};
 
 
 
@@ -458,33 +407,46 @@ export const useTokenInitialization = (dispatch) => {
 
 
 
-//http://localhost:4000/api/courses
 
-
-
-export const fetchCourses = () => async (dispatch) => {
-  dispatch(fetchCoursesStart()); // Начало загрузки
+export const createUserAction = ({email, password} ) => async (dispatch) => {
+  console.log('1 createUser запустился ', email, password);
+  dispatch({ type: 'REGISTER_USER_REQUEST' }); // Запрос начат
 
   try {
-    const token = localStorage.getItem('token'); // Получаем токен из localStorage
-    const response = await axios.get('http://localhost:4000/api/courses', {
-      headers: {
-        Authorization: `Bearer ${token}`, // Добавляем токен в заголовок
-        'Content-Type': 'application/json',
-      },
+    // Проверка, существует ли пользователь с таким email
+    const checkUserResponse = await axios.get(`http://localhost:4000/api/auth/check-email?email=${email}`);
+    
+    if (checkUserResponse.data.exists) {
+      
+      // Если пользователь с таким email уже существует
+      dispatch({
+        type: 'REGISTER_USER_FAILURE',
+        payload: 'Пользователь с таким email уже существует',
+      });
+      console.log('Существует такой email')
+      return; // Прерываем выполнение функции
+    }
+
+    // Если пользователя с таким email нет, продолжаем регистрацию
+    await axios.post('http://localhost:4000/api/register', {
+       email,
+     
+      password,
+      roleId: 2,
     });
 
-    // Если запрос успешен, диспатчим данные
-    dispatch(fetchCoursesSuccess(response.data));
+
   } catch (error) {
-    // Если произошла ошибка, диспатчим ошибку
-    dispatch(fetchCoursesFailure(error.response?.data?.message || error.message));
+    // Обработка ошибок сети или сервера
+    dispatch({
+      type: 'REGISTER_USER_FAILURE',
+      payload: error.response?.data?.error || error.message,
+    });
   }
 };
 
-
-export const createUser = ({email, password}) => async(dispatch) => {
-  console.log('1 createUser запустился ', email, password);
+export const createTeacherAction = ({email, password}) => async(dispatch) => {
+  console.log('1 creatTeacher запустился ', email, password);
   dispatch({ type: 'REGISTER_USER_REQUEST' }); // Запрос начат
 
   try {
@@ -495,6 +457,7 @@ export const createUser = ({email, password}) => async(dispatch) => {
         lastname: 'notcompleted',
         phone:'+2342454535',
         password: password,
+        roleId:3
     });
 
     // Если регистрация успешна
@@ -532,6 +495,7 @@ export const createUser = ({email, password}) => async(dispatch) => {
 };
 
 
+
 export const loginInspectorAction = (email,password) => async(dispatch) => {
   // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
   console.log('loginAction  start',email,password)
@@ -550,77 +514,17 @@ export const loginAction = ({email,password}) => async(dispatch) => {
   // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
 
   console.log('1 loginAction  start',email,password)
-// console.log('1 AutheUser запустился ', email, password);
+  // console.log('1 AutheUser запустился ', email, password);
 
 
-//  await axios.post(`http://localhost:4000/api/auth/login`, {
-//     email: email,
-//     password:password,
-//   }).then((res) => {
-//     console.log('response from loginAction ',res)
-//     dispatch(loginReducer(res.data));
-//   });
-
-
-  // try {
-  //   const response = await axios.post(`http://localhost:4000/api/auth/login`, {
-  //     email: email,
-  //     password: password,
-  //   });
-
-  //   console.log('Response from loginAction:', response.data);
-
-  //   // Если запрос успешен, диспатчим данные
-  //   dispatch(loginReducer(response.data));
-
-  //   // Сохраняем токен в localStorage
-  //   if (response.data.token) {
-  //     localStorage.setItem('token', response.data.token);
-  //     axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-  //   }
-  // } catch (error) {
-  //   console.error('Error in loginAction:', error.response?.data || error.message);
-
-  //   // Обработка ошибки 401
-  //   if (error.response?.status === 401) {
-  //     alert('Неверный email или пароль');
-  //   } else {
-  //     alert('Произошла ошибка при входе. Попробуйте снова.');
-  //   }
-  // }
-
-  console.log('loginAction started', email, password);
-
-  try {
-    const response = await axios.post(`http://localhost:4000/api/auth/login`, {
-      email: email,
-      password: password,
-    });
-
-    console.log('Response from loginAction:', response.data);
-
-    // Если запрос успешен, диспатчим данные
-    dispatch(loginReducer(response.data));
-
-    // Сохраняем токен в localStorage
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-    }
-
-    return response.data; // Возвращаем данные для unwrap()
-  } catch (error) {
-    console.error('Error in loginAction:', error.response?.data || error.message);
-
-    // Обработка ошибки 401
-    if (error.response?.status === 401) {
-      throw new Error('Неверный email или пароль');
-    } else {
-      throw new Error('Произошла ошибка при входе. Попробуйте снова.');
-    }
-  }
+ await axios.post(`http://localhost:4000/api/auth/login`, {
+    email: email,
+    password:password,
+  }).then((res) => {
+    console.log('response from loginAction ',res)
+    dispatch(loginReducer(res.data));
+  });
 };
-
 
 
 
