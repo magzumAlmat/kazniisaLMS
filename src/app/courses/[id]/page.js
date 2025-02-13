@@ -23,10 +23,10 @@ export default function CourseDetail() {
   const { id } = useParams(); // Получаем id из URL
   const router = useRouter();
   const dispatch = useDispatch();
-  const course = useSelector((state) => state.auth.currentCourse);
+  // const course = useSelector((state) => state.auth.currentCourse);
   const loading = useSelector((state) => state.auth.loadingCourse);
   const error = useSelector((state) => state.auth.courseError);
-  const thisCourse=useSelector((state) => state.auth.courses);
+  const thisCourse=useSelector((state) => state.auth.currentCourse);
 
   useEffect(() => {
     if (id) {
@@ -37,6 +37,7 @@ export default function CourseDetail() {
   if (loading) return <div>Загрузка...</div>;
   if (error) return <div>Ошибка: {error}</div>;
 
+  console.log('chosen course= ',thisCourse)
   return (
     <div>
           <li key={thisCourse.id}>

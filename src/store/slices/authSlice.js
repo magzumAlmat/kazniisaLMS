@@ -20,6 +20,7 @@ const initialState = {
   error:'',
   uploadProgress: 0,
   courses:[],
+  currentCourse:[],
 };
 const token = localStorage.getItem('token');
 
@@ -261,14 +262,21 @@ export const authSlice = createSlice({
 
       getAllCoursesReducer:(state, action) => {
         state.courses=action.payload
-  }}
+  },
+  getCurrentCoursesReducer:(state, action) => {
+    state.currentCourse=action.payload
+}
+
+}
+
+ 
     });
 
 
 
 // Action creators are generated for each case reducer function
 export const { getAllCoursesReducer,setError,clearError,setUploadProgress,
-  clearUploadProgress,sendErrorReducer,
+  clearUploadProgress,sendErrorReducer,getCurrentCoursesReducer,
   getAllRevisesReducer,ReviseReducer,authorize, logout, editVar ,
   sendCodeReducer,sendUserDataReducer,setCurrentUser,
   getBannerByCompanyIdReducer,getAllBannersReducer, 
@@ -319,7 +327,7 @@ export const  getCourseByIdAction = (id) => async(dispatch) => {
   console.log('1 getCourseByIdAction started  id=',id)
   
   const response = await axios.get(
-    `http://localhost:4000/api/lessons/${id}`,{
+    `http://localhost:4000/api/courses/${id}`,{
       // headers: {
       //   'Authorization': `Bearer ${token}`,
       //   'Content-Type': 'application/json', 
@@ -327,7 +335,7 @@ export const  getCourseByIdAction = (id) => async(dispatch) => {
     }
   ).then((response) => {
     console.log('1.2 getcoursebyid response ',response.data)
-    dispatch(getAllCoursesReducer(response.data));
+    dispatch(getCurrentCoursesReducer(response.data));
   });
 };
 

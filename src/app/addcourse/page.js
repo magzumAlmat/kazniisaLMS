@@ -2,6 +2,20 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+  Paper,
+} from "@mui/material";
+import { Edit, Delete } from "@mui/icons-material";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
@@ -9,24 +23,25 @@ export default function CoursesPage() {
   const [description, setDescription] = useState("");
   const [editingCourse, setEditingCourse] = useState(null); // ID редактируемого курса
 
-  // Получаем все курсы при загрузке
   useEffect(() => {
     fetchCourses();
   }, []);
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get("/api/courses");
+      const response = await axios.get("http://localhost:4000/api/courses");
       setCourses(response.data);
     } catch (error) {
       console.error("Ошибка при загрузке курсов:", error);
     }
   };
 
-  // Создание нового курса
   const createCourse = async () => {
     try {
-      const response = await axios.post("http://localhost:4000/api/courses", { title, description });
+      const response = await axios.post("http://localhost:4000/api/courses", {
+        title,
+        description,
+      });
       setCourses([...courses, response.data]);
       setTitle("");
       setDescription("");
@@ -35,14 +50,13 @@ export default function CoursesPage() {
     }
   };
 
-  // Обновление курса
   const updateCourse = async (id) => {
     try {
       const response = await axios.put(`http://localhost:4000/api/courses/${id}`, {
         title,
         description,
       });
-      setCourses(courses.map(course => (course.id === id ? response.data : course)));
+      setCourses(courses.map((course) => (course.id === id ? response.data : course)));
       setEditingCourse(null);
       setTitle("");
       setDescription("");
@@ -51,10 +65,9 @@ export default function CoursesPage() {
     }
   };
 
-  // Удаление курса
   const deleteCourse = async (id) => {
     try {
-      await axios.delete(`http://localhost:4000/api/courses${id}`);
+      await axios.delete(`http://localhost:4000/api/courses/${id}`);
       setCourses(courses.filter((course) => course.id !== id));
     } catch (error) {
       console.error("Ошибка при удалении курса:", error);
@@ -62,45 +75,77 @@ export default function CoursesPage() {
   };
 
   return (
-    <div>
-      <h1>Управление курсами</h1>
+    <Container maxWidth="md">
+      <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
+        Управление курсами
+      </Typography>
 
-      {/* Форма для добавления/редактирования курса */}
-      <div>
-        <h2>{editingCourse ? "Редактировать курс" : "Создать новый курс"}</h2>
-        <input
-          type="text"
-          placeholder="Название курса"
+      {/* Форма добавления/редактирования */}
+      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+        <Typography variant="h6">
+          {editingCourse ? "Редактировать курс" : "Создать новый курс"}
+        </Typography>
+        <TextField
+          fullWidth
+          label="Название курса"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          sx={{ mt: 2 }}
         />
-        <textarea
-          placeholder="Описание курса"
+        <TextField
+          fullWidth
+          label="Описание курса"
+          multiline
+          rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          sx={{ mt: 2 }}
         />
-        <button onClick={editingCourse ? () => updateCourse(editingCourse) : createCourse}>
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ mt: 2 }}
+          onClick={editingCourse ? () => updateCourse(editingCourse) : createCourse}
+        >
           {editingCourse ? "Обновить курс" : "Добавить курс"}
-        </button>
-      </div>
+        </Button>
+      </Paper>
 
       {/* Список курсов */}
-      <ul>
+      <List>
         {courses.map((course) => (
-          <li key={course.id}>
-            <h3>{course.title}</h3>
-            <p>{course.description}</p>
-            <button onClick={() => {
-              setEditingCourse(course.id);
-              setTitle(course.title);
-              setDescription(course.description);
-            }}>
-              Редактировать
-            </button>
-            <button onClick={() => deleteCourse(course.id)}>Удалить</button>
-          </li>
+          <Paper key={course.id} elevation={3} sx={{ mb: 2 }}>
+            <ListItem>
+              <ListItemText
+                primary={course.title}
+                secondary={course.description}
+              />
+              <ListItemSecondaryAction>
+                <IconButton
+                  edge="end"
+                  aria-label="edit"
+                  color="primary"
+                  onClick={() => {
+                    setEditingCourse(course.id);
+                    setTitle(course.title);
+                    setDescription(course.description);
+                  }}
+                >
+                  <Edit />
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  color="error"
+                  onClick={() => deleteCourse(course.id)}
+                >
+                  <Delete />
+                </IconButton>
+              </ListItemSecondaryAction>
+            </ListItem>
+          </Paper>
         ))}
-      </ul>
-    </div>
+      </List>
+    </Container>
   );
 }
