@@ -311,11 +311,14 @@ const RegisterPage = () => {
         <Typography component="h1" variant="h5">
           Регистрация
         </Typography>
+        <br />
+        <h5>Я преподаватель
         <Checkbox
             checked={isTeacher} // Передаем текущее состояние isTeacher
             onChange={(e) => setIsTeacher(e.target.checked)} // Обновляем состояние isTeacher
             inputProps={{ 'aria-label': 'Я преподаватель' }}
-          />
+          /> 
+         </h5>
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12}>

@@ -19,6 +19,7 @@ const initialState = {
   allRevises:'',
   error:'',
   uploadProgress: 0,
+  courses:[],
 };
 const token = localStorage.getItem('token');
 
@@ -249,9 +250,6 @@ export const authSlice = createSlice({
       },
 
 
-     
-
-
       logout: (state) => { // Clear user-related state when logging out
           console.log('Logut start')
           localStorage.removeItem('token'); // Remove the token from localStorage
@@ -259,12 +257,17 @@ export const authSlice = createSlice({
           state.currentUser = null;
           state.isAuth = false;
           state.authToken = null;
-      }
-  }
-});
+      },
+
+      getAllCoursesReducer:(state, action) => {
+        state.courses=action.payload
+  }}
+    });
+
+
 
 // Action creators are generated for each case reducer function
-export const { setError,clearError,setUploadProgress,
+export const { getAllCoursesReducer,setError,clearError,setUploadProgress,
   clearUploadProgress,sendErrorReducer,
   getAllRevisesReducer,ReviseReducer,authorize, logout, editVar ,
   sendCodeReducer,sendUserDataReducer,setCurrentUser,
@@ -312,20 +315,36 @@ export const { setError,clearError,setUploadProgress,
 // };
 
 
+export const  getCourseByIdAction = (id) => async(dispatch) => {
+  console.log('1 getCourseByIdAction started  id=',id)
+  
+  const response = await axios.get(
+    `http://localhost:4000/api/lessons/${id}`,{
+      // headers: {
+      //   'Authorization': `Bearer ${token}`,
+      //   'Content-Type': 'application/json', 
+      // },
+    }
+  ).then((response) => {
+    console.log('1.2 getcoursebyid response ',response.data)
+    dispatch(getAllCoursesReducer(response.data));
+  });
+};
 
-export const  getAllRevises= () => async(dispatch) => {
+
+export const  getAllCoursesAction= () => async(dispatch) => {
   console.log('1 getAllRevises started')
   
   const response = await axios.get(
-    `${END_POINT}/api/revise/getallrevises`,{
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json', // Set the content type to JSON
-      },
+    `${END_POINT}/api/courses`,{
+      // headers: {
+      //   'Authorization': `Bearer ${token}`,
+      //   'Content-Type': 'application/json', 
+      // },
     }
   ).then((response) => {
     console.log('1.2 getAllCompanies response ',response.data)
-    dispatch(getAllRevisesReducer(response.data));
+    dispatch(getAllCoursesReducer(response.data));
   });
 };
 
