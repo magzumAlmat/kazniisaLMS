@@ -3,8 +3,34 @@
 import React from "react";
 import { Container, Box, AppBar, Toolbar, Typography, Button, Paper } from "@mui/material";
 import Link from "next/link";
+import { useSelector } from "react-redux";
+import jwtDecode from "jwt-decode";
 
 export default function Layout({ children }) {
+
+   const isAuth=useSelector((state)=>state.auth.isAuth)
+   const userData=useSelector((state)=>state.auth.currentUser)
+
+  if(isAuth==true){
+      console.log('isAuth=' ,isAuth)
+      console.log('Вы залогинены',userData)
+      // router.push('/layout');
+    }
+    const token = localStorage.getItem("token");
+  
+    console.log('2 userTokenINITZ token=', token);
+   
+    let decodedToken = jwtDecode(token);
+     console.log('3 getUsersPosts decoded=', decodedToken.username);
+  
+    if (!token) {
+      // Handle the case where the token is not available or invalid
+      console.error("Token not available");
+      return;
+    }
+
+
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       {/* Верхнее меню */}

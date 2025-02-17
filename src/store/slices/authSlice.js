@@ -89,6 +89,7 @@ export const authSlice = createSlice({
               // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
               const decoded = jwt_decode(action.payload.token);
         
+              console.log('decoded data = ',decoded)
               state.currentUser = {
                 id: decoded.id,
                 email: decoded.email,
@@ -358,7 +359,6 @@ export const  getAllCoursesAction= () => async(dispatch) => {
 
 export const  getAllCompanies= () => async(dispatch) => {
   console.log('1 getAllBanner started', token)
-  
   
   const response = await axios.get(
     `${END_POINT}/api/auth/getallcompanies`,{

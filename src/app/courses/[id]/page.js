@@ -28,6 +28,7 @@ export default function CourseDetail() {
   const error = useSelector((state) => state.auth.courseError);
   const thisCourse=useSelector((state) => state.auth.currentCourse);
 
+  
   useEffect(() => {
     if (id) {
       dispatch(getCourseByIdAction(id)); // Загружаем курс
@@ -46,7 +47,7 @@ export default function CourseDetail() {
             <p>{thisCourse.description}</p>
            
             <p>  Курс создан <DateFormatter isoDate={thisCourse.created_at} /></p>
-</li>
+          </li>
 
 
       <button onClick={() => router.push("/courses")}>Назад</button>

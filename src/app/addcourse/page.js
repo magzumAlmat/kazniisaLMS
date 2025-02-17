@@ -16,12 +16,26 @@ import {
   Paper,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
+import jwtDecode from "jwt-decode";
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [editingCourse, setEditingCourse] = useState(null); // ID редактируемого курса
+
+   const token = localStorage.getItem("token");
+  
+    console.log('2 userTokenINITZ token=', token);
+   
+    let decodedToken = jwtDecode(token);
+     console.log('3 getUsersPosts decoded=', decodedToken.username);
+  
+    if (!token) {
+      // Handle the case where the token is not available or invalid
+      console.error("Token not available");
+      return;
+    }
 
   useEffect(() => {
     fetchCourses();
@@ -37,18 +51,52 @@ export default function CoursesPage() {
   };
 
   const createCourse = async () => {
+    const token = localStorage.getItem("token");
+    console.log('token= ', token);
+
     try {
-      const response = await axios.post("http://localhost:4000/api/courses", {
-        title,
-        description,
-      });
-      setCourses([...courses, response.data]);
-      setTitle("");
-      setDescription("");
+        const response = await axios.post(
+            "http://localhost:4000/api/courses",
+            {
+                title,
+                description,
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json', // Устанавливаем тип контента как JSON
+                },
+            }
+        );
+
+        // Если запрос успешен, добавляем новый курс в список
+        setCourses([...courses, response.data]);
+        setTitle("");
+        setDescription("");
+
+        // Выводим сообщение об успехе
+        alert("Курс успешно создан!");
     } catch (error) {
-      console.error("Ошибка при создании курса:", error);
+        console.error("Ошибка при создании курса:", error);
+
+        // Проверяем статус ошибки
+        if (error.response) {
+            const { status, data } = error.response;
+
+            if (status === 401) {
+                alert("Ошибка: Необходимо авторизоваться.");
+            } else if (status === 403) {
+                alert("Ошибка: У вас нет прав для создания курса.");
+            } else if (status === 400) {
+                alert(`Ошибка: ${data.message || "Некорректные данные."}`);
+            } else {
+                alert("Произошла ошибка. Попробуйте позже.");
+            }
+        } else {
+            alert("Не удалось подключиться к серверу. Проверьте соединение.");
+        }
     }
-  };
+};
 
   const updateCourse = async (id) => {
     try {

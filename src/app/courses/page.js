@@ -80,6 +80,7 @@ if(isAuth==true){
             <Link href={`/courses/${course.id}`}>
               <button>Перейти к курсу</button>
             </Link>
+            
           </li>
         ))}
       </ul>
