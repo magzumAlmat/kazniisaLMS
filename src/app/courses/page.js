@@ -21,66 +21,61 @@ import Link from "next/link";
 export default function Courses() {
       
       const isAuth=useSelector((state)=>state.auth.isAuth)
-     
+
       const userData=useSelector((state)=>state.auth.currentUser)
-     
+
       const { courses, loadingCourses, coursesError } = useSelector((state) => state.auth);
 
       const dispatch=useDispatch()
 
-if(isAuth==true){
-    console.log('isAuth=' ,isAuth)
-    console.log('Вы залогинены',userData)
-    // router.push('/layout');
-  }
-  const token = localStorage.getItem("token");
+      if(isAuth==true){
+          console.log('isAuth=' ,isAuth)
+          console.log('Вы залогинены',userData)
+          // router.push('/layout');
+        }
+        const token = localStorage.getItem("token");
 
-  console.log('2 userTokenINITZ token=', token);
- 
-  let decodedToken = jwtDecode(token);
-   console.log('3 getUsersPosts decoded=', decodedToken.username);
+        console.log('2 userTokenINITZ token=', token);
+      
+        let decodedToken = jwtDecode(token);
+        console.log('3 getUsersPosts decoded=', decodedToken.username);
 
-  if (!token) {
-    // Handle the case where the token is not available or invalid
-    console.error("Token not available");
-    return;
-  }
+        if (!token) {
+          // Handle the case where the token is not available or invalid
+          console.error("Token not available");
+          return;
+        }
 
-  useEffect(() => {
-   
-    dispatch(getAllCoursesAction())
-}, [dispatch]);
+        useEffect(() => {
+          dispatch(getAllCoursesAction())
+      }, [dispatch]);
 
-  if (loadingCourses) {
-    return <div>Загрузка курсов...</div>;
-  }
+        if (loadingCourses) {
+          return <div>Загрузка курсов...</div>;
+        }
 
-  if (coursesError) {
-    return <div>Ошибка: {coursesError}</div>;
-  }
-
-
+        if (coursesError) {
+          return <div>Ошибка: {coursesError}</div>;
+        }
 
 
   return (
     <>
       <h1>hi logged in User</h1>
       <ol>
-      <li> Показать все Курсы студента</li>
-      <li> При нажатии на курс провалиться в него</li>
-
+        <li> Показать все Курсы студента</li>
+        <li> При нажатии на курс провалиться в него</li>
       </ol>
       <ul>
         {courses.map((course) => (
           <li key={course.id}>
             <h2>{course.title}</h2>
-          
             <p>{course.description}</p>
 
             <Link href={`/courses/${course.id}`}>
               <button>Перейти к курсу</button>
             </Link>
-            
+
           </li>
         ))}
       </ul>

@@ -20,7 +20,7 @@ import {
   Paper,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
-
+import jwtDecode from "jwt-decode";
 export default function LessonsPage() {
   const [lessons, setLessons] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -29,6 +29,20 @@ export default function LessonsPage() {
   const [courseId, setCourseId] = useState("");
   const [editingLesson, setEditingLesson] = useState(null);
 
+
+     const token = localStorage.getItem("token");
+    
+      console.log('2 userTokenINITZ token=', token);
+     
+      let decodedToken = jwtDecode(token);
+       console.log('3 getUsersPosts decoded=', decodedToken.username);
+    
+      if (!token) {
+        // Handle the case where the token is not available or invalid
+        console.error("Token not available");
+        return;
+      }
+  
   useEffect(() => {
     fetchLessons();
     fetchCourses();
@@ -63,7 +77,12 @@ export default function LessonsPage() {
         title,
         content,
         course_id: courseId,
-      });
+      }, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+        },
+    });
       
       setLessons([...lessons, response.data]);
       setTitle("");
@@ -80,7 +99,12 @@ export default function LessonsPage() {
         title,
         content,
         course_id: courseId,
-      });
+      }, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+        },
+    });
       setLessons(lessons.map((lesson) => (lesson.id === id ? response.data : lesson)));
       setEditingLesson(null);
       setTitle("");
@@ -93,7 +117,12 @@ export default function LessonsPage() {
 
   const deleteLesson = async (id) => {
     try {
-      await axios.delete(`http://localhost:4000/api/lessons/${id}`);
+      await axios.delete(`http://localhost:4000/api/lessons/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json', 
+        },
+    });
       setLessons(lessons.filter((lesson) => lesson.id !== id));
     } catch (error) {
       console.error("Ошибка при удалении урока:", error);

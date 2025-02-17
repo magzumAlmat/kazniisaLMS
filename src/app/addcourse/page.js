@@ -103,6 +103,12 @@ export default function CoursesPage() {
       const response = await axios.put(`http://localhost:4000/api/courses/${id}`, {
         title,
         description,
+      },
+      {
+          headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json', 
+          },
       });
       setCourses(courses.map((course) => (course.id === id ? response.data : course)));
       setEditingCourse(null);
@@ -115,7 +121,13 @@ export default function CoursesPage() {
 
   const deleteCourse = async (id) => {
     try {
-      await axios.delete(`http://localhost:4000/api/courses/${id}`);
+      await axios.delete(`http://localhost:4000/api/courses/${id}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                   
+                },
+            })
       setCourses(courses.filter((course) => course.id !== id));
     } catch (error) {
       console.error("Ошибка при удалении курса:", error);
