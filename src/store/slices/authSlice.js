@@ -424,13 +424,24 @@ export const  getUserInfo=async(dispatch)=>{
 
 
 
-export const useTokenInitialization = (dispatch) => {
- 
-  
+export const useTokenInitialization = () => {
+  const dispatch = useDispatch();
 
-  return null;
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwt_decode(token); // Декодируем токен
+        console.log('Decoded token on initialization:', decoded);
+
+        dispatch(loginReducer({ token })); // Устанавливаем состояние currentUser
+      } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('token'); // Удаляем некорректный токен
+      }
+    }
+  }, [dispatch]);
 };
-
 
 
 

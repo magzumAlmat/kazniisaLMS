@@ -4,9 +4,11 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import Login from './login/page';
 import Layout from './layout/page';
+import { useTokenInitialization } from '../store/slices/authSlice';
 export default function Home() {
   return (
    <main>
+{useTokenInitialization()}
   <Login/>
 
    {/* <Button variant="contained">Hello world</Button> */}

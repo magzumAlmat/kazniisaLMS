@@ -11,9 +11,11 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }) {
+  // useTokenInitialization()
   return (
     <html lang="en">
       <ReduxProvider>
+        
         <body>{children}</body>
       </ReduxProvider>
     </html>

@@ -15,6 +15,32 @@ import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 import { motion } from "framer-motion";
 
+
+
+const VideoPlayer = ({ videoUrl }) => {
+  const [src, setSrc] = useState("");
+
+  useEffect(() => {
+    fetch(videoUrl)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = 'https://r504.yandexwebcache.org/urusei-yatsura/1.480.cafc297ab3360491.mp4?hash1=281982c8d7a06dbe2c38acbafa5d04b2&hash2=c07b9321b90b1900a86f3f5ce429d6c7';
+        setSrc(url);
+      })
+      .catch((error) => console.error("Ошибка:", error));
+  }, [videoUrl]);
+
+  return src ? (
+    <video controls width="640" height="360">
+      <source src={src} type="video/mp4" />
+      Ваш браузер не поддерживает воспроизведение видео.
+    </video>
+  ) : (
+    <p>Загрузка видео...</p>
+  );
+};
+
+
 const DateFormatter = ({ isoDate }) => {
   const date = new Date(isoDate);
   const formattedDate = date.toLocaleDateString("ru-RU", {
@@ -45,6 +71,7 @@ const StyledTab = styled(Tab)(({ theme }) => ({
     opacity: 1,
   },
 }));
+
 
 export default function CourseDetail() {
   const { id } = useParams(); // Получаем id из URL
@@ -153,6 +180,7 @@ export default function CourseDetail() {
             {/* Отображение материалов */}
             <Box sx={{ mt: 4 }}>
               <Typography variant="h6">Материалы:</Typography>
+              <VideoPlayer />
               {filteredMaterials.length > 0 ? (
                 <ul>
                   {filteredMaterials.map((material) => (
