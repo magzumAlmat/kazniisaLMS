@@ -22,8 +22,10 @@ const initialState = {
   courses:[],
   currentCourse:[],
 };
-const token = localStorage.getItem('token');
-
+let token;
+if (typeof window !== "undefined") {
+  token = localStorage.getItem("token");
+}
 // export const authSlice = createSlice({
 //   name: 'auth',
 //   initialState,
@@ -47,7 +49,6 @@ const token = localStorage.getItem('token');
 
   
 
-
 //     logout: (state) => {
 //       // Clear user-related state when logging out
 //       localStorage.removeItem('token'); // Remove the token from localStorage
@@ -57,7 +58,6 @@ const token = localStorage.getItem('token');
 //     },
 //   },
 // });
-
 
 export const authSlice = createSlice({
   name: 'auth',
@@ -99,6 +99,24 @@ export const authSlice = createSlice({
               };
               state.isAuth = true;
               console.log('this is currentUser- ',state.currentUser,'isAuth=',state.isAuth)
+            },
+            // loginReducer: (state, action) => {
+            //   const token = action.payload.token;
+            //   localStorage.setItem('token', token);
+            //   const decoded = jwt_decode(token);
+        
+            //   state.currentUser = {
+            //     id: decoded.id,
+            //     email: decoded.email,
+            //     name: decoded.name,
+            //     username: decoded.username,
+            //   };
+            //   state.isAuth = true;
+            // },
+            logout: (state) => {
+              localStorage.removeItem('token');
+              state.currentUser = null;
+              state.isAuth = false;
             },
 
     ReviseReducer:(state,action)=>{
@@ -424,24 +442,13 @@ export const  getUserInfo=async(dispatch)=>{
 
 
 
-export const useTokenInitialization = () => {
-  const dispatch = useDispatch();
+export const useTokenInitialization = (dispatch) => {
+ 
+  
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwt_decode(token); // Декодируем токен
-        console.log('Decoded token on initialization:', decoded);
-
-        dispatch(loginReducer({ token })); // Устанавливаем состояние currentUser
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('token'); // Удаляем некорректный токен
-      }
-    }
-  }, [dispatch]);
+  return null;
 };
+
 
 
 
@@ -470,7 +477,7 @@ export const createUserAction = ({email, password} ) => async (dispatch) => {
        email,
      
       password,
-      roleId: 2,
+      roleId: 3,
     });
 
 
@@ -507,7 +514,7 @@ export const createTeacherAction = ({email, password} ) => async (dispatch) => {
        email,
      
       password,
-      roleId: 3,
+      roleId: 2,
     });
 
 
@@ -585,20 +592,23 @@ export const loginInspectorAction = (email,password) => async(dispatch) => {
   });
 };
 
-export const loginAction = ({email,password}) => async(dispatch) => {
-  // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+export const loginAction = ({ email, password }) => async (dispatch) => {
+  try {
+    const response = await axios.post(`${END_POINT}/api/auth/login`, {
+      email,
+      password,
+    });
 
-  console.log('1 loginAction  start',email,password)
-  // console.log('1 AutheUser запустился ', email, password);
+    const token = response.data.token;
 
+    if (typeof window !== "undefined") {
+      localStorage.setItem("token", token); // Set token only in the browser
+    }
 
- await axios.post(`http://localhost:4000/api/auth/login`, {
-    email: email,
-    password:password,
-  }).then((res) => {
-    console.log('response from loginAction ',res)
-    dispatch(loginReducer(res.data));
-  });
+    dispatch(loginReducer({ token }));
+  } catch (error) {
+    console.error("Login failed:", error);
+  }
 };
 
 
