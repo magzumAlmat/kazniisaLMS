@@ -48,6 +48,7 @@ export default function MaterialsPage() {
     fetchLessons();
   }, []);
 
+  
   // Получение всех материалов
   const fetchMaterials = async () => {
     try {
@@ -61,6 +62,7 @@ export default function MaterialsPage() {
       console.error("Ошибка при загрузке материалов:", error);
     }
   };
+
 
   // Получение всех уроков
   const fetchLessons = async () => {

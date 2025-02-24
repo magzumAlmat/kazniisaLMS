@@ -24,7 +24,7 @@ const VideoPlayer = ({ videoUrl }) => {
     fetch(videoUrl)
       .then((response) => response.blob())
       .then((blob) => {
-        const url = 'https://r504.yandexwebcache.org/urusei-yatsura/1.480.cafc297ab3360491.mp4?hash1=281982c8d7a06dbe2c38acbafa5d04b2&hash2=c07b9321b90b1900a86f3f5ce429d6c7';
+        const url = 'http://localhost:4000/static/%D0%9A%D0%BF_%D0%BF%D0%BE_cleanSe.MP4';
         setSrc(url);
       })
       .catch((error) => console.error("Ошибка:", error));
