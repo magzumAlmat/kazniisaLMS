@@ -219,6 +219,67 @@ export default function Layout({ children }) {
 }
 
 // Функция для вывода контента в зависимости от роли
+// const renderContentByRole = (userInfo, progress, UserID) => {
+//   if (userInfo.roleId === 1) {
+//     // Администратор
+//     return (
+//       <Box>
+//         <Typography variant="h5">Админ-панель</Typography>
+//         <ul>
+//           {courses.map((course) => (
+//             <li key={course.id}>{course.title}</li>
+//           ))}
+//         </ul>
+//       </Box>
+//     );
+//   } else if (userInfo.roleId === 2) {
+//     // Учитель
+//     return (
+//       <Box>
+//         <Typography variant="h5">Панель учителя</Typography>
+//         <ul>
+//             {progress
+//               .filter((item) => item.user_id === UserID)
+//               .map((item, index) => {
+//                 const lesson = lessons.find((les) => les.id === item.lesson_id);
+//                 return (
+//                   <li key={item.id || index}> {/* Use `index` as a fallback if `item.id` is missing */}
+//                     Статус: {item.status} по предмету {lesson ? lesson.title || lesson.content : "Данные не доступны"}
+//                   </li>
+//                 );
+//               })}
+//           </ul>
+//       </Box>
+//     );
+//   } else if (userInfo.roleId === 3) {
+//     // Студент
+//     const latestItem = progress
+//       .filter((item) => item.user_id === UserID)
+//       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+//     if (latestItem) {
+//       // Проверка на наличие lessons
+//       if (!lessons || lessons.length === 0) {
+//         return <Typography variant="body1">Данные по предметам не доступны</Typography>;
+//       }
+//       const lesson = lessons.find((les) => les.id === latestItem.lesson_id);
+//       return (
+//         <Box>
+//           <Typography variant="h5">Последний прогресс</Typography>
+//           <ul>
+//             <li>
+//               Статус: {latestItem.status} по предмету {lesson ? lesson.title || lesson.content : "Данные не доступны"}
+//             </li>
+//           </ul>
+//         </Box>
+//       );
+//     } else {
+//       return <Typography variant="body1">No data available</Typography>;
+//     }
+//   } else {
+//     return <Typography variant="body1">Роль не определена</Typography>;
+//   }
+// };
+
 const renderContentByRole = (userInfo, progress, UserID) => {
   if (userInfo.roleId === 1) {
     // Администратор
@@ -240,14 +301,13 @@ const renderContentByRole = (userInfo, progress, UserID) => {
         <ul>
           {progress
             .filter((item) => item.user_id === UserID)
-            .map((item) => {
-              // Проверка на наличие lessons
+            .map((item, index) => {
               if (!lessons || lessons.length === 0) {
-                return <li key={item.id}>Данные по предметам не доступны</li>;
+                return <li key={index}>Данные по предметам не доступны</li>;
               }
               const lesson = lessons.find((les) => les.id === item.lesson_id);
               return (
-                <li key={item.id}>
+                <li key={item.id || index}>
                   Статус: {item.status} по предмету {lesson ? lesson.title || lesson.content : "Данные не доступны"}
                 </li>
               );
@@ -261,7 +321,6 @@ const renderContentByRole = (userInfo, progress, UserID) => {
       .filter((item) => item.user_id === UserID)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
     if (latestItem) {
-      // Проверка на наличие lessons
       if (!lessons || lessons.length === 0) {
         return <Typography variant="body1">Данные по предметам не доступны</Typography>;
       }
@@ -270,7 +329,7 @@ const renderContentByRole = (userInfo, progress, UserID) => {
         <Box>
           <Typography variant="h5">Последний прогресс</Typography>
           <ul>
-            <li>
+            <li key={latestItem.id}>
               Статус: {latestItem.status} по предмету {lesson ? lesson.title || lesson.content : "Данные не доступны"}
             </li>
           </ul>

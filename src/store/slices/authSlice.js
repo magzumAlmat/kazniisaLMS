@@ -21,6 +21,7 @@ const initialState = {
   uploadProgress: 0,
   courses:[],
   currentCourse:[],
+  alldocuments: []
 };
 let token;
 if (typeof window !== "undefined") {
@@ -286,15 +287,19 @@ export const authSlice = createSlice({
     state.currentCourse=action.payload
 }
 
-}
+},
 
+
+createDocumentReducer: (state, action) => {
+  state.alldocuments = [...state.alldocuments, action.payload];
+},
  
     });
 
 
 
 // Action creators are generated for each case reducer function
-export const { getAllCoursesReducer,setError,clearError,setUploadProgress,
+export const { createDocumentReducer,getAllCoursesReducer,setError,clearError,setUploadProgress,
   clearUploadProgress,sendErrorReducer,getCurrentCoursesReducer,
   getAllRevisesReducer,ReviseReducer,authorize, logout, editVar ,
   sendCodeReducer,sendUserDataReducer,setCurrentUser,
@@ -340,6 +345,24 @@ export const { getAllCoursesReducer,setError,clearError,setUploadProgress,
 //   console.log('Token не найден');
 //   return null;
 // };
+
+export const createDocumentAction = (file, name) => async (dispatch) => {
+  const formData = new FormData();
+  const blob = new Blob([file], { type: file.type });
+  formData.append("file", blob, file.name);
+  formData.append("name", name);
+
+  try {
+    const response = await axios.post(`${host}upload`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    dispatch(createDocumentReducer(response.data));
+  } catch (error) {
+    dispatch(setError(error.message));
+  }
+};
 
 
 export const  getCourseByIdAction = (id) => async(dispatch) => {
