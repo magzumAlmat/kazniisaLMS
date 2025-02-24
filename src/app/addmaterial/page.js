@@ -14,7 +14,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   IconButton,
   Paper,
 } from "@mui/material";
@@ -195,7 +194,7 @@ export default function MaterialsPage() {
       <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
         Управление материалами
       </Typography>
-
+  
       {/* Форма добавления/редактирования */}
       <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
         <Typography variant="h6">
@@ -216,7 +215,7 @@ export default function MaterialsPage() {
             <MenuItem value="presentation">Презентация</MenuItem>
           </Select>
         </FormControl>
-
+  
         {/* Dropzone для видео */}
         {type === "video" && (
           <Box {...getVideoRootProps()} sx={{ mt: 2, border: "2px dashed #ccc", p: 2, textAlign: "center" }}>
@@ -227,7 +226,7 @@ export default function MaterialsPage() {
             )}
           </Box>
         )}
-
+  
         {/* Dropzone для документов */}
         {type === "document" && (
           <Box {...getDocumentRootProps()} sx={{ mt: 2, border: "2px dashed #ccc", p: 2, textAlign: "center" }}>
@@ -238,13 +237,10 @@ export default function MaterialsPage() {
             )}
           </Box>
         )}
-
+  
         {/* Dropzone для презентаций */}
         {type === "presentation" && (
-          <Box
-            {...getPresentationRootProps()}
-            sx={{ mt: 2, border: "2px dashed #ccc", p: 2, textAlign: "center" }}
-          >
+          <Box {...getPresentationRootProps()} sx={{ mt: 2, border: "2px dashed #ccc", p: 2, textAlign: "center" }}>
             <input {...getPresentationInputProps()} />
             <Typography>Перетащите презентацию сюда или нажмите для выбора</Typography>
             {presentationFiles.length > 0 && (
@@ -252,7 +248,7 @@ export default function MaterialsPage() {
             )}
           </Box>
         )}
-
+  
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel>Выберите урок</InputLabel>
           <Select value={lesson_id} onChange={(e) => setLessonId(e.target.value)}>
@@ -272,42 +268,45 @@ export default function MaterialsPage() {
           {editingMaterial ? "Обновить материал" : "Добавить материал"}
         </Button>
       </Paper>
-
+  
       {/* Список материалов */}
-      <List>
+      <List >
         {materials.map((material) => (
           <Paper key={material.material_id} elevation={3} sx={{ mb: 2 }}>
-            <ListItem>
+            <ListItem
+              secondaryAction={
+                <>
+                  <IconButton
+                    edge="end"
+                    aria-label="edit"
+                    color="primary"
+                    onClick={() => {
+                      setEditingMaterial(material.material_id);
+                      setTitle(material.title);
+                      setType(material.type);
+                      setFilePath(material.file_path);
+                      setLessonId(material.lesson_id.toString());
+                    }}
+                  >
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    color="error"
+                    onClick={() => deleteMaterial(material.material_id)}
+                  >
+                    <Delete />
+                  </IconButton>
+                </>
+              }
+            >
               <ListItemText
                 primary={material.title}
                 secondary={`Урок: ${
                   lessons.find((lesson) => lesson.id === material.lesson_id)?.title || "Неизвестно"
                 }\nТип: ${material.type}\nФайл: ${material.file_path}`}
               />
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  aria-label="edit"
-                  color="primary"
-                  onClick={() => {
-                    setEditingMaterial(material.material_id);
-                    setTitle(material.title);
-                    setType(material.type);
-                    setFilePath(material.file_path);
-                    setLessonId(material.lesson_id.toString());
-                  }}
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  color="error"
-                  onClick={() => deleteMaterial(material.material_id)}
-                >
-                  <Delete />
-                </IconButton>
-              </ListItemSecondaryAction>
             </ListItem>
           </Paper>
         ))}

@@ -5,73 +5,63 @@ import { useParams, useRouter } from "next/navigation"; // Next.js 13+
 import { useDispatch, useSelector } from "react-redux";
 import { getCourseByIdAction } from "@/store/slices/authSlice";
 import axios from "axios";
-import { useTheme } from "@mui/material/styles";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Typography from "@mui/material/Typography";
-import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Button from "@mui/material/Button";
-import { styled } from "@mui/material/styles";
+import {
+  Box,
+  Button,
+  Paper,
+  Tabs,
+  Tab,
+  Typography,
+  styled,
+  Grid,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+} from "@mui/material";
 import { motion } from "framer-motion";
 
-
-
-const VideoPlayer = ({ videoUrl }) => {
-  const [src, setSrc] = useState("");
-
-  useEffect(() => {
-    fetch(videoUrl)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const url = 'http://localhost:4000/static/%D0%9A%D0%BF_%D0%BF%D0%BE_cleanSe.MP4';
-        setSrc(url);
-      })
-      .catch((error) => console.error("Ошибка:", error));
-  }, [videoUrl]);
-
-  return src ? (
-    <video controls width="640" height="360">
-      <source src={src} type="video/mp4" />
-      Ваш браузер не поддерживает воспроизведение видео.
-    </video>
-  ) : (
-    <p>Загрузка видео...</p>
+// Компонент универсальной кнопки скачивания
+const DownloadButton = ({ href, fileName }) => {
+  return (
+    <Button
+      href={href}
+      download={fileName || "file"}
+      variant="contained"
+      color="primary"
+      sx={{
+        mt: 2,
+        textTransform: "none",
+        fontWeight: "bold",
+        borderRadius: "8px",
+      }}
+    >
+      Скачать
+    </Button>
   );
 };
 
+// Компонент плеера видео
+const VideoPlayer = ({ material }) => {
+  if (!material || !material.file_path) {
+    return <Typography variant="body1">Видео недоступно.</Typography>;
+  }
 
-const DateFormatter = ({ isoDate }) => {
-  const date = new Date(isoDate);
-  const formattedDate = date.toLocaleDateString("ru-RU", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-  return <p>{formattedDate}</p>;
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+        {material.title}
+      </Typography>
+      <video controls width="100%" height="auto" style={{ borderRadius: "8px" }}>
+        <source src={material.file_path} type="video/mp4" />
+        Ваш браузер не поддерживает воспроизведение видео.
+      </video>
+      {/* Кнопка для скачивания видео */}
+      <DownloadButton href={material.file_path} fileName={material.title || "video.mp4"} />
+    </Box>
+  );
 };
-
-const StyledTabs = styled(Tabs)(({ theme }) => ({
-  "& .MuiTabs-indicator": {
-    backgroundColor: theme.palette.primary.main,
-    width: 3, // Толщина индикатора для вертикальных вкладок
-  },
-}));
-
-const StyledTab = styled(Tab)(({ theme }) => ({
-  textTransform: "none",
-  fontWeight: theme.typography.fontWeightRegular,
-  fontSize: theme.typography.pxToRem(15),
-  color: theme.palette.text.secondary,
-  "&.Mui-selected": {
-    color: theme.palette.primary.main,
-  },
-  "&:hover": {
-    color: theme.palette.primary.main,
-    opacity: 1,
-  },
-}));
-
 
 export default function CourseDetail() {
   const { id } = useParams(); // Получаем id из URL
@@ -84,7 +74,6 @@ export default function CourseDetail() {
   const [lessons, setLessons] = useState([]);
   const [materials, setMaterials] = useState([]); // Отдельное состояние для материалов
   const [activeTab, setActiveTab] = React.useState(0); // Текущая активная вкладка
-  const theme = useTheme();
 
   // Загрузка уроков
   const fetchLessons = async () => {
@@ -122,8 +111,8 @@ export default function CourseDetail() {
     fetchMaterials();
   }, [id, dispatch]);
 
-  if (loading) return <div>Загрузка...</div>;
-  if (error) return <div>Ошибка: {error}</div>;
+  if (loading) return <Typography variant="h6">Загрузка...</Typography>;
+  if (error) return <Typography variant="h6">Ошибка: {error}</Typography>;
 
   // Проверка на наличие данных
   if (!filteredLessons || filteredLessons.length === 0) {
@@ -134,21 +123,53 @@ export default function CourseDetail() {
     setActiveTab(newValue);
   };
 
+  // Фильтруем только видео-материалы
+  const videoMaterials = filteredMaterials.filter((material) => material.type === "video");
+
   return (
-    <Box sx={{ display: "flex", flexGrow: 1, bgcolor: "background.paper", height: "100%" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexGrow: 1,
+        bgcolor: "background.paper",
+        minHeight: "100vh",
+        padding: 2,
+      }}
+    >
       {/* Вертикальные вкладки */}
-      <StyledTabs
+      <Tabs
         orientation="vertical"
         variant="scrollable"
         value={activeTab}
         onChange={handleChangeTab}
         aria-label="Уроки курса"
-        sx={{ borderRight: 1, borderColor: "divider", width: "200px" }}
+        sx={{
+          borderRight: 1,
+          borderColor: "divider",
+          width: "250px",
+          backgroundColor: "background.default",
+          position: "sticky",
+          top: 0,
+          height: "100vh",
+          overflowY: "auto",
+        }}
       >
-        {filteredLessons.map((lesson, index) => (
-          <StyledTab key={lesson.id} label={lesson.title} />
+        {filteredLessons.map((lesson) => (
+          <Tab
+            key={lesson.id}
+            label={lesson.title}
+            sx={{
+              textTransform: "none",
+              fontWeight: "bold",
+              fontSize: "1rem",
+              color: "text.secondary",
+              "&.Mui-selected": {
+                color: "primary.main",
+              },
+            }}
+          />
         ))}
-      </StyledTabs>
+      </Tabs>
 
       {/* Контент активного урока */}
       <Box sx={{ flexGrow: 1, p: 3 }}>
@@ -158,45 +179,66 @@ export default function CourseDetail() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
-            <Typography variant="h5">{filteredLessons[activeTab].title}</Typography>
-            <Typography variant="body1" sx={{ mt: 2 }}>
+          <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+            {/* Заголовок урока */}
+            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2 }}>
+              {filteredLessons[activeTab].title}
+            </Typography>
+
+            {/* Описание урока */}
+            <Typography variant="body1" sx={{ mb: 4 }}>
               {filteredLessons[activeTab].content}
             </Typography>
+
+            {/* Изображение урока */}
             {filteredLessons[activeTab].image && (
-              <img
+              <Box
+                component="img"
                 src={filteredLessons[activeTab].image}
                 alt={`Lesson ${activeTab + 1}`}
-                style={{
+                sx={{
                   width: "100%",
-                  height: "200px",
+                  height: "300px",
                   objectFit: "cover",
-                  marginTop: "10px",
                   borderRadius: "8px",
+                  mb: 4,
                 }}
               />
             )}
 
-            {/* Отображение материалов */}
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h6">Материалы:</Typography>
-              <VideoPlayer />
-              {filteredMaterials.length > 0 ? (
-                <ul>
-                  {filteredMaterials.map((material) => (
-                    <li key={material.material_id}>
-                      <Typography variant="subtitle1">{material.title}</Typography>
-                      <Typography variant="body2">{material.type}</Typography>
-                      <a href={material.file_path} target="_blank" rel="noopener noreferrer">
-                        Скачать файл
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <Typography variant="body1">Нет доступных материалов.</Typography>
-              )}
-            </Box>
+            {/* Видео-материалы */}
+            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+              Видео-материалы:
+            </Typography>
+            {videoMaterials.length > 0 ? (
+              videoMaterials.map((material) => (
+                <VideoPlayer key={material.material_id} material={material} />
+              ))
+            ) : (
+              <Typography variant="body1">Нет доступных видео.</Typography>
+            )}
+
+            {/* Другие материалы */}
+            <Typography variant="h5" sx={{ fontWeight: "bold", mt: 4, mb: 2 }}>
+              Дополнительные материалы:
+            </Typography>
+            {filteredMaterials.length > 0 ? (
+              <List>
+                {filteredMaterials.map((material) => (
+                  <ListItem key={material.material_id}>
+                    <ListItemText
+                      primary={material.title}
+                      secondary={`Тип: ${material.type}`}
+                    />
+                    <ListItemSecondaryAction>
+                      <DownloadButton href={material.file_path} fileName={material.title || "file"} />
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography variant="body1">Нет доступных материалов.</Typography>
+            )}
           </Paper>
         </motion.div>
 
@@ -204,7 +246,15 @@ export default function CourseDetail() {
         <Button
           variant="contained"
           color="primary"
-          sx={{ mt: 4, display: "block", margin: "auto", borderRadius: 2 }}
+          sx={{
+            mt: 4,
+            display: "block",
+            margin: "auto",
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: "bold",
+            padding: "10px 20px",
+          }}
           onClick={() => router.push("/courses")}
         >
           Назад к курсам
