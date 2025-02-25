@@ -392,7 +392,7 @@ export default function Layout({ children }) {
   
   if (token) {
     try {
-      const decoded = jwt_decode(token);
+      const decoded = jwtDecode(token);
       console.log("3. Decoded token:", decoded);
       localStorage.setItem("token", token);
       console.log("4. Token saved to localStorage:", localStorage.getItem("token"));
@@ -412,10 +412,11 @@ export default function Layout({ children }) {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        await dispatch(getAllCoursesAction());
-        await dispatch(getUserInfo());
-        await fetchLessons();
-        await fetchProgresses();
+         dispatch(getAllCoursesAction());
+        //  dispatch(getUserInfo());
+         fetchUserInfo()
+         fetchLessons();
+         fetchProgresses();
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }
@@ -425,6 +426,21 @@ export default function Layout({ children }) {
   }, [dispatch]);
 
   // Функция для загрузки уроков
+  const fetchUserInfo = async () => {
+    console.log('fetchUserInfo started!')
+    try {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+      {headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+      },);
+      setUserInfo(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке уроков:", error);
+      
+    }
+  };
+
   const fetchLessons = async () => {
     try {
       const response = await axios.get("http://localhost:4000/api/lessons");
@@ -504,6 +520,7 @@ export default function Layout({ children }) {
 
   // Отрисовка контента в зависимости от роли пользователя
   const renderContentByRole = () => {
+    console.log('userINFO= ',userInfo)
     if (!userInfo) return null;
 
     if (userInfo.roleId === 1) {
@@ -531,6 +548,7 @@ export default function Layout({ children }) {
         </div>
       );
     } else if (userInfo.roleId === 3) {
+
       // Студент
       const latestItem = progress
         .filter((item) => item.user_id === userInfo.id)
@@ -540,6 +558,7 @@ export default function Layout({ children }) {
         const lesson = lessons.find((les) => les.id === latestItem.lesson_id);
         return (
           <div>
+       
             <h2>Последний прогресс</h2>
             <p>
               Статус: {latestItem.status} по предмету{" "}

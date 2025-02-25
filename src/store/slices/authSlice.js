@@ -24,10 +24,15 @@ const initialState = {
   currentCourse:[],
   alldocuments: []
 };
-let token;
-if (typeof window !== "undefined") {
-  token = localStorage.getItem("token");
-}
+
+// let token;
+// if (typeof window !== "undefined") {
+//   token = localStorage.getItem("token");
+// }
+
+
+const token = localStorage.getItem('token');
+
 // export const authSlice = createSlice({
 //   name: 'auth',
 //   initialState,
@@ -178,31 +183,31 @@ export const authSlice = createSlice({
     setCurrentUser:(state,action)=>{
       console.log('1.3 setCurrentUser',action.payload)
       state.currentUser=action.payload
-      console.log('1.4 CURRENT  USER CHANGED IN setCurrentUser',state.currentUser)
-      state.currentCompany = action.payload.companyId;
+     
+     
 
     },
 
+
+    
     authorize: (state, action) => {
 
       state.someVar=action.payload
       state.authToken=null
       state.authToken=action.payload
       
-      // console.log('PAYLOAD=',action.payload.token,'codeFromServer=',state.currentUser)
+      console.log('PAYLOAD=',action.payload.token,'codeFromServer=',state.currentUser)
 
-      // const decoded = jwt_decode(action.payload.token);
-      // console.log('1 authorize decoded token=========', decoded)
+      const decoded = jwt_decode(action.payload.token);
+      console.log('1 authorize decoded token=========', decoded)
 
       
       
-      // localStorage.setItem("token", action.payload.token);
-      // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-      // // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`; // Add space after 'Bearer'
+      localStorage.setItem("token", action.payload.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+      // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`; // Add space after 'Bearer'
     
-      // const decoded = jwt_decode(action.payload.token);
-      // console.log('decoded token=========', decoded)
-
+      
 
         // };
       
@@ -401,7 +406,7 @@ export const  getCourseByIdAction = (id) => async(dispatch) => {
 
 
 export const  getAllCoursesAction= () => async(dispatch) => {
-  console.log('1 getAllRevises started')
+  console.log('1 getAllCourse started')
   
   const response = await axios.get(
     `${END_POINT}/api/courses`,{
@@ -411,7 +416,7 @@ export const  getAllCoursesAction= () => async(dispatch) => {
       // },
     }
   ).then((response) => {
-    console.log('1.2 getAllCompanies response ',response.data)
+    console.log('1.2 getAllCourse response ',response.data)
     dispatch(getAllCoursesReducer(response.data));
   });
 };
@@ -467,12 +472,12 @@ export const  getBannerByCompanyIdAction= (companyId) => async(dispatch) => {
 
 export const  getUserInfo=async(dispatch)=>{
   
-  console.log('1 getUserInFo started')
+  console.log('1 getUserInFo started token=,',token)
   const response = await axios.get(
-    `${END_POINT}/api/auth/getAuthentificatedUserInfo`,{
+    `http://localhost:4000/api/auth/getAuthentificatedUserInfo`,{
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json', // Set the content type to JSON
+      
       },
     }
   ).then((response) => {
@@ -480,6 +485,7 @@ export const  getUserInfo=async(dispatch)=>{
     dispatch(setCurrentUser(response.data));
   });
 };
+
 
 
 
