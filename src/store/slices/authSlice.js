@@ -1,3 +1,4 @@
+
 import { createSlice, current } from '@reduxjs/toolkit';
 import axios from 'axios';
 import END_POINT from '@/components/config/index';
@@ -65,6 +66,18 @@ export const authSlice = createSlice({
   initialState,
 
   reducers: {
+    // loginReducer: (state, action) => {
+    //   state.isAuth = true;
+    //   state.currentUser = action.payload;
+    // },
+    logoutReducer: (state) => {
+      state.isAuth = false;
+      state.currentUser = null;
+    },
+    getAllCoursesAction: (state, action) => {
+      state.courses = action.payload;
+    },
+
     setError: (state, action) => {
       state.error = action.payload;
     },
@@ -84,7 +97,10 @@ export const authSlice = createSlice({
     },
 
     loginReducer:(state,action)=>{
+      localStorage.setItem("token", action.payload.token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${action.payload.token}`;
      
+
               localStorage.setItem('token', action.payload.token);
               axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
               // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
@@ -101,6 +117,8 @@ export const authSlice = createSlice({
               state.isAuth = true;
               console.log('this is currentUser- ',state.currentUser,'isAuth=',state.isAuth)
             },
+
+
             // loginReducer: (state, action) => {
             //   const token = action.payload.token;
             //   localStorage.setItem('token', token);
@@ -466,7 +484,28 @@ export const  getUserInfo=async(dispatch)=>{
 
 
 export const useTokenInitialization = (dispatch) => {
+  const urlParams = new URLSearchParams(window.location.search);
+     const token = urlParams.get("token");
  
+     if (token) {
+       try {
+         // Save token to localStorage
+         localStorage.setItem("token", token);
+ 
+         // Decode token
+         const decoded = jwt_decode(token);
+         console.log("Decoded token:", decoded);
+ 
+         // Update Redux state
+         dispatch(loginReducer({ token }));
+       } catch (error) {
+         console.error("Invalid token:", error);
+         localStorage.removeItem("token"); // Remove invalid token
+       }
+ 
+       // Clean up the URL (optional)
+       window.history.replaceState({}, document.title, "/layout");
+     }
   
 
   return null;
@@ -497,8 +536,7 @@ export const createUserAction = ({email, password} ) => async (dispatch) => {
 
     // Если пользователя с таким email нет, продолжаем регистрацию
     await axios.post('http://localhost:4000/api/register', {
-       email,
-     
+      email,
       password,
       roleId: 3,
     });
@@ -623,6 +661,12 @@ export const loginAction = ({ email, password }) => async (dispatch) => {
     });
 
     const token = response.data.token;
+
+    // Save the token to localStorage
+    localStorage.setItem("token", token);
+
+    // Update Redux state
+    
 
     if (typeof window !== "undefined") {
       localStorage.setItem("token", token); // Set token only in the browser

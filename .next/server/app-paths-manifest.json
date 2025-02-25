@@ -1,10 +1,7 @@
 {
   "/not-found": "app/not-found.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/courses/page": "app/courses/page.js",
-  "/register/page": "app/register/page.js",
+  "/page": "app/page.js",
   "/login/page": "app/login/page.js",
-  "/layout/page": "app/layout/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/courses/[id]/page": "app/courses/[id]/page.js"
+  "/layout/page": "app/layout/page.js"
 }

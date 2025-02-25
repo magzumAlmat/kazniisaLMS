@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; // Используем next/navigation вместо next/router
 import { Container, Typography, TextField, Button, Box, Link, Grid } from '@mui/material';
@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { authorize, loginAction } from '@/store/slices/authSlice';
 
 const LoginPage = () => {
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const isAuth = useSelector((state) => state.auth.isAuth); // Получаем состояние авторизации
@@ -89,6 +90,26 @@ const LoginPage = () => {
               </Link>
             </Grid>
           </Grid>
+
+          {/* Кнопка входа через Google */}
+          <Box sx={{ mt: 2, width: '100%' }}>
+            <Button
+              variant="outlined"
+              fullWidth
+              startIcon={<img src="/google-icon.png" alt="Google" style={{ width: 20, marginRight: 10 }} />}
+              href="http://localhost:4000/api/auth/google" // URL для Google OAuth
+              sx={{
+                textTransform: 'none',
+                color: '#000',
+                borderColor: '#ccc',
+                '&:hover': {
+                  borderColor: '#aaa',
+                },
+              }}
+            >
+              Войти через Google
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Container>

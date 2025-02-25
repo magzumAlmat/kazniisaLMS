@@ -271,14 +271,11 @@ const RegisterPage = () => {
      
       console.log('Is Teacher:', isTeacher); // Выводим состояние isTeacher
     
-        if (isTeacher===false){
+        
           await dispatch(createUserAction({ email, password }));  
-          setSuccessMessage('Регистрация прошла успешно!');
+          setSuccessMessage('Регистрация прошла успешно! Пройдите по ссылке в письме подтверждения!');
           setOpenSnackbar(true);
-        }else{
-          console.log('Ветка учителя',isTeacher)
-          dispatch(createTeacherAction({ email, password }));
-        }
+        
       
 
      
@@ -312,13 +309,13 @@ const RegisterPage = () => {
           Регистрация
         </Typography>
         <br />
-        <h5>Я преподаватель
+        {/* <h5>Я преподаватель
         <Checkbox
-            checked={isTeacher} // Передаем текущее состояние isTeacher
-            onChange={(e) => setIsTeacher(e.target.checked)} // Обновляем состояние isTeacher
+            checked={isTeacher} 
+            onChange={(e) => setIsTeacher(e.target.checked)} 
             inputProps={{ 'aria-label': 'Я преподаватель' }}
           /> 
-         </h5>
+         </h5> */}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12}>

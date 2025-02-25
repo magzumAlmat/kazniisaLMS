@@ -33,7 +33,7 @@ export default function MaterialsPage() {
   const [documentFiles, setDocumentFiles] = useState([]); // Для документов
   const [presentationFiles, setPresentationFiles] = useState([]); // Для презентаций
   const token = localStorage.getItem("token");
-
+  const [courses, setCourses] = useState([]);
   if (!token) {
     console.error("Token not available");
     return;
@@ -81,6 +81,7 @@ export default function MaterialsPage() {
   useEffect(() => {
     fetchMaterials();
     fetchLessons();
+    fetchCourses();
   }, []);
 
   const fetchMaterials = async () => {
@@ -94,6 +95,14 @@ export default function MaterialsPage() {
     }
   };
 
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/api/courses");
+      setCourses(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке курсов:", error);
+    }
+  };
   const fetchLessons = async () => {
     try {
       const response = await axios.get("http://localhost:4000/api/lessons", {
@@ -251,13 +260,21 @@ export default function MaterialsPage() {
   
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel>Выберите урок</InputLabel>
-          <Select value={lesson_id} onChange={(e) => setLessonId(e.target.value)}>
-            {lessons.map((les) => (
-              <MenuItem key={les.id} value={les.id}>
-                {les.title}
-              </MenuItem>
-            ))}
-          </Select>
+          <Select
+              value={lesson_id}
+              onChange={(e) => setLessonId(e.target.value)}
+              fullWidth
+              required
+            >
+              {lessons.map((lesson) => {
+                const course = courses.find((c) => c.id === lesson.course_id);
+                return (
+                  <MenuItem key={lesson.id} value={lesson.id}>
+                     {course ? course.title : 'Курс не найден'} - {lesson.title} 
+                  </MenuItem>
+                );
+              })}
+            </Select>
         </FormControl>
         <Button
           variant="contained"
