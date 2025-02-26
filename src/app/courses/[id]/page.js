@@ -22,6 +22,26 @@ import {
   Divider,
 } from "@mui/material";
 
+
+const VideoPlayer = ({ material }) => {
+  if (!material || !material.file_path) {
+    return <Typography variant="body1">Видео недоступно.</Typography>;
+  }
+
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
+        {material.title}
+      </Typography>
+      <video controls width="100%" height="auto" style={{ borderRadius: "8px" }}>
+        <source src={material.file_path} type="video/mp4" />
+        Ваш браузер не поддерживает воспроизведение видео.
+      </video>
+      {/* Кнопка для скачивания видео */}
+      {/* <DownloadButton href={material.file_path} fileName={material.title || "video.mp4"} /> */}
+    </Box>
+  );
+};
 export default function CourseDetail() {
   const { id } = useParams(); // Получаем id из URL
   const router = useRouter();
@@ -73,7 +93,11 @@ export default function CourseDetail() {
 
       // Уничтожаем предыдущий экземпляр, если он существует
       if (editorInstance.current) {
-        editorInstance.current.destroy();
+        try {
+          editorInstance.current.destroy();
+        } catch (error) {
+          console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
+        }
         editorInstance.current = null;
       }
 
@@ -95,7 +119,11 @@ export default function CourseDetail() {
     return () => {
       // Очистка экземпляра Editor.js при размонтировании
       if (editorInstance.current) {
-        editorInstance.current.destroy();
+        try {
+          editorInstance.current.destroy();
+        } catch (error) {
+          console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
+        }
         editorInstance.current = null;
       }
     };
@@ -114,6 +142,8 @@ export default function CourseDetail() {
   if (!filteredLessons || filteredLessons.length === 0) {
     return <Typography variant="h6">Нет доступных уроков.</Typography>;
   }
+
+  const videoMaterials = filteredMaterials.filter((material) => material.type === "video");
 
   return (
     <Box
@@ -203,20 +233,16 @@ export default function CourseDetail() {
           {filteredMaterials.length > 0 ? (
             filteredMaterials.map((material) => (
               <Box key={material.material_id} sx={{ mb: 2 }}>
-                <Typography variant="subtitle1">{material.title}</Typography>
-                <video controls width="100%" style={{ borderRadius: "8px" }}>
-                  <source src={material.file_path} type="video/mp4" />
-                  Ваш браузер не поддерживает воспроизведение видео.
-                </video>
-                <Button
-                  href={material.file_path}
-                  download={material.title || "file"}
-                  variant="contained"
-                  color="primary"
-                  sx={{ mt: 1 }}
-                >
-                  Скачать
-                </Button>
+               
+                {videoMaterials.length > 0 ? (
+                      videoMaterials.map((material) => (
+                        <Typography variant="subtitle1">{material.title}</Typography>,
+                        <VideoPlayer key={material.material_id} material={material} />
+                      ))
+                    ) : (
+                      <Typography variant="body1">Нет доступных видео.</Typography>
+                    )}
+              
               </Box>
             ))
           ) : (
