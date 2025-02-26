@@ -386,6 +386,11 @@ createDocumentReducer: (state, action) => {
   state.alldocuments = [...state.alldocuments, action.payload];
 },
  
+
+createLessonReducer: (state, action) => {
+  console.log(action.payload)
+  state.allDocuments = [...state.allDocuments, action.payload]; //нужен для обновления всех документов в реальном времени
+},
     });
 
 
@@ -395,7 +400,7 @@ export const { createDocumentReducer,getAllCoursesReducer,setError,clearError,se
   clearUploadProgress,sendErrorReducer,getCurrentCoursesReducer,
   getAllRevisesReducer,ReviseReducer,authorize, logout, editVar ,
   sendCodeReducer,sendUserDataReducer,setCurrentUser,
-  getBannerByCompanyIdReducer,getAllBannersReducer, 
+  getBannerByCompanyIdReducer,getAllBannersReducer, createLessonReducer,
   loginReducer,addCompanyReducer,getAllCompaniesReducer} = authSlice.actions;
 
 // Use useEffect for token initialization
@@ -437,6 +442,41 @@ export const { createDocumentReducer,getAllCoursesReducer,setError,clearError,se
 //   console.log('Token не найден');
 //   return null;
 // };
+
+
+export const createLessonAction = (request) => async (dispatch) => {
+  const token = localStorage.getItem("token");
+
+  console.log(request)
+  
+
+  const data = { 
+    document_name: request.documentName,
+    document_content: {},
+   };
+
+  try {
+    const response = await axios.post(
+      `${END_POINT}/api/user/project/${request.projectId}/createdocument`,
+      data,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json", // Set the content type to JSON
+        },
+      }
+    );
+
+    console.log("Data uploaded successfully:", response.data);
+    dispatch(createLessonReducer(response.data));
+    // Handle success, e.g., dispatch an action to update state
+  } catch (error) {
+    // Handle errors, e.g., by returning an error object or dispatching an error action
+    // console.error("Error uploading data:", error);
+    // You can dispatch an error action here if needed.
+  }
+};
+
 
 export const createDocumentAction = (file, name) => async (dispatch) => {
   const formData = new FormData();
@@ -854,45 +894,45 @@ export const verifyCodeAction = (email,code) => async (dispatch) => {
 
 
 
-export const addWatermarkToImageAction = (images,updateUploadProgress) => async (dispatch) => {
-  const token = localStorage.getItem('token');
-  const formData = new FormData();
-  formData.append('images', images[0]);
-  formData.append('images', images[1]);
+// export const addWatermarkToImageAction = (images,updateUploadProgress) => async (dispatch) => {
+//   const token = localStorage.getItem('token');
+//   const formData = new FormData();
+//   formData.append('images', images[0]);
+//   formData.append('images', images[1]);
 
-  if (!token) {
-    console.error('Token not available');
-    return;
-  }
+//   if (!token) {
+//     console.error('Token not available');
+//     return;
+//   }
 
-  try {
-    const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      onUploadProgress: (progressEvent) => {
-        const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        dispatch(setUploadProgress(percentage));
-        if (updateUploadProgress) {
-          updateUploadProgress(percentage);
-        }
-      },
-    };
+//   try {
+//     const config = {
+//       headers: {
+//         'Content-Type': 'multipart/form-data',
+//       },
+//       onUploadProgress: (progressEvent) => {
+//         const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+//         dispatch(setUploadProgress(percentage));
+//         if (updateUploadProgress) {
+//           updateUploadProgress(percentage);
+//         }
+//       },
+//     };
 
-    const response = await axios.post(
-      `${END_POINT}/api/banner/addimagecode`,
-      formData,
-      config
-    );
+//     const response = await axios.post(
+//       `${END_POINT}/api/banner/addimagecode`,
+//       formData,
+//       config
+//     );
 
-    console.log('Data uploaded successfully:', response.data);
-    dispatch(sendUserDataReducer(response.data));
-    dispatch(updateUploadProgress(100)); // Set the progress to 100% on success
-  } catch (error) {
-    console.error('Error uploading data:', error);
-    await dispatch(sendErrorReducer(error.response.data));
-  }
-};
+//     console.log('Data uploaded successfully:', response.data);
+//     dispatch(sendUserDataReducer(response.data));
+//     dispatch(updateUploadProgress(100)); // Set the progress to 100% on success
+//   } catch (error) {
+//     console.error('Error uploading data:', error);
+//     await dispatch(sendErrorReducer(error.response.data));
+//   }
+// };
 
 
 

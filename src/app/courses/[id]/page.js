@@ -22,6 +22,7 @@ import {
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { getCourseByIdAction } from "@/store/slices/authSlice";
+import Tiptap, { TextEditor } from "@/components/textEditor"; // Импортируем компонент редактора
 
 // Компонент универсальной кнопки скачивания
 const DownloadButton = ({ href, fileName }) => {
@@ -53,12 +54,12 @@ const VideoPlayer = ({ material }) => {
       <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
         {material.title}
       </Typography>
-      <video controls width="30%" height="auto" style={{ borderRadius: "8px" }}>
+      <video controls width="100%" height="auto" style={{ borderRadius: "8px" }}>
         <source src={material.file_path} type="video/mp4" />
         Ваш браузер не поддерживает воспроизведение видео.
       </video>
       {/* Кнопка для скачивания видео */}
-      {/* <DownloadButton href={material.file_path} fileName={material.title || "video.mp4"} /> */}
+      <DownloadButton href={material.file_path} fileName={material.title || "video.mp4"} />
     </Box>
   );
 };
@@ -88,6 +89,7 @@ export default function CourseDetail() {
   const [materials, setMaterials] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
+  const [lessonContent, setLessonContent] = useState(""); // Состояние для содержимого урока
 
   const isMobile = useMediaQuery("(max-width: 600px)");
 
@@ -126,6 +128,13 @@ export default function CourseDetail() {
     fetchLessons();
     fetchMaterials();
   }, [id, dispatch]);
+
+  useEffect(() => {
+    // Устанавливаем содержимое урока при переключении вкладок
+    if (filteredLessons[activeTab]) {
+      setLessonContent(filteredLessons[activeTab].content || "");
+    }
+  }, [activeTab, filteredLessons]);
 
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
@@ -204,10 +213,13 @@ export default function CourseDetail() {
               {filteredLessons[activeTab].title}
             </Typography>
 
-            {/* Описание урока */}
-            <Typography variant="body1" sx={{ mb: 4 }}>
-              {filteredLessons[activeTab].content}
-            </Typography>
+            {/* Текстовый редактор */}
+            {/* <TextEditor
+                  content={lessonContent}
+                  onUpdate={(newContent) => setLessonContent(newContent)}
+                /> */}
+
+              {/* <Tiptap/> */}
 
             {/* Изображение урока */}
             {filteredLessons[activeTab].image && (

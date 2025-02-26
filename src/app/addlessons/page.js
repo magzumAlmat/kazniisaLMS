@@ -1,7 +1,11 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
+import EditorJS from "@editorjs/editorjs";
+import Header from "@editorjs/header";
+import List from "@editorjs/list";
+import Quote from "@editorjs/quote";
+import Table from "@editorjs/table";
 import {
   Container,
   Box,
@@ -12,7 +16,7 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-  List,
+  List as MuiList,
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
@@ -21,31 +25,68 @@ import {
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import jwtDecode from "jwt-decode";
+
+// Начальные данные для Editor.js
+const DEFAULT_INITIAL_DATA = {
+  time: new Date().getTime(),
+  blocks: [
+    {
+      id: "default-paragraph",
+      type: "paragraph",
+      data: {
+        text: "Начните создавать урок здесь...",
+      },
+    },
+    {
+      id: "default-header",
+      type: "header",
+      data: {
+        text: "Заголовок урока",
+        level: 2,
+      },
+    },
+    {
+      id: "default-list",
+      type: "list",
+      data: {
+        style: "unordered",
+        items: ["Пункт 1", "Пункт 2", "Пункт 3"],
+      },
+    },
+  ],
+};
+
 export default function LessonsPage() {
   const [lessons, setLessons] = useState([]);
   const [courses, setCourses] = useState([]);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState(null); // Содержимое Editor.js
   const [courseId, setCourseId] = useState("");
   const [editingLesson, setEditingLesson] = useState(null);
+  const token = localStorage.getItem("token");
+  const editorInstance = useRef(null);
 
+  if (!token) {
+    console.error("Token not available");
+    return <Typography>Токен авторизации отсутствует!</Typography>;
+  }
 
-     const token = localStorage.getItem("token");
-    
-      console.log('2 userTokenINITZ token=', token);
-     
-      let decodedToken = jwtDecode(token);
-       console.log('3 getUsersPosts decoded=', decodedToken.username);
-    
-      if (!token) {
-        // Handle the case where the token is not available or invalid
-        console.error("Token not available");
-        return;
-      }
-  
   useEffect(() => {
     fetchLessons();
     fetchCourses();
+
+    // Инициализация Editor.js при монтировании компонента
+    if (!editorInstance.current) {
+      initEditor();
+    }
+
+    return () => {
+      // Очистка экземпляра Editor.js при размонтировании
+      if (editorInstance.current) {
+        editorInstance.current.destroy();
+        editorInstance.current = null;
+      }
+    };
   }, []);
 
   const fetchLessons = async () => {
@@ -66,50 +107,83 @@ export default function LessonsPage() {
     }
   };
 
+  const initEditor = () => {
+    const editor = new EditorJS({
+      holder: "editorjs", // ID контейнера для редактора
+      autofocus: true,
+      data: content || DEFAULT_INITIAL_DATA, // Используем начальные данные или текущее содержимое
+      onChange: async () => {
+        const updatedContent = await editor.saver.save(); // Получаем текущее содержимое
+        setContent(updatedContent);
+      },
+      tools: {
+        header: Header,
+        list: List,
+        quote: Quote,
+        table: Table,
+      },
+    });
+    editorInstance.current = editor;
+  };
+
   const createLesson = async () => {
     if (!courseId) {
       alert("Выберите курс!");
       return;
     }
-
     try {
-      const response = await axios.post("http://localhost:4000/api/lessons", {
-        title,
-        content,
-        course_id: courseId,
-      }, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json', 
+      const response = await axios.post(
+        "http://localhost:4000/api/lessons",
+        {
+          title,
+          content: JSON.stringify(content), // Преобразуем содержимое в JSON
+          course_id: courseId,
         },
-    });
-      
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
       setLessons([...lessons, response.data]);
       setTitle("");
-      setContent("");
+      setContent(null);
       setCourseId("");
+      if (editorInstance.current) {
+        editorInstance.current.clear(); // Очищаем редактор
+      }
     } catch (error) {
       console.error("Ошибка при создании урока:", error);
     }
   };
 
-  const updateLesson = async (id) => {
+  const updateLesson = async () => {
+    if (!editingLesson) return;
+
     try {
-      const response = await axios.put(`http://localhost:4000/api/lessons/${id}`, {
-        title,
-        content,
-        course_id: courseId,
-      }, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json', 
+      const response = await axios.put(
+        `http://localhost:4000/api/lessons/${editingLesson}`,
+        {
+          title,
+          content: JSON.stringify(content), // Преобразуем содержимое в JSON
+          course_id: courseId,
         },
-    });
-      setLessons(lessons.map((lesson) => (lesson.id === id ? response.data : lesson)));
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setLessons(lessons.map((lesson) => (lesson.id === editingLesson ? response.data : lesson)));
       setEditingLesson(null);
       setTitle("");
-      setContent("");
+      setContent(null);
       setCourseId("");
+      if (editorInstance.current) {
+        editorInstance.current.clear(); // Очищаем редактор
+      }
     } catch (error) {
       console.error("Ошибка при обновлении урока:", error);
     }
@@ -117,15 +191,16 @@ export default function LessonsPage() {
 
   const deleteLesson = async (id) => {
     try {
-      await axios.delete(`http://localhost:4000/api/lessons/${id}`, {
+      const response = await axios.delete(`http://localhost:4000/api/lessons/${id}`, {
         headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json', 
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-    });
+      });
+      console.log("Урок успешно удален:", response.data);
       setLessons(lessons.filter((lesson) => lesson.id !== id));
     } catch (error) {
-      console.error("Ошибка при удалении урока:", error);
+      console.error("Ошибка при удалении урока:", error.response?.data || error.message);
     }
   };
 
@@ -134,7 +209,6 @@ export default function LessonsPage() {
       <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
         Управление уроками
       </Typography>
-
       {/* Форма добавления/редактирования */}
       <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
         <Typography variant="h6">
@@ -147,15 +221,8 @@ export default function LessonsPage() {
           onChange={(e) => setTitle(e.target.value)}
           sx={{ mt: 2 }}
         />
-        <TextField
-          fullWidth
-          label="Содержание урока"
-          multiline
-          rows={3}
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          sx={{ mt: 2 }}
-        />
+        {/* Editor.js */}
+        <Box id="editorjs" sx={{ mt: 2, border: "1px solid #ccc", minHeight: "200px" }} />
         <FormControl fullWidth sx={{ mt: 2 }}>
           <InputLabel>Выберите курс</InputLabel>
           <Select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
@@ -170,14 +237,13 @@ export default function LessonsPage() {
           variant="contained"
           color="primary"
           sx={{ mt: 2 }}
-          onClick={editingLesson ? () => updateLesson(editingLesson) : createLesson}
+          onClick={editingLesson ? updateLesson : createLesson}
         >
           {editingLesson ? "Обновить урок" : "Добавить урок"}
         </Button>
       </Paper>
-
       {/* Список уроков */}
-      <List>
+      <MuiList>
         {lessons.map((lesson) => (
           <Paper key={lesson.id} elevation={3} sx={{ mb: 2 }}>
             <ListItem>
@@ -193,9 +259,10 @@ export default function LessonsPage() {
                   aria-label="edit"
                   color="primary"
                   onClick={() => {
-                    setEditingLesson(lesson.id);
+                    const parsedContent = lesson.content ? JSON.parse(lesson.content) : null;
+                    setEditingLesson(Number(lesson.id));
                     setTitle(lesson.title);
-                    setContent(lesson.content);
+                    setContent(parsedContent);
                     setCourseId(lesson.course_id);
                   }}
                 >
@@ -213,7 +280,7 @@ export default function LessonsPage() {
             </ListItem>
           </Paper>
         ))}
-      </List>
+      </MuiList>
     </Container>
   );
 }

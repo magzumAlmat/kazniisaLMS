@@ -9,12 +9,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@editorjs/checklist": "^1.6.0",
+    "@editorjs/editorjs": "^2.26.4",
+    "@editorjs/embed": "^2.7.0",
+    "@editorjs/header": "^2.7.0",
+    "@editorjs/list": "^1.9.0",
+    "@editorjs/quote": "^2.6.0",
+    "@editorjs/raw": "^2.5.0",
+    "@editorjs/simple-image": "^1.6.0",
+    "@editorjs/table": "^2.3.0",
+   
+
     "@emotion/react": "*",
     "@emotion/styled": "*",
     "@fontsource/roboto": "*",
     "@mui/icons-material": "*",
     "@mui/material": "*",
     "@reduxjs/toolkit": "*",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
     "framer-motion": "^12.4.3",
     "react": "^18",
     "react-dom": "^18",

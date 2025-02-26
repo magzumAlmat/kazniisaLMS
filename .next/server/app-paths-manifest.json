@@ -1,5 +1,9 @@
 {
-  "/courses/[id]/page": "app/courses/[id]/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/addcourse/page": "app/addcourse/page.js",
+  "/addlessons/page": "app/addlessons/page.js",
+  "/login/page": "app/login/page.js",
   "/courses/page": "app/courses/page.js",
-  "/layout/page": "app/layout/page.js"
+  "/layout/page": "app/layout/page.js",
+  "/courses/[id]/page": "app/courses/[id]/page.js"
 }
