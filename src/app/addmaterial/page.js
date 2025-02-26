@@ -15,7 +15,7 @@ import {
   ListItem,
   ListItemText,
   IconButton,
-  Paper,
+  Paper,ListItemSecondaryAction,
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import jwtDecode from "jwt-decode";
@@ -199,68 +199,71 @@ export default function MaterialsPage() {
   };
 
   return (
-    <Container maxWidth="md">
-      <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
-        Управление материалами
-      </Typography>
+    <Container>
+      <Box mt={4}>
+        <Typography variant="h4">Управление материалами</Typography>
   
-      {/* Форма добавления/редактирования */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6">
-          {editingMaterial ? "Редактировать материал" : "Создать новый материал"}
-        </Typography>
-        <TextField
-          fullWidth
-          label="Название материала"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          sx={{ mt: 2 }}
-        />
-        <FormControl fullWidth sx={{ mt: 2 }}>
-          <InputLabel>Тип материала</InputLabel>
-          <Select value={type} onChange={(e) => setType(e.target.value)}>
-            <MenuItem value="video">Видео</MenuItem>
-            <MenuItem value="document">Документ</MenuItem>
-            <MenuItem value="presentation">Презентация</MenuItem>
-          </Select>
-        </FormControl>
+        {/* Форма добавления/редактирования */}
+        <Box mt={4}>
+          <Typography variant="h6">{editingMaterial ? "Редактировать материал" : "Создать новый материал"}</Typography>
+          <TextField
+            label="Название"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            sx={{ mt: 2 }}
+            fullWidth
+            required
+          />
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Тип материала</InputLabel>
+            <Select
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              fullWidth
+              required
+            >
+              <MenuItem value="video">Видео</MenuItem>
+              <MenuItem value="document">Документ</MenuItem>
+              <MenuItem value="presentation">Презентация</MenuItem>
+            </Select>
+          </FormControl>
   
-        {/* Dropzone для видео */}
-        {type === "video" && (
-          <Box {...getVideoRootProps()} sx={{ mt: 2, border: "2px dashed #ccc", p: 2, textAlign: "center" }}>
-            <input {...getVideoInputProps()} />
-            <Typography>Перетащите файл сюда или нажмите для выбора</Typography>
-            {files.length > 0 && (
-              <Typography variant="body2">Выбранный файл: {files[0].name}</Typography>
-            )}
-          </Box>
-        )}
+          {/* Dropzone для видео */}
+          {type === "video" && (
+            <Box mt={2}>
+              <div {...getVideoRootProps()}>
+                <input {...getVideoInputProps()} />
+                <Typography>Перетащите файл сюда или нажмите для выбора</Typography>
+              </div>
+              {files.length > 0 && <Typography>Выбранный файл: {files[0].name}</Typography>}
+            </Box>
+          )}
   
-        {/* Dropzone для документов */}
-        {type === "document" && (
-          <Box {...getDocumentRootProps()} sx={{ mt: 2, border: "2px dashed #ccc", p: 2, textAlign: "center" }}>
-            <input {...getDocumentInputProps()} />
-            <Typography>Перетащите документ сюда или нажмите для выбора</Typography>
-            {documentFiles.length > 0 && (
-              <Typography variant="body2">Выбранный файл: {documentFiles[0].name}</Typography>
-            )}
-          </Box>
-        )}
+          {/* Dropzone для документов */}
+          {type === "document" && (
+            <Box mt={2}>
+              <div {...getDocumentRootProps()}>
+                <input {...getDocumentInputProps()} />
+                <Typography>Перетащите документ сюда или нажмите для выбора</Typography>
+              </div>
+              {documentFiles.length > 0 && <Typography>Выбранный файл: {documentFiles[0].name}</Typography>}
+            </Box>
+          )}
   
-        {/* Dropzone для презентаций */}
-        {type === "presentation" && (
-          <Box {...getPresentationRootProps()} sx={{ mt: 2, border: "2px dashed #ccc", p: 2, textAlign: "center" }}>
-            <input {...getPresentationInputProps()} />
-            <Typography>Перетащите презентацию сюда или нажмите для выбора</Typography>
-            {presentationFiles.length > 0 && (
-              <Typography variant="body2">Выбранный файл: {presentationFiles[0].name}</Typography>
-            )}
-          </Box>
-        )}
+          {/* Dropzone для презентаций */}
+          {type === "presentation" && (
+            <Box mt={2}>
+              <div {...getPresentationRootProps()}>
+                <input {...getPresentationInputProps()} />
+                <Typography>Перетащите презентацию сюда или нажмите для выбора</Typography>
+              </div>
+              {presentationFiles.length > 0 && <Typography>Выбранный файл: {presentationFiles[0].name}</Typography>}
+            </Box>
+          )}
   
-        <FormControl fullWidth sx={{ mt: 2 }}>
-          <InputLabel>Выберите урок</InputLabel>
-          <Select
+          <FormControl fullWidth sx={{ mt: 2 }}>
+            <InputLabel>Выберите урок</InputLabel>
+            <Select
               value={lesson_id}
               onChange={(e) => setLessonId(e.target.value)}
               fullWidth
@@ -270,33 +273,37 @@ export default function MaterialsPage() {
                 const course = courses.find((c) => c.id === lesson.course_id);
                 return (
                   <MenuItem key={lesson.id} value={lesson.id}>
-                     {course ? course.title : 'Курс не найден'} - {lesson.title} 
+                    {course ? course.title : 'Курс не найден'} - {lesson.title}
                   </MenuItem>
                 );
               })}
             </Select>
-        </FormControl>
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{ mt: 2 }}
-          onClick={createMaterial}
-        >
-          {editingMaterial ? "Обновить материал" : "Добавить материал"}
-        </Button>
-      </Paper>
+          </FormControl>
   
-      {/* Список материалов */}
-      <List >
-        {materials.map((material) => (
-          <Paper key={material.material_id} elevation={3} sx={{ mb: 2 }}>
-            <ListItem
-              secondaryAction={
-                <>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={createMaterial}
+            sx={{ mt: 2 }}
+          >
+            {editingMaterial ? "Обновить материал" : "Добавить материал"}
+          </Button>
+        </Box>
+  
+        {/* Список материалов */}
+        <Box mt={4}>
+          <Typography variant="h5">Список материалов</Typography>
+          <ul>
+            {materials.map((material) => (
+              <ListItem key={material.material_id}>
+                <ListItemText
+                  primary={`${material.title}`}
+                  secondary={`Урок: ${lessons.find((lesson) => lesson.id === material.lesson_id)?.title || "Неизвестно"}\nТип: ${material.type}\nФайл: ${material.file_path}`}
+                />
+                <ListItemSecondaryAction>
                   <IconButton
                     edge="end"
                     aria-label="edit"
-                    color="primary"
                     onClick={() => {
                       setEditingMaterial(material.material_id);
                       setTitle(material.title);
@@ -310,24 +317,16 @@ export default function MaterialsPage() {
                   <IconButton
                     edge="end"
                     aria-label="delete"
-                    color="error"
                     onClick={() => deleteMaterial(material.material_id)}
                   >
                     <Delete />
                   </IconButton>
-                </>
-              }
-            >
-              <ListItemText
-                primary={material.title}
-                secondary={`Урок: ${
-                  lessons.find((lesson) => lesson.id === material.lesson_id)?.title || "Неизвестно"
-                }\nТип: ${material.type}\nФайл: ${material.file_path}`}
-              />
-            </ListItem>
-          </Paper>
-        ))}
-      </List>
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </ul>
+        </Box>
+      </Box>
     </Container>
   );
 }
