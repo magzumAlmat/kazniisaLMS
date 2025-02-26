@@ -1,9 +1,12 @@
 "use client";
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation"; // Next.js 13+
-import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import EditorJS from "@editorjs/editorjs";
+import Header from "@editorjs/header";
+import List from "@editorjs/list";
+import Paragraph from "@editorjs/paragraph";
 import {
   Box,
   Button,
@@ -11,85 +14,22 @@ import {
   Tabs,
   Tab,
   Typography,
-  styled,
-  List,
+  List as MuiList,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   LinearProgress,
   useMediaQuery,
   Divider,
 } from "@mui/material";
-import { motion } from "framer-motion";
-import { getCourseByIdAction } from "@/store/slices/authSlice";
-import Tiptap, { TextEditor } from "@/components/textEditor"; // Импортируем компонент редактора
-
-// Компонент универсальной кнопки скачивания
-const DownloadButton = ({ href, fileName }) => {
-  return (
-    <Button
-      href={href}
-      download={fileName || "file"}
-      variant="contained"
-      color="primary"
-      sx={{
-        mt: 2,
-        textTransform: "none",
-        fontWeight: "bold",
-        borderRadius: "8px",
-      }}
-    >
-      Скачать
-    </Button>
-  );
-};
-
-// Компонент плеера видео
-const VideoPlayer = ({ material }) => {
-  if (!material || !material.file_path) {
-    return <Typography variant="body1">Видео недоступно.</Typography>;
-  }
-  return (
-    <Box sx={{ mb: 4 }}>
-      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-        {material.title}
-      </Typography>
-      <video controls width="100%" height="auto" style={{ borderRadius: "8px" }}>
-        <source src={material.file_path} type="video/mp4" />
-        Ваш браузер не поддерживает воспроизведение видео.
-      </video>
-      {/* Кнопка для скачивания видео */}
-      <DownloadButton href={material.file_path} fileName={material.title || "video.mp4"} />
-    </Box>
-  );
-};
-
-// Индикатор прогресса
-const ProgressIndicator = ({ completed, total }) => {
-  const progress = (completed / total) * 100;
-  return (
-    <Box sx={{ my: 2 }}>
-      <Typography variant="subtitle1">
-        Прогресс: {completed} из {total} уроков
-      </Typography>
-      <LinearProgress variant="determinate" value={progress} />
-    </Box>
-  );
-};
 
 export default function CourseDetail() {
   const { id } = useParams(); // Получаем id из URL
   const router = useRouter();
-  const dispatch = useDispatch();
-  const thisCourse = useSelector((state) => state.auth.currentCourse);
-  const loading = useSelector((state) => state.auth.loadingCourse);
-  const error = useSelector((state) => state.auth.courseError);
-
   const [lessons, setLessons] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
-  const [lessonContent, setLessonContent] = useState(""); // Состояние для содержимого урока
+  const editorInstance = useRef(null); // Ссылка на экземпляр Editor.js
 
   const isMobile = useMediaQuery("(max-width: 600px)");
 
@@ -122,18 +62,43 @@ export default function CourseDetail() {
   );
 
   useEffect(() => {
-    if (id) {
-      dispatch(getCourseByIdAction(id)); // Загружаем курс
-    }
     fetchLessons();
     fetchMaterials();
-  }, [id, dispatch]);
+  }, [id]);
 
   useEffect(() => {
-    // Устанавливаем содержимое урока при переключении вкладок
-    if (filteredLessons[activeTab]) {
-      setLessonContent(filteredLessons[activeTab].content || "");
+    // Инициализация Editor.js в режиме только для чтения
+    if (filteredLessons[activeTab] && filteredLessons[activeTab].content) {
+      const content = JSON.parse(filteredLessons[activeTab].content);
+
+      // Уничтожаем предыдущий экземпляр, если он существует
+      if (editorInstance.current) {
+        editorInstance.current.destroy();
+        editorInstance.current = null;
+      }
+
+      // Создаем новый экземпляр Editor.js
+      const editor = new EditorJS({
+        holder: "editorjs-container", // ID контейнера для редактора
+        readOnly: true, // Режим только для чтения
+        data: content, // Данные для отображения
+        tools: {
+          header: Header,
+          list: List,
+          paragraph: Paragraph,
+        },
+      });
+
+      editorInstance.current = editor;
     }
+
+    return () => {
+      // Очистка экземпляра Editor.js при размонтировании
+      if (editorInstance.current) {
+        editorInstance.current.destroy();
+        editorInstance.current = null;
+      }
+    };
   }, [activeTab, filteredLessons]);
 
   const handleChangeTab = (event, newValue) => {
@@ -146,8 +111,6 @@ export default function CourseDetail() {
     }
   };
 
-  if (loading) return <Typography variant="h6">Загрузка...</Typography>;
-  if (error) return <Typography variant="h6">Ошибка: {error}</Typography>;
   if (!filteredLessons || filteredLessons.length === 0) {
     return <Typography variant="h6">Нет доступных уроков.</Typography>;
   }
@@ -198,83 +161,92 @@ export default function CourseDetail() {
 
       {/* Контент активного урока */}
       <Box sx={{ flexGrow: 1, p: 3 }}>
-        <motion.div
-          key={activeTab}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-            {/* Прогресс */}
-            <ProgressIndicator completed={completedLessons.length} total={filteredLessons.length} />
+        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+          {/* Прогресс */}
+          <LinearProgress
+            variant="determinate"
+            value={(completedLessons.length / filteredLessons.length) * 100}
+            sx={{ mb: 2 }}
+          />
+          <Typography variant="subtitle1">
+            Прогресс: {completedLessons.length} из {filteredLessons.length} уроков
+          </Typography>
 
-            {/* Заголовок урока */}
-            <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2 }}>
-              {filteredLessons[activeTab].title}
-            </Typography>
+          {/* Заголовок урока */}
+          <Typography variant="h4" sx={{ fontWeight: "bold", my: 2 }}>
+            {filteredLessons[activeTab].title}
+          </Typography>
 
-            {/* Текстовый редактор */}
-            {/* <TextEditor
-                  content={lessonContent}
-                  onUpdate={(newContent) => setLessonContent(newContent)}
-                /> */}
+          {/* Отображение содержимого урока с помощью Editor.js */}
+          <Box id="editorjs-container" sx={{ mt: 2, minHeight: "200px" }} />
 
-              {/* <Tiptap/> */}
+          {/* Изображение урока */}
+          {filteredLessons[activeTab].image && (
+            <Box
+              component="img"
+              src={filteredLessons[activeTab].image}
+              alt={`Lesson ${activeTab + 1}`}
+              sx={{
+                width: "100%",
+                height: "300px",
+                objectFit: "cover",
+                borderRadius: "8px",
+                mb: 4,
+              }}
+            />
+          )}
 
-            {/* Изображение урока */}
-            {filteredLessons[activeTab].image && (
-              <Box
-                component="img"
-                src={filteredLessons[activeTab].image}
-                alt={`Lesson ${activeTab + 1}`}
-                sx={{
-                  width: "100%",
-                  height: "300px",
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                  mb: 4,
-                }}
-              />
-            )}
+          {/* Видео-материалы */}
+          <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
+            Видео-материалы:
+          </Typography>
+          {filteredMaterials.length > 0 ? (
+            filteredMaterials.map((material) => (
+              <Box key={material.material_id} sx={{ mb: 2 }}>
+                <Typography variant="subtitle1">{material.title}</Typography>
+                <video controls width="100%" style={{ borderRadius: "8px" }}>
+                  <source src={material.file_path} type="video/mp4" />
+                  Ваш браузер не поддерживает воспроизведение видео.
+                </video>
+                <Button
+                  href={material.file_path}
+                  download={material.title || "file"}
+                  variant="contained"
+                  color="primary"
+                  sx={{ mt: 1 }}
+                >
+                  Скачать
+                </Button>
+              </Box>
+            ))
+          ) : (
+            <Typography variant="body1">Нет доступных видео.</Typography>
+          )}
 
-            {/* Видео-материалы */}
-            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
-              Видео-материалы:
-            </Typography>
-            {filteredMaterials.length > 0 ? (
-              filteredMaterials.map((material) => (
-                <VideoPlayer key={material.material_id} material={material} />
-              ))
-            ) : (
-              <Typography variant="body1">Нет доступных видео.</Typography>
-            )}
-
-            {/* Другие материалы */}
-            <Typography variant="h5" sx={{ fontWeight: "bold", mt: 4, mb: 2 }}>
-              Дополнительные материалы:
-            </Typography>
-            {filteredMaterials.length > 0 ? (
-              <List>
-                {filteredMaterials.map((material) => (
-                  <ListItem key={material.material_id}>
-                    <ListItemText
-                      primary={material.title}
-                      secondary={`Тип: ${material.type}`}
-                    />
-                    <ListItemSecondaryAction>
-                      <DownloadButton href={material.file_path} fileName={material.title || "file"} />
-                    </ListItemSecondaryAction>
-                  </ListItem>
-                ))}
-              </List>
-            ) : (
-              <Typography variant="body1">Нет доступных материалов.</Typography>
-            )}
-          </Paper>
-        </motion.div>
-
-        {/* Разделитель */}
-        <Divider sx={{ my: 4 }} />
+          {/* Дополнительные материалы */}
+          <Typography variant="h5" sx={{ fontWeight: "bold", mt: 4, mb: 2 }}>
+            Дополнительные материалы:
+          </Typography>
+          {filteredMaterials.length > 0 ? (
+            <MuiList>
+              {filteredMaterials.map((material) => (
+                <ListItem key={material.material_id}>
+                  <ListItemText primary={material.title} secondary={`Тип: ${material.type}`} />
+                  <Button
+                    href={material.file_path}
+                    download={material.title || "file"}
+                    variant="outlined"
+                    color="primary"
+                  >
+                    Скачать
+                  </Button>
+                </ListItem>
+              ))}
+            </MuiList>
+          ) : (
+            <Typography variant="body1">Нет доступных материалов.</Typography>
+          )}
+        </Paper>
 
         {/* Панель действий */}
         <Box
@@ -291,7 +263,8 @@ export default function CourseDetail() {
           <Button
             variant="contained"
             color={completedLessons.includes(filteredLessons[activeTab].id) ? "success" : "primary"}
-            disabled={completedLessons.includes(filteredLessons[activeTab].id)} // Блокируем кнопку, если урок завершен
+            disabled={completedLessons.includes(filteredLessons[activeTab].id)}
+            onClick={handleCompleteLesson}
             sx={{
               flexGrow: 1,
               borderRadius: 2,
@@ -299,7 +272,6 @@ export default function CourseDetail() {
               fontWeight: "bold",
               padding: "10px 20px",
             }}
-            onClick={handleCompleteLesson}
           >
             {completedLessons.includes(filteredLessons[activeTab].id)
               ? "Урок завершен"
@@ -310,6 +282,7 @@ export default function CourseDetail() {
           <Button
             variant="outlined"
             color="primary"
+            onClick={() => router.push("/courses")}
             sx={{
               flexGrow: 1,
               borderRadius: 2,
@@ -317,7 +290,6 @@ export default function CourseDetail() {
               fontWeight: "bold",
               padding: "10px 20px",
             }}
-            onClick={() => router.push("/courses")}
           >
             Назад к курсам
           </Button>
