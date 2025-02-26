@@ -481,27 +481,66 @@ export default function Layout({ children }) {
       // Администратор
       return (
         <>
-          <Link href="/">Главная</Link>
-          <Link href="/admin-panel">Админ-панель</Link>
-          <Button onClick={handleLogout}>Выйти</Button>
+           <Button color="inherit" component={Link} href="/layout">
+            Главная
+          </Button>
+          <Button color="inherit" component={Link} href="/addrole">
+            Добавить роль
+          </Button>
+          <Button color="inherit" component={Link} href="/profile">
+            Профиль
+          </Button>
+          <Button color="inherit" component={Link} href="/admin">
+            Админ-панель
+          </Button>
+          <Button color="inherit" onClick={handleLogout}>
+            Выйти
+          </Button>
         </>
       );
     } else if (userInfo.roleId === 2) {
       // Учитель
       return (
         <>
-          <Link href="/">Главная</Link>
-          <Link href="/courses">Курсы</Link>
-          <Button onClick={handleLogout}>Выйти</Button>
+           <Button color="inherit" component={Link} href="/layout">
+             Главная
+           </Button>
+           <Button color="inherit" component={Link} href="/addcourse">
+             Курсы
+           </Button>
+           <Button color="inherit" component={Link} href="/addlessons">
+             Предметы
+           </Button>
+           <Button color="inherit" component={Link} href="/addmaterial">
+             Материалы
+           </Button>
+           <Button color="inherit" component={Link} href="/profile">
+             Профиль
+           </Button>
+           <Button color="inherit" onClick={handleLogout}>
+             Выйти
+           </Button>
         </>
       );
     } else if (userInfo.roleId === 3) {
       // Студент
       return (
         <>
-          <Link href="/">Главная</Link>
-          <Link href="/progress">Прогресс</Link>
-          <Button onClick={handleLogout}>Выйти</Button>
+          <Button color="inherit" component={Link} href="/layout">
+            Главная
+          </Button>
+          <Button color="inherit" component={Link} href="/courses">
+            Курсы
+          </Button>
+          <Button color="inherit" component={Link} href="/progress">
+            Прогресс
+          </Button>
+          <Button color="inherit" component={Link} href="/profile">
+            Профиль
+          </Button>
+          <Button color="inherit" onClick={handleLogout}>
+            Выйти
+          </Button>
         </>
       );
     } else {
@@ -509,14 +548,16 @@ export default function Layout({ children }) {
       return (
         <>
           <Link href="/">Главная</Link>
-          <Link href="/login">Войти</Link>
+          <Button color="inherit" onClick={handleLogout}>
+            Выйти
+          </Button>
         </>
       );
     }
   };
 
   // Отрисовка контента в зависимости от роли пользователя
-  const renderContentByRole = () => {
+  const renderContentByRole = (courses) => {
     console.log('userINFO= ',userInfo)
     if (!userInfo) return null;
 
@@ -573,26 +614,41 @@ export default function Layout({ children }) {
 
   // Возвращаем JSX
   return (
-    <Container>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        bgcolor: "#f4f6f8",
+        fontFamily: "'Roboto', sans-serif",
+        overflow: "hidden",
+      }}
+    >
       {/* Верхнее меню */}
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6">Учебная платформа</Typography>
+          <Typography variant="h6">Kazniisa LMS</Typography>
           {renderMenuByRole()}
         </Toolbar>
       </AppBar>
 
       {/* Основной контейнер */}
+      <Container>
       <Box mt={4}>
+
         <Typography variant="h5">Привет, {userInfo?.name}</Typography>
         {children}
         {renderContentByRole()}
       </Box>
-
+      </Container>
       {/* Футер */}
-      <Box mt={4}>
-        <Typography variant="body2">© 2025 Учебная платформа. Все права защищены.</Typography>
-      </Box>
-    </Container>
+    
+   
+        <Box component="footer" sx={{ textAlign: "center", p: 2, bgcolor: "#e0e0e0", mt: "auto" }}>
+                <Typography variant="body2" sx={{ fontWeight: "bold", color: "#555" }}>
+                  © 2025 Учебная платформа. Все права защищены.
+                </Typography>
+        </Box>
+    </Box>
   );
 }
