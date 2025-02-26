@@ -31,7 +31,31 @@ const initialState = {
 // }
 
 
-const token = localStorage.getItem('token');
+const initializeToken = () => {
+  let token = null;
+
+  // Проверяем localStorage
+  if (typeof window !== "undefined") {
+    token = localStorage.getItem("token");
+  }
+
+  // Если токена нет в localStorage, пытаемся получить его из URL
+  if (!token && typeof window !== "undefined") {
+    const urlParams = new URLSearchParams(window.location.search);
+    token = urlParams.get("token");
+
+    // Если токен найден в URL, сохраняем его в localStorage
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+  }
+
+  return token;
+};
+
+
+const token = initializeToken();
+// const token = localStorage.getItem('token');
 
 // export const authSlice = createSlice({
 //   name: 'auth',
@@ -75,10 +99,7 @@ export const authSlice = createSlice({
     //   state.isAuth = true;
     //   state.currentUser = action.payload;
     // },
-    logoutReducer: (state) => {
-      state.isAuth = false;
-      state.currentUser = null;
-    },
+  
     getAllCoursesAction: (state, action) => {
       state.courses = action.payload;
     },
@@ -101,27 +122,62 @@ export const authSlice = createSlice({
       state.error=action.payload
     },
 
-    loginReducer:(state,action)=>{
-      localStorage.setItem("token", action.payload.token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${action.payload.token}`;
-     
+    loginReducer: (state, action) => {
+      const decoded = jwt_decode(action.payload.token);
 
-              localStorage.setItem('token', action.payload.token);
-              axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-              // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
-              const decoded = jwt_decode(action.payload.token);
-        
-              console.log('decoded data = ',decoded)
-              state.currentUser = {
-                id: decoded.id,
-                email: decoded.email,
-                name: decoded.name,
-                username: decoded.username,
-                password: decoded.password,
-              };
-              state.isAuth = true;
-              console.log('this is currentUser- ',state.currentUser,'isAuth=',state.isAuth)
-            },
+      state.currentUser = {
+        id: decoded.id,
+        email: decoded.email,
+        name: decoded.name,
+      };
+      state.isAuth = true;
+      state.authToken = action.payload.token;
+
+      // Сохраняем токен в localStorage
+      if (typeof window !== "undefined") {
+        localStorage.setItem("token", action.payload.token);
+      }
+
+      // Устанавливаем заголовок Authorization для axios
+      axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+    },
+
+    logoutReducer: (state) => {
+      state.isAuth = false;
+      state.currentUser = null;
+      state.authToken = '';
+
+      // Удаляем токен из localStorage
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
+
+      // Очищаем заголовок Authorization для axios
+      axios.defaults.headers.common['Authorization'] = '';
+    },
+  
+    // loginReducer:(state,action)=>{
+    //   console.log('0 Auth slice login Reducer Started')
+    //   localStorage.setItem("token", action.payload.token);
+
+  
+              
+    //   axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+    //   // axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+    //   const decoded = jwt_decode(action.payload.token);
+
+    //   console.log('decoded data = ',decoded)
+      
+    //   state.currentUser = {
+    //     id: decoded.id,
+    //     email: decoded.email,
+    //     name: decoded.name,
+    //     username: decoded.username,
+    //     password: decoded.password,
+    //   };
+    //   state.isAuth = true;
+    //   console.log('1 Auth slice login Reducer this is currentUser- ',state.currentUser,'isAuth=',state.isAuth)
+    // },
 
 
             // loginReducer: (state, action) => {
@@ -192,6 +248,7 @@ export const authSlice = createSlice({
     
     authorize: (state, action) => {
 
+      console.log('Auth slice im in authorize')
       state.someVar=action.payload
       state.authToken=null
       state.authToken=action.payload
@@ -215,8 +272,20 @@ export const authSlice = createSlice({
 
     loginAuthorize: (state, action) => {
 
+      console.log('Auth slice im in authorize')
       state.someVar=action.payload
-      console.log('PAYLOAD=',action.payload,'codeFromServer=',state.currentUser)
+      state.authToken=null
+      state.authToken=action.payload
+      
+      console.log('PAYLOAD=',action.payload.token,'codeFromServer=',state.currentUser)
+
+      const decoded = jwt_decode(action.payload.token);
+      console.log('1 authorize decoded token=========', decoded)
+
+      
+      
+      localStorage.setItem("token", action.payload.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
     },
 
     sendCodeReducer: (state, action) => {
@@ -238,7 +307,7 @@ export const authSlice = createSlice({
         name:decoded.name,
         phone:decoded.phone,
         lastname:decoded.lastname,
-        companyId:decoded.companyId,
+     
       };
 
       state.currentUser = {
@@ -248,7 +317,7 @@ export const authSlice = createSlice({
         name:decoded.name,
         phone:decoded.phone,
         lastname:decoded.lastname,
-        companyId:decoded.companyId,
+     
       };
       state.isAuth = true;
   },

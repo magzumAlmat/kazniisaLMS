@@ -370,10 +370,7 @@ export default function Layout({ children }) {
   const dispatch = useDispatch();
 
   // Проверка наличия токена
-  if (!token) {
-    console.error("Token not available");
-    return null;
-  }
+  
 
   // Декодирование токена
   let decodedToken;
