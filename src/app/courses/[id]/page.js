@@ -3,7 +3,6 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation"; // Next.js 13+
 import { useDispatch, useSelector } from "react-redux";
-import { getCourseByIdAction } from "@/store/slices/authSlice";
 import axios from "axios";
 import {
   Box,
@@ -13,14 +12,16 @@ import {
   Tab,
   Typography,
   styled,
-  Grid,
   List,
   ListItem,
   ListItemText,
   ListItemSecondaryAction,
-  IconButton,
+  LinearProgress,
+  useMediaQuery,
+  Divider,
 } from "@mui/material";
 import { motion } from "framer-motion";
+import { getCourseByIdAction } from "@/store/slices/authSlice";
 
 // Компонент универсальной кнопки скачивания
 const DownloadButton = ({ href, fileName }) => {
@@ -47,18 +48,30 @@ const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
     return <Typography variant="body1">Видео недоступно.</Typography>;
   }
-
   return (
     <Box sx={{ mb: 4 }}>
       <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
         {material.title}
       </Typography>
-      <video controls width="100%" height="auto" style={{ borderRadius: "8px" }}>
+      <video controls width="30%" height="auto" style={{ borderRadius: "8px" }}>
         <source src={material.file_path} type="video/mp4" />
         Ваш браузер не поддерживает воспроизведение видео.
       </video>
       {/* Кнопка для скачивания видео */}
-      <DownloadButton href={material.file_path} fileName={material.title || "video.mp4"} />
+      {/* <DownloadButton href={material.file_path} fileName={material.title || "video.mp4"} /> */}
+    </Box>
+  );
+};
+
+// Индикатор прогресса
+const ProgressIndicator = ({ completed, total }) => {
+  const progress = (completed / total) * 100;
+  return (
+    <Box sx={{ my: 2 }}>
+      <Typography variant="subtitle1">
+        Прогресс: {completed} из {total} уроков
+      </Typography>
+      <LinearProgress variant="determinate" value={progress} />
     </Box>
   );
 };
@@ -72,8 +85,11 @@ export default function CourseDetail() {
   const error = useSelector((state) => state.auth.courseError);
 
   const [lessons, setLessons] = useState([]);
-  const [materials, setMaterials] = useState([]); // Отдельное состояние для материалов
-  const [activeTab, setActiveTab] = React.useState(0); // Текущая активная вкладка
+  const [materials, setMaterials] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState([]);
+
+  const isMobile = useMediaQuery("(max-width: 600px)");
 
   // Загрузка уроков
   const fetchLessons = async () => {
@@ -111,20 +127,21 @@ export default function CourseDetail() {
     fetchMaterials();
   }, [id, dispatch]);
 
-  if (loading) return <Typography variant="h6">Загрузка...</Typography>;
-  if (error) return <Typography variant="h6">Ошибка: {error}</Typography>;
-
-  // Проверка на наличие данных
-  if (!filteredLessons || filteredLessons.length === 0) {
-    return <Typography variant="h6">Нет доступных уроков.</Typography>;
-  }
-
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  // Фильтруем только видео-материалы
-  const videoMaterials = filteredMaterials.filter((material) => material.type === "video");
+  const handleCompleteLesson = () => {
+    if (!completedLessons.includes(filteredLessons[activeTab].id)) {
+      setCompletedLessons([...completedLessons, filteredLessons[activeTab].id]);
+    }
+  };
+
+  if (loading) return <Typography variant="h6">Загрузка...</Typography>;
+  if (error) return <Typography variant="h6">Ошибка: {error}</Typography>;
+  if (!filteredLessons || filteredLessons.length === 0) {
+    return <Typography variant="h6">Нет доступных уроков.</Typography>;
+  }
 
   return (
     <Box
@@ -136,25 +153,24 @@ export default function CourseDetail() {
         padding: 2,
       }}
     >
-      {/* Вертикальные вкладки */}
+      {/* Вкладки */}
       <Tabs
-        orientation="vertical"
+        orientation={isMobile ? "horizontal" : "vertical"}
         variant="scrollable"
         value={activeTab}
         onChange={handleChangeTab}
         aria-label="Уроки курса"
         sx={{
-          borderRight: 1,
+          borderRight: isMobile ? 0 : 1,
           borderColor: "divider",
-          width: "250px",
+          width: isMobile ? "100%" : "250px",
           backgroundColor: "background.default",
           position: "sticky",
           top: 0,
-          height: "100vh",
           overflowY: "auto",
         }}
       >
-        {filteredLessons.map((lesson) => (
+        {filteredLessons.map((lesson, index) => (
           <Tab
             key={lesson.id}
             label={lesson.title}
@@ -180,6 +196,9 @@ export default function CourseDetail() {
           transition={{ duration: 0.5 }}
         >
           <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+            {/* Прогресс */}
+            <ProgressIndicator completed={completedLessons.length} total={filteredLessons.length} />
+
             {/* Заголовок урока */}
             <Typography variant="h4" sx={{ fontWeight: "bold", mb: 2 }}>
               {filteredLessons[activeTab].title}
@@ -210,8 +229,8 @@ export default function CourseDetail() {
             <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
               Видео-материалы:
             </Typography>
-            {videoMaterials.length > 0 ? (
-              videoMaterials.map((material) => (
+            {filteredMaterials.length > 0 ? (
+              filteredMaterials.map((material) => (
                 <VideoPlayer key={material.material_id} material={material} />
               ))
             ) : (
@@ -242,23 +261,55 @@ export default function CourseDetail() {
           </Paper>
         </motion.div>
 
-        {/* Кнопка "Назад к курсам" */}
-        <Button
-          variant="contained"
-          color="primary"
+        {/* Разделитель */}
+        <Divider sx={{ my: 4 }} />
+
+        {/* Панель действий */}
+        <Box
           sx={{
+            display: "flex",
+            flexDirection: isMobile ? "column" : "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 2,
             mt: 4,
-            display: "block",
-            margin: "auto",
-            borderRadius: 2,
-            textTransform: "none",
-            fontWeight: "bold",
-            padding: "10px 20px",
           }}
-          onClick={() => router.push("/courses")}
         >
-          Назад к курсам
-        </Button>
+          {/* Кнопка "Завершить урок" */}
+          <Button
+            variant="contained"
+            color={completedLessons.includes(filteredLessons[activeTab].id) ? "success" : "primary"}
+            disabled={completedLessons.includes(filteredLessons[activeTab].id)} // Блокируем кнопку, если урок завершен
+            sx={{
+              flexGrow: 1,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: "bold",
+              padding: "10px 20px",
+            }}
+            onClick={handleCompleteLesson}
+          >
+            {completedLessons.includes(filteredLessons[activeTab].id)
+              ? "Урок завершен"
+              : "Завершить урок"}
+          </Button>
+
+          {/* Кнопка "Назад к курсам" */}
+          <Button
+            variant="outlined"
+            color="primary"
+            sx={{
+              flexGrow: 1,
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: "bold",
+              padding: "10px 20px",
+            }}
+            onClick={() => router.push("/courses")}
+          >
+            Назад к курсам
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

@@ -1,11 +1,5 @@
 {
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/login/page": "app/login/page.js",
-  "/layout/page": "app/layout/page.js",
-  "/addmaterial/page": "app/addmaterial/page.js",
-  "/addlessons/page": "app/addlessons/page.js",
-  "/profile/page": "app/profile/page.js",
+  "/courses/[id]/page": "app/courses/[id]/page.js",
   "/courses/page": "app/courses/page.js",
-  "/courses/[id]/page": "app/courses/[id]/page.js"
+  "/layout/page": "app/layout/page.js"
 }
