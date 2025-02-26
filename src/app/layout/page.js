@@ -358,6 +358,7 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllCoursesAction, logoutAction, getUserInfo } from "@/store/slices/authSlice";
 import useTokenFromURL from "../../components/useTokenFromURL";
+import TopMenu from "@/components/topmenu";
 
 export default function Layout({ children }) {
   // Инициализация состояния и хуков
@@ -413,7 +414,7 @@ export default function Layout({ children }) {
         //  dispatch(getUserInfo());
          fetchUserInfo()
          fetchLessons();
-         fetchProgresses();
+        //  fetchProgresses();
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }
@@ -449,22 +450,22 @@ export default function Layout({ children }) {
   };
 
   // Функция для загрузки прогресса
-  const fetchProgresses = async () => {
-    try {
-      const response = await axios.get("http://localhost:4000/api/progresses", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.status === 200) {
-        setProgress(response.data);
-      } else {
-        console.error("Server returned an error:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error fetching progresses:", error.message);
-    }
-  };
+  // const fetchProgresses = async () => {
+  //   try {
+  //     const response = await axios.get("http://localhost:4000/api/progresses", {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+  //     if (response.status === 200) {
+  //       setProgress(response.data);
+  //     } else {
+  //       console.error("Server returned an error:", response.statusText);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching progresses:", error.message);
+  //   }
+  // };
 
   // Обработка выхода из системы
   const handleLogout = () => {
@@ -614,41 +615,43 @@ export default function Layout({ children }) {
 
   // Возвращаем JSX
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        bgcolor: "#f4f6f8",
-        fontFamily: "'Roboto', sans-serif",
-        overflow: "hidden",
-      }}
-    >
-      {/* Верхнее меню */}
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6">Kazniisa LMS</Typography>
-          {renderMenuByRole()}
-        </Toolbar>
-      </AppBar>
+    <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
 
-      {/* Основной контейнер */}
-      <Container>
-      <Box mt={4}>
+    // <Box
+    //   sx={{
+    //     display: "flex",
+    //     flexDirection: "column",
+    //     height: "100vh",
+    //     bgcolor: "#f4f6f8",
+    //     fontFamily: "'Roboto', sans-serif",
+    //     overflow: "hidden",
+    //   }}
+    // >
+    //   {/* Верхнее меню */}
+    //   <AppBar position="static">
+    //     <Toolbar>
+    //       <Typography variant="h6">Kazniisa LMS</Typography>
+    //       {renderMenuByRole()}
+    //     </Toolbar>
+    //   </AppBar>
 
-        <Typography variant="h5">Привет, {userInfo?.name}</Typography>
-        {children}
-        {renderContentByRole()}
-      </Box>
-      </Container>
-      {/* Футер */}
+    //   {/* Основной контейнер */}
+    //   <Container>
+    //   <Box mt={4}>
+
+    //     <Typography variant="h5">Привет, {userInfo?.name}</Typography>
+    //     {children}
+    //     {renderContentByRole()}
+    //   </Box>
+    //   </Container>
+    //   {/* Футер */}
     
    
-        <Box component="footer" sx={{ textAlign: "center", p: 2, bgcolor: "#e0e0e0", mt: "auto" }}>
-                <Typography variant="body2" sx={{ fontWeight: "bold", color: "#555" }}>
-                  © 2025 Учебная платформа. Все права защищены.
-                </Typography>
-        </Box>
-    </Box>
+    //     <Box component="footer" sx={{ textAlign: "center", p: 2, bgcolor: "#e0e0e0", mt: "auto" }}>
+    //             <Typography variant="body2" sx={{ fontWeight: "bold", color: "#555" }}>
+    //               © 2025 Учебная платформа. Все права защищены.
+    //             </Typography>
+    //     </Box>
+    // </Box>
   );
 }

@@ -21,7 +21,9 @@ import {
   useMediaQuery,
   Divider,
 } from "@mui/material";
-
+import { useSelector ,useDispatch} from "react-redux";
+import { getUserInfoAction } from "@/store/slices/authSlice";
+import TopMenu from "@/components/topmenu";
 
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
@@ -51,8 +53,10 @@ export default function CourseDetail() {
   const [completedLessons, setCompletedLessons] = useState([]);
   const editorInstance = useRef(null); // Ссылка на экземпляр Editor.js
 
-  const isMobile = useMediaQuery("(max-width: 600px)");
+  const userData = useSelector((state) => state.auth.currentUser);
 
+  const isMobile = useMediaQuery("(max-width: 600px)");
+ const dispatch = useDispatch();
   // Загрузка уроков
   const fetchLessons = async () => {
     try {
@@ -82,57 +86,113 @@ export default function CourseDetail() {
   );
 
   useEffect(() => {
+    dispatch(getUserInfoAction)
     fetchLessons();
     fetchMaterials();
+   
   }, [id]);
 
+  
+
   useEffect(() => {
-    // Инициализация Editor.js в режиме только для чтения
     if (filteredLessons[activeTab] && filteredLessons[activeTab].content) {
-      const content = JSON.parse(filteredLessons[activeTab].content);
-
-      // Уничтожаем предыдущий экземпляр, если он существует
-      if (editorInstance.current) {
-        try {
+      try {
+        const content = JSON.parse(filteredLessons[activeTab].content);
+        console.log("Parsed content:", content);
+  
+        // Уничтожаем предыдущий экземпляр Editor.js
+        if (editorInstance.current) {
           editorInstance.current.destroy();
-        } catch (error) {
-          console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
+          editorInstance.current = null;
         }
-        editorInstance.current = null;
+  
+        // Создаем новый экземпляр Editor.js
+        const editor = new EditorJS({
+          holder: "editorjs-container",
+          readOnly: true,
+          data: content,
+          tools: {
+            header: Header,
+            list: List,
+            paragraph: Paragraph,
+          },
+        });
+        if (editorInstance.current) {
+                  try {
+                    editorInstance.current.destroy(); // Ensure this is a valid EditorJS instance
+                  } catch (error) {
+                    console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
+                  }
+                  editorInstance.current = null;
+                }
+  
+        editorInstance.current = editor;
+      } catch (error) {
+        console.error("Ошибка при парсинге содержимого урока:", error);
       }
-
-      // Создаем новый экземпляр Editor.js
-      const editor = new EditorJS({
-        holder: "editorjs-container", // ID контейнера для редактора
-        readOnly: true, // Режим только для чтения
-        data: content, // Данные для отображения
-        tools: {
-          header: Header,
-          list: List,
-          paragraph: Paragraph,
-        },
-      });
-
-      editorInstance.current = editor;
     }
-
-    return () => {
-      // Очистка экземпляра Editor.js при размонтировании
-      if (editorInstance.current) {
-        try {
-          editorInstance.current.destroy();
-        } catch (error) {
-          console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
-        }
-        editorInstance.current = null;
-      }
-    };
   }, [activeTab, filteredLessons]);
+
+
+  // useEffect(() => {
+  //   if (filteredLessons[activeTab] && filteredLessons[activeTab].content) {
+  //     try {
+  //       const content = JSON.parse(filteredLessons[activeTab].content);
+  //       console.log("Parsed content:", content);
+  
+  //       // Уничтожаем предыдущий экземпляр Editor.js
+  //       if (editorInstance.current) {
+  //         try {
+  //           editorInstance.current.destroy(); // Ensure this is a valid EditorJS instance
+  //         } catch (error) {
+  //           console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
+  //         }
+  //         editorInstance.current = null;
+  //       }
+  
+  //       // Создаем новый экземпляр Editor.js
+  //       const editor = new EditorJS({
+  //         holder: "editorjs-container",
+  //         readOnly: true,
+  //         data: content,
+  //         tools: {
+  //           header: Header,
+  //           list: List,
+  //           paragraph: Paragraph,
+  //         },
+  //       });
+  
+  //       editorInstance.current = editor; // Сохраняем ссылку на экземпляр
+  //     } catch (error) {
+  //       console.error("Ошибка при парсинге содержимого урока:", error);
+  //     }
+  //   }
+  
+  //   return () => {
+  //     // Очистка экземпляра Editor.js при размонтировании
+  //     if (editorInstance.current) {
+  //       try {
+  //         editorInstance.current.destroy();
+  //       } catch (error) {
+  //         console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
+  //       }
+  //       editorInstance.current = null;
+  //     }
+  //   };
+  // }, [activeTab, filteredLessons]);
+
+
 
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
   };
 
+  const handleLogout = () => {
+      dispatch(logoutAction());
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    };
+  
   const handleCompleteLesson = () => {
     if (!completedLessons.includes(filteredLessons[activeTab].id)) {
       setCompletedLessons([...completedLessons, filteredLessons[activeTab].id]);
@@ -145,7 +205,10 @@ export default function CourseDetail() {
 
   const videoMaterials = filteredMaterials.filter((material) => material.type === "video");
 
-  return (
+  console.log('1 render filteredLessons',filteredLessons)
+  return (<>
+
+    <TopMenu userInfo={userData} handleLogout={handleLogout} />
     <Box
       sx={{
         display: "flex",
@@ -322,5 +385,6 @@ export default function CourseDetail() {
         </Box>
       </Box>
     </Box>
+    </>
   );
 }

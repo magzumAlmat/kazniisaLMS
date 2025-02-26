@@ -236,12 +236,9 @@ export const authSlice = createSlice({
       console.log('1.3 getBannerByCompanyIdReducer-',state.bannersById)
     },
 
-    setCurrentUser:(state,action)=>{
-      console.log('1.3 setCurrentUser',action.payload)
+    setCurrentUserReducer:(state,action)=>{
+      console.log('setCurrentUserReducer started setCurrentUser',action.payload)
       state.currentUser=action.payload
-     
-     
-
     },
 
 
@@ -399,7 +396,7 @@ createLessonReducer: (state, action) => {
 export const { createDocumentReducer,getAllCoursesReducer,setError,clearError,setUploadProgress,
   clearUploadProgress,sendErrorReducer,getCurrentCoursesReducer,
   getAllRevisesReducer,ReviseReducer,authorize, logout, editVar ,
-  sendCodeReducer,sendUserDataReducer,setCurrentUser,
+  sendCodeReducer,sendUserDataReducer,setCurrentUserReducer,
   getBannerByCompanyIdReducer,getAllBannersReducer, createLessonReducer,
   loginReducer,addCompanyReducer,getAllCompaniesReducer} = authSlice.actions;
 
@@ -579,21 +576,39 @@ export const  getBannerByCompanyIdAction= (companyId) => async(dispatch) => {
   });
 };
 
-export const  getUserInfo=async(dispatch)=>{
+
+
+
+export const  getUserInfoAction=async(dispatch)=>{
   
   console.log('1 getUserInFo started token=,',token)
-  const response = await axios.get(
-    `http://localhost:4000/api/auth/getAuthentificatedUserInfo`,{
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      
-      },
+  const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+    {headers: {
+      'Authorization': `Bearer ${token}`,
     }
-  ).then((response) => {
+    },).then((response) => {
     console.log('1.2 getUserInFo response ',response.data)
-    dispatch(setCurrentUser(response.data));
+    dispatch(setCurrentUserReducer(response.data));
   });
 };
+
+
+
+
+// const fetchUserInfo = async () => {
+//   console.log('fetchUserInfo started!')
+//   try {
+//     const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+//     {headers: {
+//       'Authorization': `Bearer ${token}`,
+//     }
+//     },);
+//     setUserInfo(response.data);
+//   } catch (error) {
+//     console.error("Ошибка при загрузке уроков:", error);
+    
+//   }
+// };
 
 
 
