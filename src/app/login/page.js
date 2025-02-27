@@ -15,22 +15,60 @@ const LoginPage = () => {
   const router = useRouter();
 
   // Эффект для отслеживания изменения isAuth
+  
+  
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+
+        if (decodedToken.exp && decodedToken.exp < currentTime) {
+          console.error("Token expired");
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        } else {
+          dispatch(authorize(true));
+          router.push('/layout');
+        }
+      } catch (error) {
+        console.error("Invalid token:", error);
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
+    }
+  }, [dispatch, router]);
+  
+  
   useEffect(() => {
     if (isAuth) {
       router.push('/layout'); // Перенаправляем на /layout, если isAuth === true
     }
   }, [isAuth, router]);
 
+
+
+
   const handleSubmit = (e) => {
+    // e.preventDefault();
+    // dispatch(loginAction({ email, password }))
+    //   .then(() => {
+    //     dispatch(authorize(true)); 
+    //   })
+    //   .catch((error) => {
+    //     console.error('Ошибка при входе:', error);
+       
+    //   });
     e.preventDefault();
-    dispatch(loginAction({ email, password }))
-      .then(() => {
-        dispatch(authorize(true)); // Устанавливаем авторизацию
-      })
-      .catch((error) => {
-        console.error('Ошибка при входе:', error);
-        // Здесь можно добавить отображение ошибки пользователю
-      });
+  dispatch(loginAction({ email, password }))
+    .then(() => {
+      dispatch(authorize(true));
+    })
+    .catch((error) => {
+      // console.error("Ошибка при входе:", error);
+      // alert("Неверный email или пароль"); // Show error message
+    });
   };
 
   return (
@@ -96,7 +134,7 @@ const LoginPage = () => {
             <Button
               variant="outlined"
               fullWidth
-              startIcon={<img src="/google-icon.png" alt="Google" style={{ width: 20, marginRight: 10 }} />}
+              startIcon={<img src="./google.png" alt="Google" style={{ width: 20, marginRight: 10 }} />}
               href="http://localhost:4000/api/auth/google" // URL для Google OAuth
               sx={{
                 textTransform: 'none',

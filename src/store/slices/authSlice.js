@@ -22,7 +22,9 @@ const initialState = {
   uploadProgress: 0,
   courses:[],
   currentCourse:[],
-  alldocuments: []
+  alldocuments: [],
+  allLessons:[],
+  loading: true,
 };
 
 // let token;
@@ -140,6 +142,7 @@ export const authSlice = createSlice({
 
       // Устанавливаем заголовок Authorization для axios
       axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+      state.loading=false
     },
 
     logoutReducer: (state) => {
@@ -280,9 +283,9 @@ export const authSlice = createSlice({
       console.log('1 authorize decoded token=========', decoded)
 
       
-      
       localStorage.setItem("token", action.payload.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+      state.loading=false
     },
 
     sendCodeReducer: (state, action) => {
@@ -324,6 +327,7 @@ export const authSlice = createSlice({
     console.log(' 1 SendDataReducer token from sendDataUserReducer',action.payload)
     
     state.currentUser=action.payload
+    state.loading = false;
     console.log(' 2 SendDataReducer state changed',state.currentUser)
     
 
@@ -388,6 +392,15 @@ createLessonReducer: (state, action) => {
   console.log(action.payload)
   state.allDocuments = [...state.allDocuments, action.payload]; //нужен для обновления всех документов в реальном времени
 },
+
+
+addAllLessonsReducer: (state, action) => {
+  state.lessons = action.payload; // Update the lessons array in the state
+},
+
+
+
+
     });
 
 
@@ -397,7 +410,7 @@ export const { createDocumentReducer,getAllCoursesReducer,setError,clearError,se
   clearUploadProgress,sendErrorReducer,getCurrentCoursesReducer,
   getAllRevisesReducer,ReviseReducer,authorize, logout, editVar ,
   sendCodeReducer,sendUserDataReducer,setCurrentUserReducer,
-  getBannerByCompanyIdReducer,getAllBannersReducer, createLessonReducer,
+  getBannerByCompanyIdReducer,getAllBannersReducer, createLessonReducer,addAllLessonsReducer,
   loginReducer,addCompanyReducer,getAllCompaniesReducer} = authSlice.actions;
 
 // Use useEffect for token initialization
@@ -592,7 +605,23 @@ export const  getUserInfoAction=async(dispatch)=>{
   });
 };
 
+export const getAllLessonsAction = () => async (dispatch) => {
+  console.log("1 getAllLessonsAction started");
 
+  try {
+    const token = localStorage.getItem("token"); // Ensure the token is retrieved
+    const response = await axios.get("http://localhost:4000/api/lessons", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log("1.2 getAllLessonsAction response ", response.data);
+    dispatch(addAllLessonsReducer(response.data)); // Dispatch the data to the reducer
+  } catch (error) {
+    console.error("Error fetching lessons:", error);
+  }
+};
 
 
 // const fetchUserInfo = async () => {
@@ -784,6 +813,7 @@ export const loginInspectorAction = (email,password) => async(dispatch) => {
 };
 
 export const loginAction = ({ email, password }) => async (dispatch) => {
+  console.log('1 login Action started')
   try {
     const response = await axios.post(`${END_POINT}/api/auth/login`, {
       email,
@@ -802,7 +832,7 @@ export const loginAction = ({ email, password }) => async (dispatch) => {
       localStorage.setItem("token", token); // Set token only in the browser
     }
 
-    dispatch(loginReducer({ token }));
+    await dispatch(loginReducer({ token }));
   } catch (error) {
     console.error("Login failed:", error);
   }

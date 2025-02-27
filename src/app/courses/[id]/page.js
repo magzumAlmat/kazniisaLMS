@@ -24,7 +24,7 @@ import {
 import { useSelector ,useDispatch} from "react-redux";
 import { getUserInfoAction } from "@/store/slices/authSlice";
 import TopMenu from "@/components/topmenu";
-
+import { logoutAction } from "@/store/slices/authSlice";
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
     return <Typography variant="body1">Видео недоступно.</Typography>;
@@ -89,7 +89,6 @@ export default function CourseDetail() {
     dispatch(getUserInfoAction)
     fetchLessons();
     fetchMaterials();
-   
   }, [id]);
 
   
@@ -100,13 +99,21 @@ export default function CourseDetail() {
         const content = JSON.parse(filteredLessons[activeTab].content);
         console.log("Parsed content:", content);
   
-        // Уничтожаем предыдущий экземпляр Editor.js
+        if (!content || typeof content !== "object" || !Array.isArray(content.blocks)) {
+          throw new Error("Некорректный формат данных для Editor.js");
+        }
+  
+        // Уничтожаем предыдущий экземпляр
         if (editorInstance.current) {
-          editorInstance.current.destroy();
+          try {
+            editorInstance.current.destroy();
+          } catch (error) {
+            console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
+          }
           editorInstance.current = null;
         }
   
-        // Создаем новый экземпляр Editor.js
+        // Создаем новый экземпляр
         const editor = new EditorJS({
           holder: "editorjs-container",
           readOnly: true,
@@ -117,20 +124,27 @@ export default function CourseDetail() {
             paragraph: Paragraph,
           },
         });
-        if (editorInstance.current) {
-                  try {
-                    editorInstance.current.destroy(); // Ensure this is a valid EditorJS instance
-                  } catch (error) {
-                    console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
-                  }
-                  editorInstance.current = null;
-                }
   
+
         editorInstance.current = editor;
+        
       } catch (error) {
         console.error("Ошибка при парсинге содержимого урока:", error);
       }
     }
+    return () => {
+
+      // Очистка экземпляра Editor.js при размонтировании
+      if (editorInstance.current) {
+        try {
+          editorInstance.current.destroy();
+        } catch (error) {
+          console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
+        }
+        editorInstance.current = null;
+      }
+    };
+  
   }, [activeTab, filteredLessons]);
 
 
