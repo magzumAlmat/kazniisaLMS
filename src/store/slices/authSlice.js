@@ -25,7 +25,9 @@ const initialState = {
   alldocuments: [],
   allLessons:[],
   loading: true,
-  loadingCourses:true
+  loadingCourses:true,
+  completedLessons:[],
+  progress:[]
 };
 
 // let token;
@@ -403,7 +405,9 @@ addAllLessonsReducer: (state, action) => {
   state.lessons = action.payload; // Update the lessons array in the state
 },
 
-
+addProgressReducer: (state, action) => {
+  state.progress =  [...state.progress, action.payload];; // Обновляем массив завершённых уроков
+},
 
 
     });
@@ -412,9 +416,9 @@ addAllLessonsReducer: (state, action) => {
 
 // Action creators are generated for each case reducer function
 export const { createDocumentReducer,getAllCoursesReducer,setError,clearError,setUploadProgress,
-  clearUploadProgress,sendErrorReducer,getCurrentCoursesReducer,
+  clearUploadProgress,sendErrorReducer,getCurrentCoursesReducer,addProgressReducer,
   getAllRevisesReducer,ReviseReducer,authorize, logout, editVar ,
-  sendCodeReducer,sendUserDataReducer,setCurrentUserReducer,
+  sendCodeReducer,sendUserDataReducer,setCurrentUserReducer,addCompletedLessonReducer,
   getBannerByCompanyIdReducer,getAllBannersReducer, createLessonReducer,addAllLessonsReducer,
   loginReducer,addCompanyReducer,getAllCompaniesReducer} = authSlice.actions;
 
@@ -1161,6 +1165,30 @@ export const addBannerAction=(formData)=>async(dispatch)=>{
   
 
     }
+
+
+
+export const addProgressAction = (userId,course) => async (dispatch) => {
+  console.log('addProgressAction started')
+  
+       
+        // const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${course}`)
+          
+        //   dispatch(addProgressReducer(response.data));
+        
+
+          await axios.get(`${END_POINT}/api/course/progress/${userId}/${course}` ).then((res) => {
+            console.log('response from verifyCodeAction ',res.data)
+            
+            // dispatch(addProgressReducer(res.data));
+          });
+        // Диспатчим редуктор с новыми данными
+        
+    
+    };
+
+
+
 
 
 
