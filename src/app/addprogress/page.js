@@ -1,146 +1,220 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  Box,
+  Container,
+  Typography,
   Button,
   TextField,
-  Typography,
-  Container,
-  Paper,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 
-export default function AddProgressPage() {
-  // Состояния для полей формы
-  const [formData, setFormData] = useState({
-    user_id: "",
-    lesson_id: "",
-    status: "not_started", // Значение по умолчанию
-    progress_percentage: 0,
-  });
+const ProgressPage = () => {
+  const [progresses, setProgresses] = useState([]);
+  const [userId, setUserId] = useState("");
+  const [courseId, setCourseId] = useState("");
+  const [lessonId, setLessonId] = useState("");
+  const [progressPercentage, setProgressPercentage] = useState(0);
+  const [courseProgress, setCourseProgress] = useState(null);
 
-  // Состояние для отображения сообщений об успехе или ошибке
-  const [message, setMessage] = useState("");
+  // Инициализация прогресса при монтировании компонента
+  useEffect(() => {
+    initializeProgress();
+  }, []);
 
-  // Обработчик изменения полей формы
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  // Функция для инициализации прогресса
+  const initializeProgress = async () => {
+    try {
+      const response = await axios.post("http://localhost:4000/course/enroll", {
+        userId,
+        courseId,
+      });
+      console.log("Initial progress created:", response.data);
+      fetchAllProgresses(userId); // Обновляем список прогресса после инициализации
+    } catch (error) {
+      console.error("Error initializing progress:", error);
+    }
   };
 
-  // Обработчик отправки формы
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Получение всех записей о прогрессе пользователя
+  const fetchAllProgresses = async (userId) => {
     try {
-      // Отправляем POST-запрос на сервер
-      const response = await axios.post("http://localhost:4000/api/progresses", formData);
-      console.log("Progress created:", response.data);
-
-      // Очищаем форму и показываем сообщение об успехе
-      setFormData({
-        user_id: "",
-        lesson_id: "",
-        status: "not_started",
-        progress_percentage: 0,
-      });
-      setMessage("Прогресс успешно добавлен!");
+      const response = await axios.get(`http://localhost:4000/progress/all/${userId}`);
+      setProgresses(response.data);
     } catch (error) {
-      console.error("Ошибка при добавлении прогресса:", error);
-      setMessage("Ошибка: " + error.response?.data?.error || "Не удалось добавить прогресс.");
+      console.error("Error fetching progresses:", error);
+    }
+  };
+
+  // Создание новой записи о прогрессе
+  const createProgress = async () => {
+    try {
+      const response = await axios.post("http://localhost:4000/progresses", {
+        status: "in_progress",
+        completed_at: null,
+        user_id: userId,
+        lesson_id: lessonId,
+      });
+      console.log("Progress created:", response.data);
+      fetchAllProgresses(userId); // Обновляем список прогресса
+    } catch (error) {
+      console.error("Error creating progress:", error);
+    }
+  };
+
+  // Обновление прогресса урока
+  const updateLessonProgress = async () => {
+    try {
+      const response = await axios.put("http://localhost:4000/progress/update", {
+        user_id: userId,
+        lesson_id: lessonId,
+        progress_percentage: progressPercentage,
+      });
+      console.log("Progress updated:", response.data);
+      fetchAllProgresses(userId); // Обновляем список прогресса
+    } catch (error) {
+      console.error("Error updating progress:", error);
+    }
+  };
+
+  // Удаление записи о прогрессе
+  const deleteProgress = async (id) => {
+    try {
+      await axios.delete(`http://localhost:4000/progresses/${id}`);
+      console.log("Progress deleted");
+      fetchAllProgresses(userId); // Обновляем список прогресса
+    } catch (error) {
+      console.error("Error deleting progress:", error);
+    }
+  };
+
+  // Получение прогресса курса
+  const fetchCourseProgress = async () => {
+    try {
+      const response = await axios.get(`http://localhost:4000/course/progress/${userId}/${courseId}`);
+      setCourseProgress(response.data);
+      console.log("Course progress fetched:", response.data);
+    } catch (error) {
+      console.error("Error fetching course progress:", error);
     }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ p: 4, mt: 5 }}>
-        <Typography variant="h4" gutterBottom>
-          Добавить прогресс
-        </Typography>
+    <Container>
+      <Typography variant="h4" gutterBottom>
+        Управление прогрессом
+      </Typography>
 
-        {/* Форма для добавления прогресса */}
-        <form onSubmit={handleSubmit}>
-          {/* Поле user_id */}
-          <TextField
-            fullWidth
-            label="User ID"
-            name="user_id"
-            type="number"
-            value={formData.user_id}
-            onChange={handleChange}
-            required
-            margin="normal"
-          />
+      {/* Форма для инициализации прогресса */}
+      <div>
+        <Typography variant="h6">Инициализация прогресса</Typography>
+        <TextField
+          label="User ID"
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Course ID"
+          value={courseId}
+          onChange={(e) => setCourseId(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <Button variant="contained" onClick={initializeProgress}>
+          Инициализировать прогресс
+        </Button>
+      </div>
 
-          {/* Поле lesson_id */}
-          <TextField
-            fullWidth
-            label="Lesson ID"
-            name="lesson_id"
-            type="number"
-            value={formData.lesson_id}
-            onChange={handleChange}
-            required
-            margin="normal"
-          />
+      <Divider sx={{ my: 4 }} />
 
-          {/* Выбор статуса */}
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Статус</InputLabel>
-            <Select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              label="Статус"
-            >
-              <MenuItem value="not_started">Не начато</MenuItem>
-              <MenuItem value="in_progress">В процессе</MenuItem>
-              <MenuItem value="completed">Завершено</MenuItem>
-            </Select>
-          </FormControl>
+      {/* Форма для создания прогресса */}
+      <div>
+        <Typography variant="h6">Создать прогресс</Typography>
+        <TextField
+          label="Lesson ID"
+          value={lessonId}
+          onChange={(e) => setLessonId(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <Button variant="contained" onClick={createProgress}>
+          Создать прогресс
+        </Button>
+      </div>
 
-          {/* Поле progress_percentage */}
-          <TextField
-            fullWidth
-            label="Прогресс (%)"
-            name="progress_percentage"
-            type="number"
-            value={formData.progress_percentage}
-            onChange={handleChange}
-            required
-            margin="normal"
-          />
+      <Divider sx={{ my: 4 }} />
 
-          {/* Кнопка отправки */}
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mt: 2 }}
-          >
-            Добавить прогресс
-          </Button>
-        </form>
+      {/* Форма для обновления прогресса */}
+      <div>
+        <Typography variant="h6">Обновить прогресс</Typography>
+        <TextField
+          label="Progress Percentage"
+          type="number"
+          value={progressPercentage}
+          onChange={(e) => setProgressPercentage(Number(e.target.value))}
+          fullWidth
+          margin="normal"
+        />
+        <Button variant="contained" onClick={updateLessonProgress}>
+          Обновить прогресс
+        </Button>
+      </div>
 
-        {/* Сообщение об успехе или ошибке */}
-        {message && (
-          <Box mt={2}>
-            <Typography
-              variant="body1"
-              color={message.includes("успешно") ? "green" : "red"}
-            >
-              {message}
-            </Typography>
-          </Box>
+      <Divider sx={{ my: 4 }} />
+
+      {/* Форма для получения прогресса курса */}
+      <div>
+        <Typography variant="h6">Получить прогресс курса</Typography>
+        <Button variant="contained" onClick={fetchCourseProgress}>
+          Получить прогресс курса
+        </Button>
+        {courseProgress && (
+          <div>
+            <Typography>Прогресс курса: {courseProgress.course_progress}%</Typography>
+            <List>
+              {courseProgress.lessons.map((lesson, index) => (
+                <ListItem key={index}>
+                  <ListItemText
+                    primary={`Урок: ${lesson.title}`}
+                    secondary={`Статус: ${lesson.status}`}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          </div>
         )}
-      </Paper>
+      </div>
+
+      <Divider sx={{ my: 4 }} />
+
+      {/* Список всех записей о прогрессе */}
+      <div>
+        <Typography variant="h6">Все записи о прогрессе</Typography>
+        <List>
+          {progresses.map((progress, index) => (
+            <ListItem key={index}>
+              <ListItemText
+                primary={`Урок ID: ${progress.lesson_id}`}
+                secondary={`Статус: ${progress.status}`}
+              />
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => deleteProgress(progress.id)}
+              >
+                Удалить
+              </Button>
+            </ListItem>
+          ))}
+        </List>
+      </div>
     </Container>
   );
-}
+};
+
+export default ProgressPage;

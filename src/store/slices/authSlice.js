@@ -25,6 +25,7 @@ const initialState = {
   alldocuments: [],
   allLessons:[],
   loading: true,
+  loadingCourses:true
 };
 
 // let token;
@@ -375,7 +376,11 @@ export const authSlice = createSlice({
 
       getAllCoursesReducer:(state, action) => {
         state.courses=action.payload
+        state.loadingCourses=false
+        console.log('getAllCoursesReducer start ')
   },
+
+  
   getCurrentCoursesReducer:(state, action) => {
     state.currentCourse=action.payload
 }
@@ -592,7 +597,7 @@ export const  getBannerByCompanyIdAction= (companyId) => async(dispatch) => {
 
 
 
-export const  getUserInfoAction=async(dispatch)=>{
+export const  getUserInfoAction =() => async(dispatch)=>{
   
   console.log('1 getUserInFo started token=,',token)
   const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",

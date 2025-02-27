@@ -2,7 +2,7 @@
 import * as React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation"; // Next.js 13+
-import axios from "axios";
+
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import List from "@editorjs/list";
@@ -21,29 +21,33 @@ import {
   useMediaQuery,
   Divider,
 } from "@mui/material";
-import { useSelector ,useDispatch} from "react-redux";
-import { getUserInfoAction } from "@/store/slices/authSlice";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  getUserInfoAction,
+  getAllCoursesAction,
+} from "@/store/slices/authSlice";
 import TopMenu from "@/components/topmenu";
 import { logoutAction } from "@/store/slices/authSlice";
+import jwtDecode from "jwt-decode";
+import axios from "axios";
+
+import useTokenFromURL from "@/components/useTokenFromURL";
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
-    return <Typography variant="body1">Видео недоступно.</Typography>;
+    return <div>Видео недоступно.</div>;
   }
 
   return (
-    <Box sx={{ mb: 4 }}>
-      <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-        {material.title}
-      </Typography>
-      <video controls width="100%" height="auto" style={{ borderRadius: "8px" }}>
+    <Box>
+      <Typography variant="h6">{material.title}</Typography>
+      <video controls width="100%">
         <source src={material.file_path} type="video/mp4" />
         Ваш браузер не поддерживает воспроизведение видео.
       </video>
-      {/* Кнопка для скачивания видео */}
-      {/* <DownloadButton href={material.file_path} fileName={material.title || "video.mp4"} /> */}
     </Box>
   );
 };
+
 export default function CourseDetail() {
   const { id } = useParams(); // Получаем id из URL
   const router = useRouter();
@@ -52,18 +56,155 @@ export default function CourseDetail() {
   const [activeTab, setActiveTab] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
   const editorInstance = useRef(null); // Ссылка на экземпляр Editor.js
-
+  const { courses, loadingCourses, coursesError } = useSelector((state) => state.auth);
   const userData = useSelector((state) => state.auth.currentUser);
-
+  const [progresses, setProgresses] = useState([]);
   const isMobile = useMediaQuery("(max-width: 600px)");
- const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const token = localStorage.getItem("token");
+  const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
+  const [loading, setLoading] = useState(true); // Состояние загрузки
+  const [course,setCourse]=useState(null)
+ const isAuth = useSelector((state) => state.auth.isAuth);
   // Загрузка уроков
-  const fetchLessons = async () => {
+
+
+let decodedToken;
+  try {
+    decodedToken = jwtDecode(token);
+    console.log("Decoded token:", decodedToken);
+  } catch (error) {
+    console.error("Invalid token:", error);
+    localStorage.removeItem("token");
+    window.location.href = "/login"; // Перенаправляем на страницу входа
+    return null;
+  }
+  console.log("1. URL search params:", window.location.search);
+  console.log("2. Token from URL:", token);
+
+  
+  if (token) {
     try {
-      const response = await axios.get("http://localhost:4000/api/lessons");
-      setLessons(response.data);
+      const decoded = jwtDecode(token);
+      console.log("3. Decoded token:", decoded);
+      localStorage.setItem("token", token);
+      console.log("4. Token saved to localStorage:", localStorage.getItem("token"));
+    } catch (error) {
+      console.error("5. Invalid token:", error.message);
+    }
+  } else {
+    console.error("6. Token not found in URL");
+  }
+
+  // Вызов хука для обработки токена из URL
+  useTokenFromURL();
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+         fetchCourses()
+       
+        //  dispatch(getUserInfo());
+         fetchUserInfo()
+         fetchLessons();
+        //  fetchProgresses();
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+      }
+    };
+
+    fetchInitialData();
+    
+  }, [dispatch]);
+
+
+
+
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/api/courses");
+    
+      console.log('fetch courses',response.data[0].id)
+      setCourse(response.data[0].id)
+    } catch (error) {
+      console.error("Ошибка при загрузке курсов:", error);
+    }
+  };
+
+  
+  
+  console.log('loadingCurse= ',loadingCourses,course)
+ 
+
+    // Инициализация прогресса
+    const initializeProgress = async () => {
+      
+      const decoded = jwtDecode(token);
+
+      // console.log('initializeProgress started userData=',decoded,'courses= ',courses)
+      try {
+        if (!decoded || !course  === 0) {
+          console.log('initializeProgress started userData=',decoded,'courses= ',course.id)
+          console.error("Недостаточно данных для инициализации прогресса.");
+          return;
+        }
+        const response =  axios.post("http://localhost:4000/course/enroll", {
+          user_id: decoded.id,
+          course_id: course,
+        });
+        console.log("Initial progress created:", response.data);
+        fetchAllProgresses(decoded.id);
+      } catch (error) {
+        console.error("Ошибка при инициализации прогресса:", error);
+      }
+    };
+  
+    // Получение всех записей о прогрессе пользователя
+    const fetchAllProgresses = async (userId) => {
+      try {
+        const response = await axios.get(`http://localhost:4000/progress/all/${userId}`);
+        setProgresses(response.data);
+      } catch (error) {
+        console.error("Ошибка при получении прогресса:", error);
+      }
+    };
+
+  // if (!loadingCourses) {
+  //   console.log(' LOADER loadingCurse= ',loadingCourses)
+  //   return (
+  //     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+  //       <Typography variant="h6">Загрузка данных пользователя...</Typography>
+  //       <LinearProgress />
+  //     </Box>
+  //   );
+  // }
+  // Функция для загрузки уроков
+  const fetchUserInfo = async () => {
+    console.log('fetchUserInfo started!')
+    try {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+      {headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+      },);
+      setUserInfo(response.data);
     } catch (error) {
       console.error("Ошибка при загрузке уроков:", error);
+      
+    }
+  };
+
+  const fetchLessons = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/api/lessons", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setLessons(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке уроков:", error.response?.data || error.message);
+      setLessons([]);
     }
   };
 
@@ -77,6 +218,10 @@ export default function CourseDetail() {
     }
   };
 
+
+
+  
+
   // Фильтрация уроков по courseId
   const filteredLessons = lessons.filter((lesson) => lesson.course_id === Number(id));
 
@@ -86,117 +231,57 @@ export default function CourseDetail() {
   );
 
   useEffect(() => {
-    dispatch(getUserInfoAction)
-    fetchLessons();
-    fetchMaterials();
-  }, [id]);
+    let completedRequests = 0; // Счетчик завершенных запросов
+    const totalRequests = 5; // Общее количество запросов
 
-  
-
-  useEffect(() => {
-    if (filteredLessons[activeTab] && filteredLessons[activeTab].content) {
-      try {
-        const content = JSON.parse(filteredLessons[activeTab].content);
-        console.log("Parsed content:", content);
-  
-        if (!content || typeof content !== "object" || !Array.isArray(content.blocks)) {
-          throw new Error("Некорректный формат данных для Editor.js");
-        }
-  
-        // Уничтожаем предыдущий экземпляр
-        if (editorInstance.current) {
-          try {
-            editorInstance.current.destroy();
-          } catch (error) {
-            console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
-          }
-          editorInstance.current = null;
-        }
-  
-        // Создаем новый экземпляр
-        const editor = new EditorJS({
-          holder: "editorjs-container",
-          readOnly: true,
-          data: content,
-          tools: {
-            header: Header,
-            list: List,
-            paragraph: Paragraph,
-          },
-        });
-  
-
-        editorInstance.current = editor;
-        
-      } catch (error) {
-        console.error("Ошибка при парсинге содержимого урока:", error);
-      }
-    }
-    return () => {
-
-      // Очистка экземпляра Editor.js при размонтировании
-      if (editorInstance.current) {
-        try {
-          editorInstance.current.destroy();
-        } catch (error) {
-          console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
-        }
-        editorInstance.current = null;
+    const checkLoadingComplete = () => {
+      completedRequests++;
+      if (completedRequests === totalRequests) {
+        setLoading(false); // Все запросы завершены
       }
     };
-  
-  }, [activeTab, filteredLessons]);
 
+    try {
+      const decodedToken = jwtDecode(token);
+      const currentTime = Date.now() / 10000; // Время в секундах
+    
+      if (decodedToken.exp < currentTime) {
+        console.error("Token expired");
+        // Перенаправляем пользователя на страницу входа
+        localStorage.removeItem("token");
+        // window.location.href = "/login";
+        return null;
+      }
+    } catch (error) {
+      console.error("Invalid token:", error);
+      // Перенаправляем пользователя на страницу входа
+      localStorage.removeItem("token");
+      // window.location.href = "/login";
+      return null;
+    }
 
-  // useEffect(() => {
-  //   if (filteredLessons[activeTab] && filteredLessons[activeTab].content) {
-  //     try {
-  //       const content = JSON.parse(filteredLessons[activeTab].content);
-  //       console.log("Parsed content:", content);
-  
-  //       // Уничтожаем предыдущий экземпляр Editor.js
-  //       if (editorInstance.current) {
-  //         try {
-  //           editorInstance.current.destroy(); // Ensure this is a valid EditorJS instance
-  //         } catch (error) {
-  //           console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
-  //         }
-  //         editorInstance.current = null;
-  //       }
-  
-  //       // Создаем новый экземпляр Editor.js
-  //       const editor = new EditorJS({
-  //         holder: "editorjs-container",
-  //         readOnly: true,
-  //         data: content,
-  //         tools: {
-  //           header: Header,
-  //           list: List,
-  //           paragraph: Paragraph,
-  //         },
-  //       });
-  
-  //       editorInstance.current = editor; // Сохраняем ссылку на экземпляр
-  //     } catch (error) {
-  //       console.error("Ошибка при парсинге содержимого урока:", error);
-  //     }
-  //   }
-  
-  //   return () => {
-  //     // Очистка экземпляра Editor.js при размонтировании
-  //     if (editorInstance.current) {
-  //       try {
-  //         editorInstance.current.destroy();
-  //       } catch (error) {
-  //         console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
-  //       }
-  //       editorInstance.current = null;
-  //     }
-  //   };
-  // }, [activeTab, filteredLessons]);
+ 
 
+    // Выполнение всех запросов
+    const fetchData = async () => {
+      try {
+        // dispatch(getUserInfoAction);
+        await fetchLessons();
+        await fetchMaterials();
+        dispatch(getAllCoursesAction());
+        // await fetchUserInfo();
+        await initializeProgress();
+      } catch (error) {
+        console.error("Ошибка при загрузке данных:", error);
+      } finally {
+        checkLoadingComplete();
+      }
+    };
 
+    fetchData();
+  }, [id, dispatch]);
 
+  
   const handleChangeTab = (event, newValue) => {
     setActiveTab(newValue);
   };
@@ -217,12 +302,27 @@ export default function CourseDetail() {
     return <Typography variant="h6">Нет доступных уроков.</Typography>;
   }
 
+  // if (courseId) {
+  //   return (
+  //     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+  //     {/* Отображение индикатора загрузки */}
+  //     <Box>
+  //       <Typography variant="h6">Загрузка...</Typography>
+  //       <LinearProgress />
+  //     </Box>
+  //   </Box>
+  //   );
+  // }
+
+  if (!filteredLessons || filteredLessons.length === 0) {
+    return <div>Нет доступных уроков.</div>;
+  }
+
   const videoMaterials = filteredMaterials.filter((material) => material.type === "video");
 
-  console.log('1 render filteredLessons',filteredLessons)
   return (<>
 
-    <TopMenu userInfo={userData} handleLogout={handleLogout} />
+    <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
     <Box
       sx={{
         display: "flex",
@@ -400,5 +500,4 @@ export default function CourseDetail() {
       </Box>
     </Box>
     </>
-  );
-}
+  );}
