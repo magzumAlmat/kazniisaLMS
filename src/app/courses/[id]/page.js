@@ -1,12 +1,10 @@
-"use client";
-import * as React from "react";
-import { useEffect, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation"; // Next.js 13+
+'use client'
+import React, { useEffect, useState ,useRef} from "react";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import jwtDecode from "jwt-decode";
 
-import EditorJS from "@editorjs/editorjs";
-import Header from "@editorjs/header";
-import List from "@editorjs/list";
-import Paragraph from "@editorjs/paragraph";
 import {
   Box,
   Button,
@@ -32,10 +30,6 @@ import {
 } from "@/store/slices/authSlice";
 import TopMenu from "@/components/topmenu";
 import { logoutAction } from "@/store/slices/authSlice";
-import jwtDecode from "jwt-decode";
-import axios from "axios";
-
-import useTokenFromURL from "@/components/useTokenFromURL";
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
     return <div>Видео недоступно.</div>;
@@ -51,189 +45,102 @@ const VideoPlayer = ({ material }) => {
     </Box>
   );
 };
-
 export default function CourseDetail() {
-  const { id } = useParams(); // Получаем id из URL
-  const router = useRouter();
+  const { id } = useParams(); // Получаем ID курса из URL
   const [lessons, setLessons] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
+  const [progresses, setProgresses] = useState([]);
+  const token = localStorage.getItem("token");
+
+  const router = useRouter();
+ 
   const editorInstance = useRef(null); // Ссылка на экземпляр Editor.js
   const { courses, loadingCourses, coursesError } = useSelector((state) => state.auth);
   const userData = useSelector((state) => state.auth.currentUser);
   const completedLessonsFromSlice = useSelector((state) => state.auth.completedLessons);
-  const [progresses, setProgresses] = useState([]);
+  
   const [allProgresses,setAllProgresses]= useState([]);
   const isMobile = useMediaQuery("(max-width: 600px)");
   const dispatch = useDispatch();
-  const token = localStorage.getItem("token");
+  
   const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   const [loading, setLoading] = useState(true); // Состояние загрузки
   const [course,setCourse]=useState(null)
  const isAuth = useSelector((state) => state.auth.isAuth);
 
+  // Фильтрация уроков по courseId
+  const filteredLessons = lessons.filter((lesson) => lesson.course_id === Number(id));
+
+  // Фильтрация материалов по lesson_id
+  const filteredMaterials = materials.filter(
+    (material) => material.lesson_id === filteredLessons[activeTab]?.id
+  );
+
+  // Функция для проверки статуса урока
+  const isLessonCompleted = (lessonId) => {
+    const progress = progresses.find((p) => p.lesson_id === lessonId);
+    return progress?.status === "completed";
+  };
+
   // Загрузка уроков
-
-
-let decodedToken;
-  try {
-    decodedToken = jwtDecode(token);
-    // console.log("Decoded token:", decodedToken);
-  } catch (error) {
-    console.error("Invalid token:", error);
-    localStorage.removeItem("token");
-    window.location.href = "/login"; // Перенаправляем на страницу входа
-    return null;
-  }
-  // console.log("1. URL search params:", window.location.search);
-  // console.log("2. Token from URL:", token);
-
-  
-  if (token) {
+  const fetchLessons = async () => {
     try {
-      const decoded = jwtDecode(token);
-      // console.log("3. Decoded token:", decoded);
-      localStorage.setItem("token", token);
-      // console.log("4. Token saved to localStorage:", localStorage.getItem("token"));
+      const response = await axios.get("http://localhost:4000/api/lessons", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setLessons(response.data);
     } catch (error) {
-      console.error("5. Invalid token:", error.message);
-    }
-  } else {
-    console.error("6. Token not found in URL");
-  }
-
-  // Вызов хука для обработки токена из URL
-  useTokenFromURL();
-
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        
-       
-        //  dispatch(getUserInfo());
-         fetchUserInfo();
-         fetchCourses();
-         fetchLessons();
-        //  fetchProgresses();
-        // dispatch(addCompletedLessonReducer())
-        
-
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-      }
-    };
-
-    fetchInitialData();
-  
-    
-  }, [dispatch]);
-
-
-
-
-  const fetchCourses = async () => {
-    try {
-      const response = await axios.get("http://localhost:4000/api/courses");
-    
-      // console.log('fetch courses',response.data[0].id)
-      setCourse(response.data[0].id)
-    } catch (error) {
-      console.error("Ошибка при загрузке курсов:", error);
+      console.error("Ошибка при загрузке уроков:", error);
     }
   };
 
-  
-  
-  // console.log('loadingCurse= ',loadingCourses,course)
- 
-  
-    // Инициализация прогресса
-   
-    const initializeProgress = async (decoded,course) => {
-      
-      
-      // console.log('initializeProgress',course,decoded.id)
-      // console.log('initializeProgress started userData=',decoded,'courses= ',courses)
-      try {
-        if (!decoded || !course ) {
-          // console.log('initializeProgress started userData=',decoded.id,'courses= ',course)
-          console.error("Недостаточно данных для инициализации прогресса.");
-          return;
-        }
-        const response =  await axios.post("http://localhost:4000/api/course/enroll", {
-          user_id: decoded.id,
-          course_id: Number(course),
-        });
-        // console.log("Initial progress created:", response.data);
+  // Загрузка материалов
+  const fetchMaterials = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/api/materials");
+      setMaterials(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке материалов:", error);
+    }
+  };
 
-        fetchAllProgresses(decoded.id,course);
-      } catch (error) {
-        console.error("Ошибка при инициализации прогресса:", error);
-      }
-    };
-  
-    useEffect(() => {
-      console.log("Updated progresses:", progresses);
-      // console.log("Updated allProgresses:", allProgresses);
-    }, [progresses, allProgresses]);
-    // Получение всех записей о прогрессе пользователя
-    const fetchAllProgresses = async (userId, course) => {
-      try {
-        const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${course}`);
-        const data = response.data.lessons; // Предполагаем, что сервер возвращает { lessons: [...] }
-    
-        console.log("Fetched data:", typeof data, data);
-    
-        // Проверяем, что данные — массив
-        if (Array.isArray(data)) {
-          setProgresses(data); // Сохраняем массив в состояние
-          setAllProgresses([...data]); // Копируем массив в другое состояние
-          console.log("Прогресс успешно загружен:", data);
-        } else {
-          console.error("Данные о прогрессе не являются массивом:", data);
-        }
-      } catch (error) {
-        console.error("Ошибка при получении прогресса:", error);
-      }
-    
+  const handleChangeTab = (event, newValue) => {
+    setActiveTab(newValue);
+  };
+  const handleLogout = () => {
+    dispatch(logoutAction());
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
 
-   
-        // setProgresses(response.data.lessons);
-        
-        // setCourseProgres(response.data.course_progress)
-        
-    
+  // Получение всех записей о прогрессе пользователя
+  const fetchAllProgresses = async (userId, course) => {
+    try {
+      const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${course}`);
+      const data = response.data.lessons; // Предполагаем, что сервер возвращает { lessons: [...] }
 
-      // dispatch(addProgressAction(userId,course))            рабочий код
-    };
-    
-    
-    const createProgress = async (user_id,lesson_id) => {
-      console.log('updateProgress user_id,lesson_id',user_id,lesson_id)
-     
-      try {
-        const response = await axios.put("http://localhost:4000/api/progress/update", {
-          user_id: user_id,
-          lesson_id: lesson_id,
-          progress_percentage: 100
-        });
-        console.log("Progress created:", response.data);
-        fetchAllProgresses(user_id,lesson_id); 
-      } catch (error) {
-        console.error("Error creating progress:", error);
+      if (Array.isArray(data)) {
+        setProgresses(data); // Сохраняем массив в состояние
+      } else {
+        console.error("Данные о прогрессе не являются массивом:", data);
       }
-    };
-  // if (!loadingCourses) {
-  //   console.log(' LOADER loadingCurse= ',loadingCourses)
-  //   return (
-  //     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-  //       <Typography variant="h6">Загрузка данных пользователя...</Typography>
-  //       <LinearProgress />
-  //     </Box>
-  //   );
-  // }
-  // Функция для загрузки уроков
+    } catch (error) {
+      console.error("Ошибка при получении прогресса:", error);
+    }
+  };
+
+  useEffect(() => {
+    const decoded = jwtDecode(token);
+    fetchLessons();
+    fetchMaterials();
+    fetchAllProgresses(decoded.id, id);
+    fetchUserInfo()
+  }, [id]);
+
   const fetchUserInfo = async () => {
     // console.log('fetchUserInfo started!')
     try {
@@ -248,153 +155,38 @@ let decodedToken;
       
     }
   };
-
-  const fetchLessons = async () => {
-    try {
-      const response = await axios.get("http://localhost:4000/api/lessons", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setLessons(response.data);
-    } catch (error) {
-      console.error("Ошибка при загрузке уроков:", error.response?.data || error.message);
-      setLessons([]);
-    }
-  };
-
-  // Загрузка материалов
-  const fetchMaterials = async () => {
-    try {
-      const response = await axios.get("http://localhost:4000/api/materials");
-      setMaterials(response.data);
-    } catch (error) {
-      console.error("Ошибка при загрузке материалов:", error);
-    }
-  };
-
-
-
-  
-
-  // Фильтрация уроков по courseId
-  const filteredLessons = lessons.filter((lesson) => lesson.course_id === Number(id));
-
-  // Фильтрация материалов по lesson_id
-  const filteredMaterials = materials.filter(
-    (material) => material.lesson_id === filteredLessons[activeTab]?.id
-  );
-
-  useEffect(() => {
-    let completedRequests = 0; // Счетчик завершенных запросов
-    const totalRequests = 5; // Общее количество запросов
-
-    const checkLoadingComplete = () => {
-      completedRequests++;
-      if (completedRequests === totalRequests) {
-        setLoading(false); // Все запросы завершены
-      }
-    };
-
-    try {
-      const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 10000; // Время в секундах
-    
-      if (decodedToken.exp < currentTime) {
-        console.error("Token expired");
-        // Перенаправляем пользователя на страницу входа
-        localStorage.removeItem("token");
-        // window.location.href = "/login";
-        return null;
-      }
-    } catch (error) {
-      console.error("Invalid token:", error);
-      // Перенаправляем пользователя на страницу входа
-      localStorage.removeItem("token");
-      // window.location.href = "/login";
-      return null;
-    }
-
- 
-
-    // Выполнение всех запросов
-    const fetchData = async () => {
-      try {
-        // dispatch(getUserInfoAction);
-        await fetchLessons();
-        await fetchMaterials();
-        dispatch(getAllCoursesAction());
-        // await fetchUserInfo();
-        // dispatch(addCompletedLessonAction(completedLessons));
-        
-      } catch (error) {
-        console.error("Ошибка при загрузке данных:", error);
-      } finally {
-        checkLoadingComplete();
-      }
-    };
-
-    fetchData();
-  }, [id, dispatch]);
-
-  
-  const handleChangeTab = (event, newValue) => {
-    setActiveTab(newValue);
-  };
-
-  const handleLogout = () => {
-      dispatch(logoutAction());
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    };
-  
   const handleCompleteLesson = async (lessonId) => {
     const decoded = jwtDecode(token);
-    initializeProgress(decoded,course);
 
-    if (!completedLessons.includes(filteredLessons[activeTab].id)) {
-      setCompletedLessons([...completedLessons, filteredLessons[activeTab].id]);
-
+    if (!completedLessons.includes(lessonId)) {
+      setCompletedLessons([...completedLessons, lessonId]);
     }
+
     
 
-    console.log('completedLesson= ',completedLessons)
-    console.log('filteredLessons[activeTab].id= ',filteredLessons[activeTab].id)
-    console.log('lessonId кликнутый',lessonId)
+    try {
+      await axios.put("http://localhost:4000/api/progress/update", {
+        user_id: decoded.id,
+        lesson_id: lessonId,
+        progress_percentage: 100,
+      });
 
-    // console.log('completedLessonFROM SLICE= ',completedLessonsFromSlice)
-    createProgress(decoded.id,lessonId)
+      const updatedProgresses = progresses.map((p) =>
+        p.lesson_id === lessonId ? { ...p, status: "completed" } : p
+      );
+      setProgresses(updatedProgresses);
+    } catch (error) {
+      console.error("Ошибка при завершении урока:", error);
+    }
+
 
   };
- 
-  // console.log('completedLesson= ',completedLessons)
-
-  
-
-
-
-
-
-  if (!filteredLessons || filteredLessons.length === 0) {
-    return <Typography variant="h6">Нет доступных уроков.</Typography>;
-  }
-
-  // if (courseId) {
-  //   return (
-  //     <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-  //     {/* Отображение индикатора загрузки */}
-  //     <Box>
-  //       <Typography variant="h6">Загрузка...</Typography>
-  //       <LinearProgress />
-  //     </Box>
-  //   </Box>
-  //   );
-  // }
 
   if (!filteredLessons || filteredLessons.length === 0) {
     return <div>Нет доступных уроков.</div>;
   }
 
+  
   const videoMaterials = filteredMaterials.filter((material) => material.type === "video");
 
   return (<>
@@ -541,22 +333,21 @@ let decodedToken;
         >
           {/* Кнопка "Завершить урок" */}
           <Button
-            variant="contained"
-            color={completedLessons.includes(filteredLessons[activeTab].id) ? "success" : "primary"}
-            disabled={completedLessons.includes(filteredLessons[activeTab].id)}
-            onClick={ ()=> handleCompleteLesson(filteredLessons[activeTab].id)}
-            sx={{
-              flexGrow: 1,
-              borderRadius: 2,
-              textTransform: "none",
-              fontWeight: "bold",
-              padding: "10px 20px",
-            }}
-          >
-            {completedLessons.includes(filteredLessons[activeTab].id)
-              ? "Урок завершен"
-              : "Завершить урок"}
-          </Button>
+          variant="contained"
+          color={isLessonCompleted(filteredLessons[activeTab]?.id) ? "success" : "primary"}
+          onClick={() => handleCompleteLesson(filteredLessons[activeTab]?.id)}
+          disabled={isLessonCompleted(filteredLessons[activeTab]?.id)} // Отключаем кнопку, если урок завершен
+          sx={{
+            flexGrow: 1,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: "bold",
+            padding: "10px 20px",
+          }}
+        >
+          {isLessonCompleted(filteredLessons[activeTab]?.id) ? "Урок завершен" : "Завершить урок"}
+        </Button>
+  
 
           {/* Кнопка "Назад к курсам" */}
           <Button
@@ -578,3 +369,4 @@ let decodedToken;
     </Box>
     </>
   );}
+       
