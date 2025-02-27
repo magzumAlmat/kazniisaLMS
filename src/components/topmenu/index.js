@@ -4,12 +4,12 @@ import { AppBar, Toolbar, Typography, Button } from "@mui/material";
 import Link from "next/link";
 
 const TopMenu = ({ userInfo, handleLogout }) => {
-  console.log('1 userInfo= ',userInfo)
+  // console.log('1 userInfo= ',userInfo)
  
 
   // Отрисовка контента в зависимости от роли пользователя
   const renderContentByRole = (courses) => {
-    console.log('userINFO= ',userInfo)
+    // console.log('userINFO= ',userInfo)
     if (!userInfo) return null;
 
     if (userInfo.roleId === 1) {

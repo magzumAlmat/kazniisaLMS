@@ -72,23 +72,23 @@ export default function CourseDetail() {
 let decodedToken;
   try {
     decodedToken = jwtDecode(token);
-    console.log("Decoded token:", decodedToken);
+    // console.log("Decoded token:", decodedToken);
   } catch (error) {
     console.error("Invalid token:", error);
     localStorage.removeItem("token");
     window.location.href = "/login"; // Перенаправляем на страницу входа
     return null;
   }
-  console.log("1. URL search params:", window.location.search);
-  console.log("2. Token from URL:", token);
+  // console.log("1. URL search params:", window.location.search);
+  // console.log("2. Token from URL:", token);
 
   
   if (token) {
     try {
       const decoded = jwtDecode(token);
-      console.log("3. Decoded token:", decoded);
+      // console.log("3. Decoded token:", decoded);
       localStorage.setItem("token", token);
-      console.log("4. Token saved to localStorage:", localStorage.getItem("token"));
+      // console.log("4. Token saved to localStorage:", localStorage.getItem("token"));
     } catch (error) {
       console.error("5. Invalid token:", error.message);
     }
@@ -102,18 +102,21 @@ let decodedToken;
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-         fetchCourses()
+        
        
         //  dispatch(getUserInfo());
-         fetchUserInfo()
+         fetchUserInfo();
+         fetchCourses();
          fetchLessons();
         //  fetchProgresses();
+
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }
     };
 
     fetchInitialData();
+  
     
   }, [dispatch]);
 
@@ -124,7 +127,7 @@ let decodedToken;
     try {
       const response = await axios.get("http://localhost:4000/api/courses");
     
-      console.log('fetch courses',response.data[0].id)
+      // console.log('fetch courses',response.data[0].id)
       setCourse(response.data[0].id)
     } catch (error) {
       console.error("Ошибка при загрузке курсов:", error);
@@ -133,42 +136,59 @@ let decodedToken;
 
   
   
-  console.log('loadingCurse= ',loadingCourses,course)
+  // console.log('loadingCurse= ',loadingCourses,course)
  
-
+  
     // Инициализация прогресса
-    const initializeProgress = async () => {
+   
+    const initializeProgress = async (decoded,course) => {
       
-      const decoded = jwtDecode(token);
-
+      
+      // console.log('initializeProgress',course,decoded.id)
       // console.log('initializeProgress started userData=',decoded,'courses= ',courses)
       try {
-        if (!decoded || !course  === 0) {
-          console.log('initializeProgress started userData=',decoded,'courses= ',course.id)
+        if (!decoded || !course ) {
+          // console.log('initializeProgress started userData=',decoded.id,'courses= ',course)
           console.error("Недостаточно данных для инициализации прогресса.");
           return;
         }
-        const response =  axios.post("http://localhost:4000/course/enroll", {
+        const response =  await axios.post("http://localhost:4000/api/course/enroll", {
           user_id: decoded.id,
-          course_id: course,
+          course_id: Number(course),
         });
-        console.log("Initial progress created:", response.data);
-        fetchAllProgresses(decoded.id);
+        // console.log("Initial progress created:", response.data);
+
+        fetchAllProgresses(decoded.id,course);
       } catch (error) {
         console.error("Ошибка при инициализации прогресса:", error);
       }
     };
   
     // Получение всех записей о прогрессе пользователя
-    const fetchAllProgresses = async (userId) => {
+    const fetchAllProgresses = async (userId,course) => {
+      // console.log('fetchAllProgress ',userId,course)
       try {
-        const response = await axios.get(`http://localhost:4000/progress/all/${userId}`);
+        const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${course}`);
         setProgresses(response.data);
       } catch (error) {
         console.error("Ошибка при получении прогресса:", error);
       }
     };
-
+    
+    
+    const createProgress = async () => {
+      try {
+        const response = await axios.put("http://localhost:4000/api/progress/update", {
+          user_id: 1,
+          lesson_id: 2,
+          progress_percentage: 100
+        });
+        // console.log("Progress created:", response.data);
+        fetchAllProgresses(userId); // Обновляем список прогресса
+      } catch (error) {
+        console.error("Error creating progress:", error);
+      }
+    };
   // if (!loadingCourses) {
   //   console.log(' LOADER loadingCurse= ',loadingCourses)
   //   return (
@@ -180,7 +200,7 @@ let decodedToken;
   // }
   // Функция для загрузки уроков
   const fetchUserInfo = async () => {
-    console.log('fetchUserInfo started!')
+    // console.log('fetchUserInfo started!')
     try {
       const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
       {headers: {
@@ -270,7 +290,7 @@ let decodedToken;
         await fetchMaterials();
         dispatch(getAllCoursesAction());
         // await fetchUserInfo();
-        await initializeProgress();
+        
       } catch (error) {
         console.error("Ошибка при загрузке данных:", error);
       } finally {
@@ -293,9 +313,16 @@ let decodedToken;
     };
   
   const handleCompleteLesson = () => {
+    const decoded = jwtDecode(token);
+    initializeProgress(decoded,course);
+
     if (!completedLessons.includes(filteredLessons[activeTab].id)) {
       setCompletedLessons([...completedLessons, filteredLessons[activeTab].id]);
     }
+
+
+    console.log('completedLesson= ',completedLessons)
+    console.log('filteredLessons[activeTab].id= ',filteredLessons[activeTab].id)
   };
 
   if (!filteredLessons || filteredLessons.length === 0) {
@@ -467,7 +494,7 @@ let decodedToken;
             variant="contained"
             color={completedLessons.includes(filteredLessons[activeTab].id) ? "success" : "primary"}
             disabled={completedLessons.includes(filteredLessons[activeTab].id)}
-            onClick={handleCompleteLesson}
+            onClick={()=>handleCompleteLesson()}
             sx={{
               flexGrow: 1,
               borderRadius: 2,
