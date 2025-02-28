@@ -411,7 +411,7 @@ export default function CourseDetail() {
               }}
             />
           )}
-          
+          {console.log('Editor во время рендеринга- ',editorInstance.current )}
        <Box id="editorjs-container" sx={{ mt: 2, minHeight: "50px" }} />
           <hr />
           {/* Видео-материалы */}

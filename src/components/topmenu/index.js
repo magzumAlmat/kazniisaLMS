@@ -71,7 +71,7 @@ const TopMenu = ({ userInfo, handleLogout }) => {
       // Администратор
       return (
         <>
-          <Button color="inherit" component={Link} href="/">
+          <Button color="inherit" component={Link} href="/layout">
             Главная
           </Button>
           <Button color="inherit" component={Link} href="/admin/add-role">
@@ -92,17 +92,17 @@ const TopMenu = ({ userInfo, handleLogout }) => {
       // Учитель
       return (
         <>
-          <Button color="inherit" component={Link} href="/">
+            <Button color="inherit" component={Link} href="/layout">
             Главная
           </Button>
-          <Button color="inherit" component={Link} href="/courses">
-            Курсы
+          <Button color="inherit" component={Link} href="/addcourse">
+            Добавить курс
           </Button>
-          <Button color="inherit" component={Link} href="/subjects">
-            Предметы
+          <Button color="inherit" component={Link} href="/addlessons">
+            Добавить предмет
           </Button>
-          <Button color="inherit" component={Link} href="/materials">
-            Материалы
+          <Button color="inherit" component={Link} href="/addmaterial">
+            Добавить материалы
           </Button>
           <Button color="inherit" component={Link} href="/profile">
             Профиль
@@ -116,15 +116,15 @@ const TopMenu = ({ userInfo, handleLogout }) => {
       // Студент
       return (
         <>
-          <Button color="inherit" component={Link} href="/">
+             <Button color="inherit" component={Link} href="/layout">
             Главная
           </Button>
           <Button color="inherit" component={Link} href="/courses">
             Курсы
           </Button>
-          <Button color="inherit" component={Link} href="/progress">
+          {/* <Button color="inherit" component={Link} href="/progress">
             Прогресс
-          </Button>
+          </Button> */}
           <Button color="inherit" component={Link} href="/profile">
             Профиль
           </Button>
@@ -137,7 +137,7 @@ const TopMenu = ({ userInfo, handleLogout }) => {
       // Роль не определена
       return (
         <>
-          <Button color="inherit" component={Link} href="/">
+            <Button color="inherit" component={Link} href="/layout">
             Главная
           </Button>
           <Button color="inherit" component={Link} href="/login">
