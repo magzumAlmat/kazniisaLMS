@@ -13,7 +13,7 @@ export default function Courses() {
   const isAuth = useSelector((state) => state.auth.isAuth);
   const userData = useSelector((state) => state.auth.currentUser);
   const [userInfo, setUserInfo] = useState(null);
-const [progresses, setProgresses] = useState([]);
+const [progresses, setProgresses] = useState();
   const token = localStorage.getItem("token");
 
   // Функция для обработки выхода из системы
@@ -61,19 +61,20 @@ const [progresses, setProgresses] = useState([]);
     console.log('fetchAllPRogresses -  ',userInfo,courses)
     try {
       const response = await axios.get(`http://localhost:4000/api/course/progress/${userInfo.id}/${courses[0].id}`);
-      const data = response.data.lessons; // Предполагаем, что сервер возвращает { lessons: [...] }
+      const data = response.data.course_progress; // Предполагаем, что сервер возвращает { lessons: [...] }
 
-      if (Array.isArray(data)) {
-        setProgresses(data); // Сохраняем массив в состояние
-      } else {
-        console.error("Данные о прогрессе не являются массивом:", data);
-      }
+      setProgresses(data); // Сохраняем массив в состояние
     } catch (error) {
       console.error("Ошибка при получении прогресса:", error);
     }
   };
 
- 
+  useEffect(() => {
+    if (userInfo && courses && courses.length > 0) {
+      // Вызываем fetchAllProgresses только если userInfo и courses загружены
+      fetchAllProgresses(userInfo, courses);
+    }
+  }, [userInfo, courses]);
  
   if (loadingCourses) {
     
@@ -92,7 +93,7 @@ const [progresses, setProgresses] = useState([]);
 
 
 
-  console.log('UserINFO= ',userInfo)
+  // console.log('UserINFO= ',userInfo)
 
 
  
@@ -120,14 +121,20 @@ const [progresses, setProgresses] = useState([]);
               <Grid item key={course.id} xs={12} sm={6} md={4} lg={3}>
                 <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
                   <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography variant="h5" component="div" gutterBottom>
+                    <Typography variant="h4" component="div" gutterBottom>
                       {course.title}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="h5" color="text.secondary">
                       {course.description || "Описание отсутствует."}
                     </Typography>
+                 
+                  
+                  <Typography variant="h8" color="text.secondary">
+                      Прогресс прохождения {progresses|| ""}%
+                  </Typography>
                   </CardContent>
                   <CardActions>
+                 
                     <Button
                       component={Link}
                       href={`/courses/${course.id}`}
@@ -137,6 +144,7 @@ const [progresses, setProgresses] = useState([]);
                     >
                       Перейти к курсу
                     </Button>
+                   
                   </CardActions>
                 </Card>
               </Grid>

@@ -155,7 +155,7 @@ export default function CourseDetail() {
       
     }
   };
-  const handleCompleteLesson = async (lessonId) => {
+  const handleCompleteLesson = async (lessonId,courses) => {
     const decoded = jwtDecode(token);
 
     if (!completedLessons.includes(lessonId)) {
@@ -180,6 +180,8 @@ export default function CourseDetail() {
     }
 
     alert('Урок завершен ')
+    console.log(',course,courses',courses)
+    
     window.location.href = `/courses${courses[0].id}`; 
   };
 
@@ -340,7 +342,7 @@ export default function CourseDetail() {
           <Button
           variant="contained"
           color={isLessonCompleted(filteredLessons[activeTab]?.id) ? "success" : "primary"}
-          onClick={() => handleCompleteLesson(filteredLessons[activeTab]?.id)}
+          onClick={() => handleCompleteLesson(filteredLessons[activeTab]?.id,courses)}
           disabled={isLessonCompleted(filteredLessons[activeTab]?.id)} // Отключаем кнопку, если урок завершен
           sx={{
             flexGrow: 1,
