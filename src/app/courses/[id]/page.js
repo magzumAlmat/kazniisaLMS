@@ -162,7 +162,7 @@ export default function CourseDetail() {
       setCompletedLessons([...completedLessons, lessonId]);
     }
 
-    
+
 
     try {
       await axios.put("http://localhost:4000/api/progress/update", {
@@ -179,7 +179,8 @@ export default function CourseDetail() {
       console.error("Ошибка при завершении урока:", error);
     }
 
-
+    alert('Урок завершен ')
+    window.location.href = `/courses${courses[0].id}`; 
   };
 
   if (!filteredLessons || filteredLessons.length === 0) {
@@ -188,6 +189,10 @@ export default function CourseDetail() {
 
   
   const videoMaterials = filteredMaterials.filter((material) => material.type === "video");
+
+  const getCompletedLessonsCount = () => {
+    return progresses.filter((p) => p.status === "completed").length;
+  };
 
   return (<>
 
@@ -241,11 +246,11 @@ export default function CourseDetail() {
           {/* Прогресс */}
           <LinearProgress
             variant="determinate"
-            value={(completedLessons.length / filteredLessons.length) * 100}
+            value={(getCompletedLessonsCount() / filteredLessons.length) * 100 || 0} // Процент завершения
             sx={{ mb: 2 }}
           />
           <Typography variant="subtitle1">
-            Прогресс: {completedLessons.length} из {filteredLessons.length} уроков
+            Пройдено {getCompletedLessonsCount()} из {filteredLessons.length} уроков
           </Typography>
 
           {/* Заголовок урока */}
@@ -346,8 +351,10 @@ export default function CourseDetail() {
           }}
         >
           {isLessonCompleted(filteredLessons[activeTab]?.id) ? "Урок завершен" : "Завершить урок"}
+
         </Button>
   
+          {console.log('Что то должно подсказать',isLessonCompleted(filteredLessons[activeTab].id))}
 
           {/* Кнопка "Назад к курсам" */}
           <Button

@@ -13,7 +13,7 @@ export default function Courses() {
   const isAuth = useSelector((state) => state.auth.isAuth);
   const userData = useSelector((state) => state.auth.currentUser);
   const [userInfo, setUserInfo] = useState(null);
-
+const [progresses, setProgresses] = useState([]);
   const token = localStorage.getItem("token");
 
   // Функция для обработки выхода из системы
@@ -29,22 +29,12 @@ export default function Courses() {
     }
     dispatch(getAllCoursesAction());
     fetchUserInfo();
+   
+  
   }, [dispatch, isAuth, token]);
 
-  if (loadingCourses) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
 
-  if (coursesError) {
-    return <Typography variant="h6" color="error">Ошибка: {coursesError}</Typography>;
-  }
-
-
-const fetchUserInfo = async () => {
+  const fetchUserInfo = async () => {
     console.log('fetchUserInfo started!')
     try {
       const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
@@ -57,9 +47,58 @@ const fetchUserInfo = async () => {
       console.error("Ошибка при загрузке уроков:", error);
       
     }
+    
+    
   };
 
+  
+//   useEffect(() => {
+    
+    
+//  }, []);
+ 
+  const fetchAllProgresses = async (userInfo, courses) => {
+    console.log('fetchAllPRogresses -  ',userInfo,courses)
+    try {
+      const response = await axios.get(`http://localhost:4000/api/course/progress/${userInfo.id}/${courses[0].id}`);
+      const data = response.data.lessons; // Предполагаем, что сервер возвращает { lessons: [...] }
+
+      if (Array.isArray(data)) {
+        setProgresses(data); // Сохраняем массив в состояние
+      } else {
+        console.error("Данные о прогрессе не являются массивом:", data);
+      }
+    } catch (error) {
+      console.error("Ошибка при получении прогресса:", error);
+    }
+  };
+
+ 
+ 
+  if (loadingCourses) {
+    
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <CircularProgress />
+        
+      </Box>
+    );
+  }
+
+  if (coursesError) {
+    return <Typography variant="h6" color="error">Ошибка: {coursesError}</Typography>;
+  }
+
+
+
+
   console.log('UserINFO= ',userInfo)
+
+
+ 
+  
+
+
   return (
     <>
       {/* Верхнее меню */}
@@ -76,6 +115,7 @@ const fetchUserInfo = async () => {
           </Typography>
         ) : (
           <Grid container spacing={4}>
+           
             {courses.map((course) => (
               <Grid item key={course.id} xs={12} sm={6} md={4} lg={3}>
                 <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
