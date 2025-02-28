@@ -182,7 +182,7 @@ export default function CourseDetail() {
     alert('Урок завершен ')
     console.log(',course,courses',courses)
     
-    window.location.href = `/courses${courses[0].id}`; 
+    window.location.href = `/courses/${id}`; 
   };
 
   if (!filteredLessons || filteredLessons.length === 0) {
