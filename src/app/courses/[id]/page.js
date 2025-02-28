@@ -28,6 +28,11 @@ import {
   addProgressAction,
   
 } from "@/store/slices/authSlice";
+import EditorJS from "@editorjs/editorjs";
+import Header from "@editorjs/header";
+import List from "@editorjs/list";
+import Paragraph from "@editorjs/paragraph";
+
 import TopMenu from "@/components/topmenu";
 import { logoutAction } from "@/store/slices/authSlice";
 const VideoPlayer = ({ material }) => {
@@ -139,7 +144,131 @@ export default function CourseDetail() {
     fetchMaterials();
     fetchAllProgresses(decoded.id, id);
     fetchUserInfo()
+
+    
+
   }, [id]);
+  
+  const [isEditorInitialized, setIsEditorInitialized] = useState(false);
+
+
+  // useEffect(() => {
+  //   if (filteredLessons[activeTab] && filteredLessons[activeTab].content && !isEditorInitialized) {
+ 
+  //     try {
+  //       const content = JSON.parse(filteredLessons[activeTab].content);
+  //       console.log("Parsed content:", content);
+  
+  //       // Уничтожаем предыдущий экземпляр Editor.js
+  //       if (editorInstance.current) {
+  //         try {
+  //           editorInstance.current.destroy();
+  //         } catch (error) {
+  //           console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
+  //         }
+  //         editorInstance.current = null;
+  //       }
+  //       // Создаем новый экземпляр Editor.js
+  //       const editor = new EditorJS({
+  //         holder: "editorjs-container",
+  //         readOnly: true,
+  //         data: content,
+  //         tools: {
+  //           header: Header,
+  //           list: List,
+  //           paragraph: Paragraph,
+  //         },
+  //       });
+  //       if (editorInstance.current) {
+  //                 try {
+  //                   editorInstance.current.destroy(); // Ensure this is a valid EditorJS instance
+  //                 } catch (error) {
+  //                   console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
+  //                 }
+  //                 editorInstance.current = null;
+  //               }
+  
+  //       editorInstance.current = editor;
+  //       setIsEditorInitialized(true);
+  //     } catch (error) {
+  //       console.error("Ошибка при парсинге содержимого урока:", error);
+  //     }
+  //   }
+  //   return () => {
+
+  //     // Очистка экземпляра Editor.js при размонтировании
+  //     if (editorInstance.current) {
+  //       try {
+  //         editorInstance.current.destroy();
+  //       } catch (error) {
+  //         console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
+  //       }
+  //       editorInstance.current = null;
+  //     }
+  //     // setIsEditorInitialized(false);
+  //   };
+  
+  
+  // }, [activeTab, filteredLessons]);
+
+  useEffect(() => {
+    if (filteredLessons[activeTab] && filteredLessons[activeTab].content) {
+      try {
+        const content = JSON.parse(filteredLessons[activeTab].content);
+  
+        if (!content || typeof content !== "object" || !Array.isArray(content.blocks)) {
+          throw new Error("Некорректный формат данных для Editor.js");
+        }
+  
+        // Уничтожаем предыдущий экземпляр
+        if (editorInstance.current) {
+          try {
+            editorInstance.current.destroy();
+          } catch (error) {
+            console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
+          }
+          editorInstance.current = null;
+        }
+  
+        // Очищаем контейнер
+        const container = document.getElementById("editorjs-container");
+        if (container) {
+          container.innerHTML = "";
+        }
+  
+        // Создаем новый экземпляр
+        const editor = new EditorJS({
+          holder: "editorjs-container",
+          readOnly: true,
+          data: content,
+          tools: {
+            header: Header,
+            list: List,
+            paragraph: Paragraph,
+          },
+        });
+  
+        editorInstance.current = editor;
+      } catch (error) {
+        console.error("Ошибка при парсинге содержимого урока:", error);
+      }
+    }
+  
+    return () => {
+      // Очистка экземпляра Editor.js при размонтировании
+      if (editorInstance.current) {
+        try {
+          editorInstance.current.destroy();
+        } catch (error) {
+          console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
+        }
+        editorInstance.current = null;
+      }
+    };
+  }, [activeTab, filteredLessons]);
+
+
+
 
   const fetchUserInfo = async () => {
     // console.log('fetchUserInfo started!')
@@ -241,9 +370,12 @@ export default function CourseDetail() {
           />
         ))}
       </Tabs>
+      {/* Отображение содержимого урока с помощью Editor.js */}
+      
 
       {/* Контент активного урока */}
       <Box sx={{ flexGrow: 1, p: 3 }}>
+
         <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
           {/* Прогресс */}
           <LinearProgress
@@ -261,8 +393,8 @@ export default function CourseDetail() {
           </Typography>
 
           {/* Отображение содержимого урока с помощью Editor.js */}
-          <Box id="editorjs-container" sx={{ mt: 2, minHeight: "200px" }} />
-
+         
+         
           {/* Изображение урока */}
           {filteredLessons[activeTab].image && (
             <Box
@@ -278,11 +410,15 @@ export default function CourseDetail() {
               }}
             />
           )}
-
+          
+       <Box id="editorjs-container" sx={{ mt: 2, minHeight: "100px" }} />
+          <hr />
           {/* Видео-материалы */}
           <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
             Видео-материалы:
           </Typography>
+
+          
           {filteredMaterials.length > 0 ? (
             filteredMaterials.map((material) => (
               <Box key={material.material_id} sx={{ mb: 2 }}>
