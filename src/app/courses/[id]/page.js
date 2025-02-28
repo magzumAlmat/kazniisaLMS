@@ -77,7 +77,7 @@ export default function CourseDetail() {
 
   // Фильтрация уроков по courseId
   const filteredLessons = lessons.filter((lesson) => lesson.course_id === Number(id));
-
+  
   // Фильтрация материалов по lesson_id
   const filteredMaterials = materials.filter(
     (material) => material.lesson_id === filteredLessons[activeTab]?.id
@@ -213,6 +213,7 @@ export default function CourseDetail() {
 
   useEffect(() => {
     if (filteredLessons[activeTab] && filteredLessons[activeTab].content) {
+      console.log('FilteredLEssons= ',filteredLessons)
       try {
         const content = JSON.parse(filteredLessons[activeTab].content);
   
@@ -388,7 +389,7 @@ export default function CourseDetail() {
           </Typography>
 
           {/* Заголовок урока */}
-          <Typography variant="h4" sx={{ fontWeight: "bold", my: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: "bold", my: 2 }}>
             {filteredLessons[activeTab].title}
           </Typography>
 
@@ -411,7 +412,7 @@ export default function CourseDetail() {
             />
           )}
           
-       <Box id="editorjs-container" sx={{ mt: 2, minHeight: "100px" }} />
+       <Box id="editorjs-container" sx={{ mt: 2, minHeight: "50px" }} />
           <hr />
           {/* Видео-материалы */}
           <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2 }}>
