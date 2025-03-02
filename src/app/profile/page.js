@@ -1,8 +1,9 @@
 'use client'
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-
+import TopMenu from "@/components/topmenu";
 const ProfilePage = () => {
+  const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   const [profileData, setProfileData] = useState({
     name: "",
     lastname: "",
@@ -26,6 +27,7 @@ const ProfilePage = () => {
     };
 
     fetchProfile();
+    fetchUserInfo();
   }, []);
 
   // Обработчик изменения полей формы
@@ -66,7 +68,31 @@ const ProfilePage = () => {
     }
   };
 
-  return (
+    const handleLogout = () => {
+      dispatch(logoutAction());
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    };
+
+
+  const fetchUserInfo = async () => {
+    // console.log('fetchUserInfo started!')
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+      {headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+      },);
+      setUserInfo(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке уроков:", error);
+      
+    }
+  };
+
+  return (<>
+    <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
     <div style={{ padding: "20px", maxWidth: "400px", margin: "0 auto" }}>
       <h2>Мой профиль</h2>
       <form onSubmit={handleSubmit}>
@@ -124,6 +150,7 @@ const ProfilePage = () => {
         </button>
       </form>
     </div>
+    </>
   );
 };
 

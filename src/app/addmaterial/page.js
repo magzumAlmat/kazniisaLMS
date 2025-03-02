@@ -34,6 +34,8 @@ export default function MaterialsPage() {
   const [presentationFiles, setPresentationFiles] = useState([]); // Для презентаций
   const token = localStorage.getItem("token");
   const [courses, setCourses] = useState([]);
+  const [testFilePath, setTestFilePath] = useState("");
+
   if (!token) {
     console.error("Token not available");
     return;
@@ -156,6 +158,9 @@ export default function MaterialsPage() {
             "Content-Type": "multipart/form-data",
           },
         });
+      }else if (type === "test" && testFilePath.trim() === "") {
+        alert("Введите ссылку на тест!");
+        return;
       }
 
       const materialResponse = await axios.post(
@@ -163,9 +168,10 @@ export default function MaterialsPage() {
         {
           title,
           type,
-          file_path: uploadedFileResponse?.data.newFile.path,
+          file_path: type === "test" ? testFilePath : uploadedFileResponse?.data.newFile.path,
           lesson_id: Number(lesson_id),
         },
+        
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -182,6 +188,7 @@ export default function MaterialsPage() {
       setFiles([]);
       setDocumentFiles([]);
       setPresentationFiles([]);
+      setTestFilePath("");
     } catch (error) {
       console.error("Ошибка при создании материала:", error);
     }
@@ -225,6 +232,7 @@ export default function MaterialsPage() {
               <MenuItem value="video">Видео</MenuItem>
               <MenuItem value="document">Документ</MenuItem>
               <MenuItem value="presentation">Презентация</MenuItem>
+              <MenuItem value="test">Ссылка на тест</MenuItem>
             </Select>
           </FormControl>
   
@@ -259,6 +267,17 @@ export default function MaterialsPage() {
               </div>
               {presentationFiles.length > 0 && <Typography>Выбранный файл: {presentationFiles[0].name}</Typography>}
             </Box>
+          )}
+
+          {type === "test" && (
+            <TextField
+              label="Ссылка на тест"
+              value={testFilePath}
+              onChange={(e) => setTestFilePath(e.target.value)}
+              fullWidth
+              required
+              sx={{ mt: 2 }}
+            />
           )}
   
           <FormControl fullWidth sx={{ mt: 2 }}>
