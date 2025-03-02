@@ -1,5 +1,5 @@
 "use client";
-
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -17,13 +17,17 @@ import {
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import jwtDecode from "jwt-decode";
-
+import { getUserInfoAction } from "@/store/slices/authSlice";
+import TopMenu from "@/components/topmenu";
 export default function CoursesPage() {
+ 
   const [courses, setCourses] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [editingCourse, setEditingCourse] = useState(null); // ID редактируемого курса
-
+  const userInfo  = useSelector((state) => state.auth.currentUser);
+  const dispatch=useDispatch()
+  console.log('userInfo from slice= ',userInfo)
    const token = localStorage.getItem("token");
   
     console.log('2 userTokenINITZ token=', token);
@@ -39,7 +43,9 @@ export default function CoursesPage() {
 
   useEffect(() => {
     fetchCourses();
+    dispatch(getUserInfoAction())
   }, []);
+
 
   const fetchCourses = async () => {
     try {
@@ -134,7 +140,16 @@ export default function CoursesPage() {
     }
   };
 
+  const handleLogout = () => {
+      console.log('HandleLogout called');
+      dispatch(logoutAction());
+      localStorage.removeItem('token');
+      router.push('/login');
+    };
+
   return (
+    <>
+    <TopMenu handleLogout={handleLogout}  userInfo={userInfo} />
     <Container maxWidth="md">
       <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
         Управление курсами
@@ -207,5 +222,6 @@ export default function CoursesPage() {
         ))}
       </List>
     </Container>
+    </>
   );
 }

@@ -31,8 +31,9 @@ import SimpleImage from "@editorjs/simple-image";
 import Checklist from "@editorjs/checklist";
 
 import Embed from "@editorjs/embed";
-
-
+import { getUserInfoAction } from "@/store/slices/authSlice";
+import TopMenu from "@/components/topmenu";
+import { useSelector,useDispatch } from "react-redux";
 
 export default function LessonsPage() {
   const [lessons, setLessons] = useState([]);
@@ -41,7 +42,9 @@ export default function LessonsPage() {
   const [content, setContent] = useState(null); // Содержимое Editor.js
   const [courseId, setCourseId] = useState("");
   const [editingLesson, setEditingLesson] = useState(null);
-
+  const userInfo  = useSelector((state) => state.auth.currentUser);
+  const dispatch=useDispatch()
+  console.log('userInfo from slice= ',userInfo)
   const token = localStorage.getItem("token");
   const editorInstance = useRef(null);
 
@@ -53,7 +56,7 @@ export default function LessonsPage() {
   useEffect(() => {
     fetchLessons();
     fetchCourses();
-
+    dispatch(getUserInfoAction())
     // Инициализация Editor.js при монтировании компонента
     
 
@@ -399,7 +402,16 @@ export default function LessonsPage() {
   };
 
 
-  return (
+  const handleLogout = () => {
+    console.log('HandleLogout called');
+    dispatch(logoutAction());
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
+return (
+  <>
+  <TopMenu handleLogout={handleLogout}  userInfo={userInfo} />
     <Container maxWidth="md">
       <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
         Управление уроками
@@ -477,5 +489,6 @@ export default function LessonsPage() {
         ))}
       </MuiList>
     </Container>
+    </>
   );
 }

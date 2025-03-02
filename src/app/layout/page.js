@@ -503,8 +503,12 @@ export default function Layout({ children }) {
       // Учитель
       return (
         <>
+        
            <Button color="inherit" component={Link} href="/layout">
              Главная
+           </Button>
+           <Button color="inherit" component={Link} href="/addstreams">
+             Потоки
            </Button>
            <Button color="inherit" component={Link} href="/addcourse">
              Курсы
@@ -515,6 +519,10 @@ export default function Layout({ children }) {
            <Button color="inherit" component={Link} href="/addmaterial">
              Материалы
            </Button>
+           <Button color="inherit" component={Link} href="/progressstatus">
+             Прогресс
+           </Button>
+         
            <Button color="inherit" component={Link} href="/profile">
              Профиль
            </Button>

@@ -20,7 +20,9 @@ import {
 import { Edit, Delete } from "@mui/icons-material";
 import jwtDecode from "jwt-decode";
 import { useDropzone } from "react-dropzone";
-
+import { getUserInfoAction } from "@/store/slices/authSlice";
+import TopMenu from "@/components/topmenu";
+import { useSelector,useDispatch } from "react-redux";
 export default function MaterialsPage() {
   const [materials, setMaterials] = useState([]);
   const [lessons, setLessons] = useState([]);
@@ -35,7 +37,9 @@ export default function MaterialsPage() {
   const token = localStorage.getItem("token");
   const [courses, setCourses] = useState([]);
   const [testFilePath, setTestFilePath] = useState("");
-
+  const userInfo  = useSelector((state) => state.auth.currentUser);
+  const dispatch=useDispatch()
+  console.log('userInfo from slice= ',userInfo)
   if (!token) {
     console.error("Token not available");
     return;
@@ -84,6 +88,7 @@ export default function MaterialsPage() {
     fetchMaterials();
     fetchLessons();
     fetchCourses();
+    dispatch(getUserInfoAction())
   }, []);
 
   const fetchMaterials = async () => {
@@ -205,7 +210,16 @@ export default function MaterialsPage() {
     }
   };
 
-  return (
+  const handleLogout = () => {
+    console.log('HandleLogout called');
+    dispatch(logoutAction());
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
+return (
+  <>
+  <TopMenu handleLogout={handleLogout}  userInfo={userInfo} />
     <Container>
       <Box mt={4}>
         <Typography variant="h4">Управление материалами</Typography>
@@ -347,5 +361,6 @@ export default function MaterialsPage() {
         </Box>
       </Box>
     </Container>
+    </>
   );
 }

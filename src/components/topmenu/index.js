@@ -92,24 +92,31 @@ const TopMenu = ({ userInfo, handleLogout }) => {
       // Учитель
       return (
         <>
-            <Button color="inherit" component={Link} href="/layout">
-            Главная
-          </Button>
-          <Button color="inherit" component={Link} href="/addcourse">
-            Добавить курс
-          </Button>
-          <Button color="inherit" component={Link} href="/addlessons">
-            Добавить предмет
-          </Button>
-          <Button color="inherit" component={Link} href="/addmaterial">
-            Добавить материалы
-          </Button>
-          <Button color="inherit" component={Link} href="/profile">
-            Профиль
-          </Button>
-          <Button color="inherit" onClick={handleLogout}>
-            Выйти
-          </Button>
+         <Button color="inherit" component={Link} href="/layout">
+             Главная
+           </Button>
+           <Button color="inherit" component={Link} href="/addstreams">
+             Потоки
+           </Button>
+           <Button color="inherit" component={Link} href="/addcourse">
+             Курсы
+           </Button>
+           <Button color="inherit" component={Link} href="/addlessons">
+             Предметы
+           </Button>
+           <Button color="inherit" component={Link} href="/addmaterial">
+             Материалы
+           </Button>
+           <Button color="inherit" component={Link} href="/progressstatus">
+             Прогресс
+           </Button>
+         
+           <Button color="inherit" component={Link} href="/profile">
+             Профиль
+           </Button>
+           <Button color="inherit" onClick={handleLogout}>
+             Выйти
+           </Button>
         </>
       );
     } else if (userInfo.roleId === 3) {
