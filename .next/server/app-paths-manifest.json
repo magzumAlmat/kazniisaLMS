@@ -1,12 +1,3 @@
 {
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/addlessons/page": "app/addlessons/page.js",
-  "/login/page": "app/login/page.js",
-  "/addmaterial/page": "app/addmaterial/page.js",
-  "/progressstatus/page": "app/progressstatus/page.js",
-  "/addcourse/page": "app/addcourse/page.js",
-  "/layout/page": "app/layout/page.js",
-  "/addstreams/page": "app/addstreams/page.js",
-  "/profile/page": "app/profile/page.js"
+  "/addstreams/page": "app/addstreams/page.js"
 }
