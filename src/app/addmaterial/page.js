@@ -37,7 +37,7 @@ export default function MaterialsPage() {
   const token = localStorage.getItem("token");
   const [courses, setCourses] = useState([]);
   const [testFilePath, setTestFilePath] = useState("");
-  const userInfo  = useSelector((state) => state.auth.currentUser);
+  const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   const dispatch=useDispatch()
   console.log('userInfo from slice= ',userInfo)
   if (!token) {
@@ -88,9 +88,24 @@ export default function MaterialsPage() {
     fetchMaterials();
     fetchLessons();
     fetchCourses();
-    dispatch(getUserInfoAction())
+    fetchUserInfo()
   }, []);
 
+  const fetchUserInfo = async () => {
+    // console.log('fetchUserInfo started!')
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+      {headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+      },);
+      setUserInfo(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке уроков:", error);
+      
+    }
+  };
   const fetchMaterials = async () => {
     try {
       const response = await axios.get("http://localhost:4000/api/materials", {

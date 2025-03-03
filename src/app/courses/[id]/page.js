@@ -43,7 +43,7 @@ const VideoPlayer = ({ material }) => {
   return (
     <Box>
       <Typography variant="h6">{material.title}</Typography>
-      <video controls width="100%">
+      <video controls height="10%">
         <source src={material.file_path} type="video/mp4" />
         Ваш браузер не поддерживает воспроизведение видео.
       </video>

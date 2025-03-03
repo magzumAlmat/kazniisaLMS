@@ -35,8 +35,8 @@ import "../style/base.css"
 export default function LessonsPage() {
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
-  const userInfo = useSelector((state) => state.auth.currentUser);
-  console.log('userInfo from slice= ', userInfo);
+  // const userInfo = useSelector((state) => state.auth.currentUser);
+  
 
   const [lessons, setLessons] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -45,7 +45,7 @@ export default function LessonsPage() {
   const [courseId, setCourseId] = useState("");
   const [editingLesson, setEditingLesson] = useState(null);
   const editorInstance = useRef(null);
-
+const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   if (!token) {
     console.error("Token not available");
     return <Typography>Токен отсутствует. Пожалуйста, войдите в систему.</Typography>;
@@ -54,8 +54,8 @@ export default function LessonsPage() {
   useEffect(() => {
     fetchLessons();
     fetchCourses();
-    dispatch(getUserInfoAction());
-
+ 
+    fetchUserInfo()
 
     if (editorInstance.current) {
       try {
@@ -133,6 +133,21 @@ export default function LessonsPage() {
     };
   }, []);
 
+  const fetchUserInfo = async () => {
+    // console.log('fetchUserInfo started!')
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+      {headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+      },);
+      setUserInfo(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке уроков:", error);
+      
+    }
+  };
   useEffect(() => {
     if (editingLesson && editorInstance.current) {
       const lesson = lessons.find((l) => l.id === editingLesson);

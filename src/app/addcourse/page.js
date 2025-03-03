@@ -20,12 +20,12 @@ import jwtDecode from "jwt-decode";
 import { getUserInfoAction } from "@/store/slices/authSlice";
 import TopMenu from "@/components/topmenu";
 export default function CoursesPage() {
- 
+ const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   const [courses, setCourses] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [editingCourse, setEditingCourse] = useState(null); // ID редактируемого курса
-  const userInfo  = useSelector((state) => state.auth.currentUser);
+  // const userInfo  = useSelector((state) => state.auth.currentUser);
   const dispatch=useDispatch()
   console.log('userInfo from slice= ',userInfo)
    const token = localStorage.getItem("token");
@@ -43,9 +43,24 @@ export default function CoursesPage() {
 
   useEffect(() => {
     fetchCourses();
-    dispatch(getUserInfoAction())
+    fetchUserInfo();
   }, []);
 
+  const fetchUserInfo = async () => {
+    // console.log('fetchUserInfo started!')
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+      {headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+      },);
+      setUserInfo(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке уроков:", error);
+      
+    }
+  };
 
   const fetchCourses = async () => {
     try {

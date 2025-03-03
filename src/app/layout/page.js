@@ -356,7 +356,7 @@ import Link from "next/link";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllCoursesAction, logoutAction, getUserInfo } from "@/store/slices/authSlice";
+import { getAllCoursesAction, logoutAction, getUserInfo, getUserInfoAction } from "@/store/slices/authSlice";
 import useTokenFromURL from "../../components/useTokenFromURL";
 import TopMenu from "@/components/topmenu";
 
@@ -415,6 +415,7 @@ export default function Layout({ children }) {
          fetchUserInfo()
          fetchLessons();
         //  fetchProgresses();
+        // dispatch(getUserInfoAction())
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }
