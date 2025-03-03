@@ -365,11 +365,11 @@ export default function Layout({ children }) {
   const isAuth = useSelector((state) => state.auth.isAuth);
   const userData = useSelector((state) => state.auth.currentUser);
   const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
-  const token = localStorage.getItem("token");
+  // const token = localStorage.getItem("token");
   const [lessons, setLessons] = useState([]); // Уроки
   const [progress, setProgress] = useState([]); // Прогресс
   const dispatch = useDispatch();
-
+  const token = localStorage.getItem("token");
   // Проверка наличия токена
   
 
@@ -426,6 +426,7 @@ export default function Layout({ children }) {
 
   // Функция для загрузки уроков
   const fetchUserInfo = async () => {
+     const token = localStorage.getItem("token");
     try {
       const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
         headers: { Authorization: `Bearer ${token}` },

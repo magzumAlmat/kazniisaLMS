@@ -116,25 +116,38 @@ export default function StreamsPage() {
   };
   const handleCreateStream = async () => {
     try {
+      setLoading(true);
       const response = await axios.post(
-        'http://localhost:4000/api/streams',
+        "http://localhost:4000/api/stream", // Исправлен endpoint на /streams
         {
           ...newStream,
-          cost: Number(newStream.cost),
-          maxStudents: Number(newStream.maxStudents),
-          courseId: Number(newStream.courseId),
-          teacherId: Number(newStream.teacherId),
+          cost: parseFloat(newStream.cost),
+          maxStudents: parseInt(newStream.maxStudents, 10),
+          courseId: parseInt(newStream.courseId, 10),
+          teacherId: parseInt(newStream.teacherId, 10),
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setStreams([...streams, { ...response.data.stream, students: [] }]);
+      setStreams((prev) => [...prev, response.data.stream]);
       setOpenCreate(false);
-      setNewStream({ name: '', startDate: '', endDate: '', cost: '', maxStudents: '', courseId: '', teacherId: '' });
+      setNewStream({
+        name: "",
+        startDate: "",
+        endDate: "",
+        cost: "",
+        maxStudents: "",
+        courseId: "",
+        teacherId: "",
+      });
+      setError(null);
     } catch (err) {
-      console.error('Ошибка при создании потока:', err);
-      setError('Ошибка при создании потока');
+      setError(err.response?.data?.error || "Ошибка при создании потока");
+    } finally {
+      setLoading(false);
     }
   };
+
+  
 
   const handleUpdateStream = async () => {
     try {

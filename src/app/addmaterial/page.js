@@ -41,6 +41,7 @@ export default function MaterialsPage() {
   const [userInfo, setUserInfo] = useState(null);
   
   const token = localStorage.getItem("token");
+  
   const dispatch = useDispatch();
   const router = useRouter();
 
