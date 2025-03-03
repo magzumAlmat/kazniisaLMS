@@ -1,58 +1,72 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllCoursesAction, logoutAction } from "@/store/slices/authSlice";
-import { Card, CardContent, CardActions, Button, Typography, Container, Grid, CircularProgress, Box } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardActions,
+  Button,
+  Typography,
+  Container,
+  Grid,
+  CircularProgress,
+  Box,
+} from "@mui/material";
 import Link from "next/link";
 import TopMenu from "@/components/topmenu";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export default function Courses() {
   const dispatch = useDispatch();
+  const router = useRouter();
   const { courses, loadingCourses, coursesError } = useSelector((state) => state.auth);
   const isAuth = useSelector((state) => state.auth.isAuth);
-  const userData = useSelector((state) => state.auth.currentUser);
   const [userInfo, setUserInfo] = useState(null);
-  const [progresses, setProgresses] = useState({}); // Храним прогресс для каждого курса
-  const token = localStorage.getItem("token");
+  const [progresses, setProgresses] = useState({});
+  const [token, setToken] = useState(null); // Инициализируем токен как null
 
-  // Функция для обработки выхода из системы
-  const handleLogout = () => {
-    dispatch(logoutAction());
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  };
-
+  // Получение токена на стороне клиента
   useEffect(() => {
-    if (!isAuth && !token) {
-      window.location.href = "/login"; // Перенаправляем на страницу входа, если нет авторизации
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setToken(storedToken);
+    if (!storedToken) {
+      router.push("/login");
     }
-    dispatch(getAllCoursesAction());
-    fetchUserInfo();
-  }, [dispatch, isAuth, token]);
+  }, [router]);
+
+  // Загрузка данных
+  useEffect(() => {
+    if (token) {
+      dispatch(getAllCoursesAction());
+      fetchUserInfo();
+    }
+  }, [token, dispatch]);
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
     } catch (err) {
-      console.error('Ошибка при загрузке информации о пользователе:', err);
+      console.error("Ошибка при загрузке информации о пользователе:", err);
       if (err.response && err.response.status === 401) {
-        // Перенаправляем на страницу логина при 401
-        router.push('/login');
+        router.push("/login");
       }
     }
   };
 
   const fetchAllProgresses = async (userId, courseId) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${courseId}`);
-      const data = response.data.course_progress; // Предполагаем, что сервер возвращает прогресс
+      const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${courseId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = response.data.course_progress;
       setProgresses((prev) => ({
         ...prev,
-        [courseId]: data, // Сохраняем прогресс для конкретного курса
+        [courseId]: data,
       }));
     } catch (error) {
       console.error("Ошибка при получении прогресса:", error);
@@ -60,15 +74,20 @@ export default function Courses() {
   };
 
   useEffect(() => {
-    if (userInfo && courses && courses.length > 0) {
-      // Загружаем прогресс для каждого курса
+    if (userInfo && courses && courses.length > 0 && token) {
       courses.forEach((course) => {
         fetchAllProgresses(userInfo.id, course.id);
       });
     }
-  }, [userInfo, courses]);
+  }, [userInfo, courses, token]);
 
-  if (loadingCourses) {
+  const handleLogout = () => {
+    dispatch(logoutAction());
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
+  if (!token || loadingCourses) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <CircularProgress />
@@ -77,16 +96,35 @@ export default function Courses() {
   }
 
   if (coursesError) {
-    return <Typography variant="h6" color="error">Ошибка: {coursesError}</Typography>;
+    return (
+      <Container sx={{ py: 2 }}>
+        <Typography variant="h6" color="error" align="center">
+          Ошибка: {coursesError}
+        </Typography>
+      </Container>
+    );
   }
 
   return (
     <>
-      {/* Верхнее меню */}
       <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
-      {/* Основной контейнер */}
-      <Container sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold", textAlign: "center", mb: 4 }}>
+      <Container
+        sx={{
+          py: { xs: 2, sm: 4 },
+          px: { xs: 1, sm: 2 },
+          minHeight: "calc(100vh - 64px)", // Учитываем высоту TopMenu
+        }}
+      >
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontWeight: "bold",
+            textAlign: "center",
+            mb: { xs: 2, sm: 4 },
+            fontSize: { xs: "1.5rem", sm: "2rem" },
+          }}
+        >
           Доступные курсы
         </Typography>
         {courses.length === 0 ? (
@@ -94,28 +132,66 @@ export default function Courses() {
             Нет доступных курсов.
           </Typography>
         ) : (
-          <Grid container spacing={4}>
+          <Grid
+            container
+            spacing={{ xs: 2, sm: 3, md: 4 }}
+            justifyContent="center"
+          >
             {courses.map((course) => (
-              <Grid item key={course.id} xs={12} sm={6} md={4} lg={3}>
-                <Card sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+              <Grid
+                item
+                key={course.id}
+                xs={12} // Одна колонка на мобильных
+                sm={6} // Две колонки на планшетах
+                md={4} // Три колонки на десктопе
+                lg={3} // Четыре колонки на больших экранах
+              >
+                <Card
+                  sx={{
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    transition: "transform 0.2s",
+                    "&:hover": { transform: "scale(1.02)" },
+                    boxShadow: 3,
+                    borderRadius: 2,
+                  }}
+                >
                   <CardContent sx={{ flexGrow: 1 }}>
-                    <Typography variant="h4" component="div" gutterBottom>
+                    <Typography
+                      variant="h6"
+                      component="div"
+                      gutterBottom
+                      sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
+                    >
                       {course.title}
                     </Typography>
-                    <Typography variant="h5" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                    >
                       {course.description || "Описание отсутствует."}
                     </Typography>
-                    <Typography variant="h8" color="text.secondary">
-                      Прогресс прохождения: {progresses[course.id] || 0}%
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 1, fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                    >
+                      Прогресс: {progresses[course.id] || 0}%
                     </Typography>
                   </CardContent>
-                  <CardActions>
+                  <CardActions sx={{ p: 2 }}>
                     <Button
                       component={Link}
                       href={`/courses/${course.id}`}
                       variant="contained"
                       color="primary"
                       fullWidth
+                      sx={{
+                        fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                        py: { xs: 0.5, sm: 1 },
+                      }}
                     >
                       Перейти к курсу
                     </Button>

@@ -1,171 +1,151 @@
-// components/TopMenu.js
-import React from "react";
-import { AppBar, Toolbar, Typography, Button } from "@mui/material";
+"use client";
+import React, { useState } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Box,
+} from "@mui/material";
 import Link from "next/link";
+import MenuIcon from "@mui/icons-material/Menu";
 
 const TopMenu = ({ userInfo, handleLogout }) => {
-  // console.log('1 userInfo= ',userInfo)
- 
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Отрисовка контента в зависимости от роли пользователя
-  const renderContentByRole = (courses) => {
-    // console.log('userINFO= ',userInfo)
-    if (!userInfo) return null;
-
-    if (userInfo.roleId === 1) {
-      // Администратор
-      return (
-        <div>
-          <h2>Админ-панель</h2>
-          {courses && courses.length > 0 ? (
-            courses.map((course) => <div key={course.id}>{course.title}</div>)
-          ) : (
-            <p>Нет доступных курсов.</p>
-          )}
-        </div>
-      );
-    } else if (userInfo.roleId === 2) {
-      // Учитель
-      return (
-        <div>
-          <h2>Панель учителя</h2>
-          {courses && courses.length > 0 ? (
-            courses.map((course) => <div key={course.id}>{course.title}</div>)
-          ) : (
-            <p>Нет доступных курсов.</p>
-          )}
-        </div>
-      );
-    } else if (userInfo.roleId === 3) {
-
-      // Студент
-      const latestItem = progress
-        .filter((item) => item.user_id === userInfo.id)
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-
-      if (latestItem) {
-        const lesson = lessons.find((les) => les.id === latestItem.lesson_id);
-        return (
-          <div>
-       
-            <h2>Последний прогресс</h2>
-            <p>
-              Статус: {latestItem.status} по предмету{" "}
-              {lesson ? lesson.title || lesson.content : "Данные не доступны"}
-            </p>
-          </div>
-        );
-      } else {
-        return <p>Нет данных о прогрессе.</p>;
-      }
-    } else {
-      return <p>Роль не определена.</p>;
-    }
-  };
-
-
-  
   // Функция для отрисовки меню в зависимости от роли пользователя
   const renderMenuByRole = () => {
-    if (!userInfo) return null;
+    if (!userInfo) return [];
 
-    if (userInfo.roleId === 1) {
-      // Администратор
-      return (
-        <>
-          <Button color="inherit" component={Link} href="/layout">
-            Главная
-          </Button>
-          <Button color="inherit" component={Link} href="/addrole">
-            Добавить роль
-          </Button>
-          <Button color="inherit" component={Link} href="/profile">
-            Профиль
-          </Button>
-          <Button color="inherit" component={Link} href="/dashboard">
-            Админ-панель
-          </Button>
-          <Button color="inherit" onClick={handleLogout}>
-            Выйти
-          </Button>
-        </>
-      );
-    } else if (userInfo.roleId === 2) {
-      // Учитель
-      return (
-        <>
-         <Button color="inherit" component={Link} href="/layout">
-             Главная
-           </Button>
-           <Button color="inherit" component={Link} href="/addstreams">
-             Потоки
-           </Button>
-           <Button color="inherit" component={Link} href="/addcourse">
-             Курсы
-           </Button>
-           <Button color="inherit" component={Link} href="/addlessons">
-             Предметы
-           </Button>
-           <Button color="inherit" component={Link} href="/addmaterial">
-             Материалы
-           </Button>
-           <Button color="inherit" component={Link} href="/progressstatus">
-             Прогресс
-           </Button>
-         
-           <Button color="inherit" component={Link} href="/profile">
-             Профиль
-           </Button>
-           <Button color="inherit" onClick={handleLogout}>
-             Выйти
-           </Button>
-        </>
-      );
-    } else if (userInfo.roleId === 3) {
-      // Студент
-      return (
-        <>
-             <Button color="inherit" component={Link} href="/layout">
-            Главная
-          </Button>
-          <Button color="inherit" component={Link} href="/courses">
-            Курсы
-          </Button>
-          {/* <Button color="inherit" component={Link} href="/progress">
-            Прогресс
-          </Button> */}
-          <Button color="inherit" component={Link} href="/profile">
-            Профиль
-          </Button>
-          <Button color="inherit" onClick={handleLogout}>
-            Выйти
-          </Button>
-        </>
-      );
-    } else {
-      // Роль не определена
-      return (
-        <>
-            <Button color="inherit" component={Link} href="/layout">
-            Главная
-          </Button>
-          <Button color="inherit" component={Link} href="/login">
-            Войти
-          </Button>
-        </>
-      );
-    }
+    const menuItems = {
+      1: [
+        { text: "Главная", href: "/layout" },
+        { text: "Добавить роль", href: "/addrole" },
+        { text: "Профиль", href: "/profile" },
+        { text: "Админ-панель", href: "/dashboard" },
+        { text: "Выйти", onClick: handleLogout },
+      ],
+      2: [
+        { text: "Главная", href: "/layout" },
+        { text: "Потоки", href: "/addstreams" },
+        { text: "Курсы", href: "/addcourse" },
+        { text: "Предметы", href: "/addlessons" },
+        { text: "Материалы", href: "/addmaterial" },
+        { text: "Прогресс", href: "/progressstatus" },
+        { text: "Профиль", href: "/profile" },
+        { text: "Выйти", onClick: handleLogout },
+      ],
+      3: [
+        { text: "Главная", href: "/layout" },
+        { text: "Курсы", href: "/courses" },
+        { text: "Профиль", href: "/profile" },
+        { text: "Выйти", onClick: handleLogout },
+      ],
+    };
+
+    return menuItems[userInfo.roleId] || [
+      { text: "Главная", href: "/layout" },
+      { text: "Войти", href: "/login" },
+    ];
   };
 
+  const toggleDrawer = (open) => (event) => {
+    if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
+      return;
+    }
+    setDrawerOpen(open);
+  };
+
+  const drawerMenu = (
+    <Box sx={{ width: 250 }} role="presentation" onClick={toggleDrawer(false)} onKeyDown={toggleDrawer(false)}>
+      <List>
+        {renderMenuByRole().map((item, index) => (
+          <ListItem
+            key={index}
+            component={item.href ? Link : "button"}
+            href={item.href}
+            onClick={item.onClick}
+            sx={{ color: "#1976d2" }}
+          >
+            <ListItemText primary={item.text} />
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
+
   return (
-    <AppBar position="static">
-      <Toolbar>
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Kazniisa LMS
-        </Typography>
-        {renderMenuByRole()}
-      </Toolbar>
-    </AppBar>
+    <>
+      <AppBar
+        position="static"
+        sx={{
+          bgcolor: "#1976d2",
+          borderBottom: "2px solid #1565c0",
+        }}
+      >
+        <Toolbar
+          sx={{
+            flexWrap: "wrap",
+            justifyContent: { xs: "space-between", sm: "space-between" },
+            py: { xs: 1, sm: 2 },
+            minHeight: { xs: 48, sm: 64 }, // Уменьшаем высоту на мобильных
+          }}
+        >
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              fontWeight: "bold",
+              color: "#fff",
+              fontSize: { xs: "1rem", sm: "1.25rem" },
+            }}
+          >
+            Kazniisa LMS
+          </Typography>
+          <Box
+            sx={{
+              display: { xs: "none", sm: "flex" },
+              gap: { xs: 1, sm: 2, md: 3 },
+              flexWrap: "wrap",
+            }}
+          >
+            {renderMenuByRole().map((item, index) => (
+              <Button
+                key={index}
+                color="inherit"
+                component={item.href ? Link : "button"}
+                href={item.href}
+                onClick={item.onClick}
+                sx={{
+                  fontSize: { xs: "0.75rem", sm: "0.875rem", md: "1rem" },
+                  px: { xs: 1, sm: 2 },
+                  minWidth: "auto",
+                }}
+              >
+                {item.text}
+              </Button>
+            ))}
+          </Box>
+          <IconButton
+            edge="end"
+            color="inherit"
+            aria-label="menu"
+            onClick={toggleDrawer(true)}
+            sx={{ display: { xs: "block", sm: "none" } }}
+          >
+            <MenuIcon />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+      <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer(false)}>
+        {drawerMenu}
+      </Drawer>
+    </>
   );
 };
 

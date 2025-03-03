@@ -1,8 +1,7 @@
 {
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/addstreams/page": "app/addstreams/page.js",
+  "/courses/[id]/page": "app/courses/[id]/page.js",
+  "/layout/page": "app/layout/page.js",
+  "/profile/page": "app/profile/page.js",
   "/courses/page": "app/courses/page.js",
-  "/login/page": "app/login/page.js",
-  "/addmaterial/page": "app/addmaterial/page.js",
-  "/progressstatus/page": "app/progressstatus/page.js"
+  "/login/page": "app/login/page.js"
 }
