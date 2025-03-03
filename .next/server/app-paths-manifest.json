@@ -1,13 +1,8 @@
 {
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/addcourse/page": "app/addcourse/page.js",
   "/layout/page": "app/layout/page.js",
-  "/addstreams/page": "app/addstreams/page.js",
-  "/addlessons/page": "app/addlessons/page.js",
-  "/progressstatus/page": "app/progressstatus/page.js",
-  "/courses/page": "app/courses/page.js",
-  "/courses/[id]/page": "app/courses/[id]/page.js",
   "/addmaterial/page": "app/addmaterial/page.js",
-  "/login/page": "app/login/page.js"
+  "/addlessons/page": "app/addlessons/page.js",
+  "/courses/[id]/page": "app/courses/[id]/page.js",
+  "/courses/page": "app/courses/page.js"
 }

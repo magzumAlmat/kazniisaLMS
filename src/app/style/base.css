@@ -80,3 +80,28 @@ ul li a{
 .header{
     background-color: yellow;
 }
+
+.editorjs-container .codex__editor {
+    max-width: 100% !important; /* Убираем ограничение max-width */
+    width: 100%; /* Растягиваем на всю ширину контейнера */
+  }
+  
+  .editorjs-container .ce-block__content {
+    max-width: none !important; /* Убираем ограничение для содержимого блоков */
+    /* max-width: none ; */
+  }
+  
+  .editorjs-container {
+    width: 100%; /* Убедимся, что контейнер занимает всю ширину */
+  }
+
+
+  .ce-block__content{
+    background-color: yellow!important;
+    max-width: none!important;
+  }
+
+
+  .ce-toolbar__actions{
+    right: 111%;
+  }

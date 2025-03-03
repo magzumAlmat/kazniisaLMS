@@ -602,8 +602,9 @@ export const  getBannerByCompanyIdAction= (companyId) => async(dispatch) => {
 
 
 export const  getUserInfoAction =() => async(dispatch)=>{
-  
+  initializeToken()
   console.log('1 getUserInFo started token=,',token)
+
   const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
     {headers: {
       'Authorization': `Bearer ${token}`,
