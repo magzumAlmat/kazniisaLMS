@@ -2,14 +2,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import TopMenu from "@/components/topmenu";
+import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutAction } from "@/store/slices/authSlice";
 const ProfilePage = () => {
   const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
+  const token = localStorage.getItem("token");
   const [profileData, setProfileData] = useState({
     name: "",
     lastname: "",
     phone: "",
   });
-
+  const dispatch=useDispatch()
+  const router=useRouter()
   // Загрузка данных профиля при монтировании компонента
   useEffect(() => {
     const fetchProfile = async () => {
@@ -76,6 +81,7 @@ const ProfilePage = () => {
 
 
     const fetchUserInfo = async () => {
+      const token = localStorage.getItem("token");
       try {
         const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
           headers: { Authorization: `Bearer ${token}` },
@@ -89,7 +95,6 @@ const ProfilePage = () => {
         }
       }
     };
-
   return (<>
     <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
     <div style={{ padding: "20px", maxWidth: "400px", margin: "0 auto" }}>
