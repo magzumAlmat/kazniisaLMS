@@ -6,36 +6,15 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/addcourse/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/addcourse/page.js"
-    ],
     "/addstreams/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/addstreams/page.js"
     ],
-    "/addlessons/page": [
+    "/courses/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/addlessons/page.css",
-      "static/chunks/app/addlessons/page.js"
-    ],
-    "/addmaterial/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/addmaterial/page.js"
-    ],
-    "/layout/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/layout/page.js"
-    ],
-    "/progressstatus/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/progressstatus/page.js"
+      "static/chunks/app/courses/[id]/page.js"
     ]
   }
 }
