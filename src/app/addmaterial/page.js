@@ -341,7 +341,7 @@ return (
         {/* Список материалов */}
         <Box mt={4}>
           <Typography variant="h5">Список материалов</Typography>
-          <ul>
+          {/* <ul> */}
             {materials.map((material) => (
               <ListItem key={material.material_id}>
                 <ListItemText
@@ -372,7 +372,7 @@ return (
                 </ListItemSecondaryAction>
               </ListItem>
             ))}
-          </ul>
+          {/* </ul> */}
         </Box>
       </Box>
     </Container>
