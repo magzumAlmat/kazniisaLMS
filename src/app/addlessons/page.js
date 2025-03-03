@@ -134,18 +134,17 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
   }, []);
 
   const fetchUserInfo = async () => {
-    // console.log('fetchUserInfo started!')
-    const token = localStorage.getItem("token");
     try {
-      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
-      {headers: {
-        'Authorization': `Bearer ${token}`,
-      }
-      },);
+      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setUserInfo(response.data);
-    } catch (error) {
-      console.error("Ошибка при загрузке уроков:", error);
-      
+    } catch (err) {
+      console.error('Ошибка при загрузке информации о пользователе:', err);
+      if (err.response && err.response.status === 401) {
+        // Перенаправляем на страницу логина при 401
+        router.push('/login');
+      }
     }
   };
   useEffect(() => {

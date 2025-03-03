@@ -1,11 +1,15 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Используем next/navigation вместо next/router
-import { Container, Typography, TextField, Button, Box, Link, Grid } from '@mui/material';
+import { redirect, useRouter } from 'next/navigation'; // Используем next/navigation вместо next/router
+import { Container, Typography, TextField, Button, Box, Link, Grid,Stack } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { authorize, loginAction } from '@/store/slices/authSlice';
+import GoogleIcon from '@mui/icons-material/Google';
+import GoogleButton from 'react-google-button'
+import ButtonGroup from '@mui/material/ButtonGroup';
 
+import SaveIcon from '@mui/icons-material/Save';
 const LoginPage = () => {
   
   const [email, setEmail] = useState('');
@@ -113,7 +117,7 @@ const LoginPage = () => {
               />
             </Grid>
           </Grid>
-          <Button
+          {/* <Button
             type="submit"
             fullWidth
             variant="contained"
@@ -121,6 +125,43 @@ const LoginPage = () => {
           >
             Войти
           </Button>
+
+
+          <GoogleButton
+              onClick={() => { redirect('http://localhost:4000/api/auth/google') }}
+             type="light"
+            /> */}
+<br />
+<Stack direction="row" spacing={2}>
+<Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Войти
+          </Button>
+      <Button variant="contained"   onClick={() => { redirect('http://localhost:4000/api/auth/google') }}>
+      <GoogleIcon mr={ 2 }/>
+      </Button>
+    </Stack>
+
+
+<br />
+
+{/* <ButtonGroup variant="outlined" aria-label="Loading button group" spacing={2}>
+      <Button size="large">   Войти   </Button>
+      <divider/>
+    
+    
+    
+      <GoogleButton
+              onClick={() => { redirect('http://localhost:4000/api/auth/google') }}
+             type="light"
+            />
+     
+    </ButtonGroup> */}
+
           <Grid container justifyContent="flex-end">
             <Grid item>
               <Link href="/register" variant="body2">
@@ -131,10 +172,16 @@ const LoginPage = () => {
 
           {/* Кнопка входа через Google */}
           <Box sx={{ mt: 2, width: '100%' }}>
-            <Button
+       
+{/* 
+          <GoogleButton
+              onClick={() => { redirect('http://localhost:4000/api/auth/google') }}
+             type="light"
+            /> */}
+            {/* <Button
               variant="outlined"
               fullWidth
-              startIcon={<img src="./google.png" alt="Google" style={{ width: 20, marginRight: 10 }} />}
+             
               href="http://localhost:4000/api/auth/google" // URL для Google OAuth
               sx={{
                 textTransform: 'none',
@@ -145,8 +192,8 @@ const LoginPage = () => {
                 },
               }}
             >
-              Войти через Google
-            </Button>
+              <GoogleIcon mr={ 2 }/>  Войти через Google
+            </Button> */}
           </Box>
         </Box>
       </Box>

@@ -63,6 +63,8 @@ const TopMenu = ({ userInfo, handleLogout }) => {
     }
   };
 
+
+  
   // Функция для отрисовки меню в зависимости от роли пользователя
   const renderMenuByRole = () => {
     if (!userInfo) return null;

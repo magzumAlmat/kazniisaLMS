@@ -106,11 +106,14 @@ export default function StreamsPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
-    } catch (error) {
-      console.error('Ошибка при загрузке информации о пользователе:', error);
+    } catch (err) {
+      console.error('Ошибка при загрузке информации о пользователе:', err);
+      if (err.response && err.response.status === 401) {
+        // Перенаправляем на страницу логина при 401
+        router.push('/login');
+      }
     }
   };
-
   const handleCreateStream = async () => {
     try {
       const response = await axios.post(
@@ -424,7 +427,7 @@ export default function StreamsPage() {
                   {selectedStream.students?.map((student) => (
                     <Chip
                       key={student.id}
-                      label={`${student.name ?? ''} ${student.lastname ?? ''}`}
+                      label={`${student.name ?? ''} ${student.lastname ?? ''} ${student.email ?? ''}`}
                       onDelete={() => handleRemoveStudent(selectedStream.id, student.id)}
                       sx={{ mr: 1, mb: 1 }}
                     />

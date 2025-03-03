@@ -19,6 +19,9 @@ import { Edit, Delete } from "@mui/icons-material";
 import jwtDecode from "jwt-decode";
 import { getUserInfoAction } from "@/store/slices/authSlice";
 import TopMenu from "@/components/topmenu";
+import { logoutAction } from "@/store/slices/authSlice";
+import { useRouter } from "next/navigation";
+
 export default function CoursesPage() {
  const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   const [courses, setCourses] = useState([]);
@@ -26,9 +29,12 @@ export default function CoursesPage() {
   const [description, setDescription] = useState("");
   const [editingCourse, setEditingCourse] = useState(null); // ID редактируемого курса
   // const userInfo  = useSelector((state) => state.auth.currentUser);
+  
+  const token = localStorage.getItem("token");
   const dispatch=useDispatch()
+  const router=useRouter()
   console.log('userInfo from slice= ',userInfo)
-   const token = localStorage.getItem("token");
+ 
   
     console.log('2 userTokenINITZ token=', token);
    
@@ -47,18 +53,18 @@ export default function CoursesPage() {
   }, []);
 
   const fetchUserInfo = async () => {
-    // console.log('fetchUserInfo started!')
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
-      {headers: {
-        'Authorization': `Bearer ${token}`,
-      }
-      },);
+      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setUserInfo(response.data);
-    } catch (error) {
-      console.error("Ошибка при загрузке уроков:", error);
-      
+    } catch (err) {
+      console.error('Ошибка при загрузке информации о пользователе:', err);
+      if (err.response && err.response.status === 401) {
+        // Перенаправляем на страницу логина при 401
+        router.push('/login');
+      }
     }
   };
 
