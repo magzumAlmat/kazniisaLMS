@@ -74,13 +74,13 @@ const TopMenu = ({ userInfo, handleLogout }) => {
           <Button color="inherit" component={Link} href="/layout">
             Главная
           </Button>
-          <Button color="inherit" component={Link} href="/admin/add-role">
+          <Button color="inherit" component={Link} href="/addrole">
             Добавить роль
           </Button>
           <Button color="inherit" component={Link} href="/profile">
             Профиль
           </Button>
-          <Button color="inherit" component={Link} href="/admin/dashboard">
+          <Button color="inherit" component={Link} href="/dashboard">
             Админ-панель
           </Button>
           <Button color="inherit" onClick={handleLogout}>

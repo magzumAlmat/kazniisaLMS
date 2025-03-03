@@ -14,7 +14,14 @@ import {
   Alert,
 } from "@mui/material";
 import jwtDecode from "jwt-decode";
+import TopMenu from "@/components/topmenu";
+import { useDispatch } from "react-redux";
+import { logoutAction } from "@/store/slices/authSlice";
+import { useRouter } from 'next/navigation';
+
+
 export default function UpdateUserRolePage() {
+  const router = useRouter();
   const [userId, setUserId] = useState("");
   const [roleId, setRoleId] = useState("");
   const [message, setMessage] = useState("");
@@ -23,12 +30,16 @@ export default function UpdateUserRolePage() {
   const [filteredUsers, setFilteredUsers] = useState([]); // Отфильтрованный список пользователей
   const [searchQuery, setSearchQuery] = useState(""); // Поисковый запрос
   const token = localStorage.getItem("token");
+  const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   // Загрузка пользователей при монтировании компонента
+  
+  const dispatch=useDispatch()
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/api/getallusers");
-
+        const response = await axios.get('http://localhost:4000/api/getallusers', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         // Проверяем, что данные пришли в ожидаемом формате
         if (response.data && Array.isArray(response.data.users)) {
           const usersData = response.data.users; // Извлекаем массив пользователей
@@ -44,6 +55,27 @@ export default function UpdateUserRolePage() {
     };
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    
+    fetchUserInfo()
+  }, []);
+
+  const fetchUserInfo = async () => {
+    // console.log('fetchUserInfo started!')
+    const token = localStorage.getItem("token");
+    try {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+      {headers: {
+        'Authorization': `Bearer ${token}`,
+      }
+      },);
+      setUserInfo(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке уроков:", error);
+      
+    }
+  };
 
   // Фильтрация пользователей по почте
   const handleSearch = (e) => {
@@ -84,7 +116,19 @@ export default function UpdateUserRolePage() {
     }
   };
 
+
+  const handleLogout = () => {
+    console.log('HandleLogout called');
+    dispatch(logoutAction());
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
+
+
   return (
+    <>
+    <TopMenu handleLogout={handleLogout}  userInfo={userInfo} />
+
     <Container maxWidth="sm" sx={{ mt: 8 }}>
       <Typography variant="h4" gutterBottom>
         Обновление роли пользователя
@@ -156,5 +200,7 @@ export default function UpdateUserRolePage() {
         </Alert>
       )}
     </Container>
+    </>
+ 
   );
 }
