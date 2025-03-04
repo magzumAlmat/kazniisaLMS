@@ -16,10 +16,14 @@ const ProfilePage = () => {
   });
   const dispatch = useDispatch();
   const router = useRouter();
+  const host=process.env.NEXT_PUBLIC_HOST
+
+
 
   useEffect(() => {
     if (!token) {
-      router.push('/login');
+      // router.push('/login');
+      console.log('token is null',token)
       return;
     }
     fetchProfile();
@@ -28,7 +32,7 @@ const ProfilePage = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await axios.get(`${host}/api/profile", {
+      const response = await axios.get(`${host}/api/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -49,8 +53,9 @@ const ProfilePage = () => {
   };
 
   const fetchUserInfo = async () => {
+    const token = localStorage.getItem("token");
     try {
-      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo", {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -74,7 +79,7 @@ const ProfilePage = () => {
     e.preventDefault();
     try {
       await axios.put(
-        `${host}/api/profile",
+        `${host}/api/profile`,
         profileData,
         {
           headers: {
