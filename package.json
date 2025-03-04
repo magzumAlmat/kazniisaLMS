@@ -24,6 +24,7 @@
     "@fontsource/roboto": "*",
     "@mui/icons-material": "*",
     "@mui/material": "*",
+    "@next/env": "^15.2.1",
     "@reduxjs/toolkit": "*",
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",

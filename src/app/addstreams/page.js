@@ -56,7 +56,7 @@ export default function StreamsPage() {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const { courses } = useSelector((state) => state.auth);
   const [userInfo, setUserInfo] = useState(null);
-
+  const host=process.env.NEXT_PUBLIC_HOST
   useEffect(() => {
     const fetchData = async () => {
       if (!token) {
@@ -65,7 +65,7 @@ export default function StreamsPage() {
       }
       setLoading(true);
       try {
-        const streamsResponse = await axios.get('http://localhost:4000/api/streams', {
+        const streamsResponse = await axios.get(`${host}/api/streams`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log('Streams Response:', streamsResponse.data);
@@ -73,7 +73,7 @@ export default function StreamsPage() {
         const streamsWithStudents = await Promise.all(
           streamsResponse.data.streams.map(async (stream) => {
             const studentsResponse = await axios.get(
-              `http://localhost:4000/api/streams/getstudentsbystreamid/${stream.id}`,
+              `${host}/api/streams/getstudentsbystreamid/${stream.id}`,
               // Исправлен путь
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -82,7 +82,7 @@ export default function StreamsPage() {
         );
         setStreams(streamsWithStudents || []);
 
-        const usersResponse = await axios.get('http://localhost:4000/api/getallusers', {
+        const usersResponse = await axios.get(`${host}/api/getallusers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log('Users Response:', usersResponse.data);
@@ -102,7 +102,7 @@ export default function StreamsPage() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -118,7 +118,7 @@ export default function StreamsPage() {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:4000/api/stream", // Исправлен endpoint на /streams
+        `${host}/api/stream`, // Исправлен endpoint на /streams
         {
           ...newStream,
           cost: parseFloat(newStream.cost),
@@ -140,6 +140,8 @@ export default function StreamsPage() {
         teacherId: "",
       });
       setError(null);
+      router.push('/addstreams');
+      window.location.reload()
     } catch (err) {
       setError(err.response?.data?.error || "Ошибка при создании потока");
     } finally {
@@ -152,7 +154,7 @@ export default function StreamsPage() {
   const handleUpdateStream = async () => {
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/streams/${editStream.id}`,
+        `${host}/api/streams/${editStream.id}`,
         {
           ...editStream,
           cost: Number(editStream.cost),
@@ -171,7 +173,7 @@ export default function StreamsPage() {
 
   const handleDeleteStream = async (streamId) => {
     try {
-      await axios.delete(`http://localhost:4000/api/streams/${streamId}`, {
+      await axios.delete(`${host}/api/streams/${streamId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStreams(streams.filter((s) => s.id !== streamId));
@@ -184,11 +186,11 @@ export default function StreamsPage() {
   const handleAddStudents = async () => {
     try {
       await axios.post(
-        `http://localhost:4000/api/streams/${selectedStream.id}/students`,
+        `${host}/api/streams/${selectedStream.id}/students`,
         { studentIds: selectedStudents },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const updatedStreamResponse = await axios.get(`http://localhost:4000/api/streams/getstudentsbystreamid/${selectedStream.id}`, {
+      const updatedStreamResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${selectedStream.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setStreams(streams.map((s) => (s.id === selectedStream.id ? { ...s, students: updatedStreamResponse.data.students } : s)));
@@ -204,11 +206,11 @@ export default function StreamsPage() {
   //   console.log('1 Удаление юзера',streamId,studentId)
   //   try {
   //     await axios.post(
-  //       `http://localhost:4000/api/streams/${streamId}/remove-students`,
+  //       `${host}/api/streams/${streamId}/remove-students`,
   //       { studentIds: [studentId] }, // Отправляем массив studentIds в теле запроса
   //       // { headers: { Authorization: `Bearer ${token}` } }
   //     );
-  //     const updatedStreamResponse = await axios.get( `http://localhost:4000/api/streams/getstudentsbystreamid/${stream.id}`
+  //     const updatedStreamResponse = await axios.get( `${host}/api/streams/getstudentsbystreamid/${stream.id}`
   //     // , {
   //     //   headers: { Authorization: `Bearer ${token}` },
   //     // }
@@ -226,14 +228,14 @@ export default function StreamsPage() {
     try {
       // Удаляем студента из потока
       await axios.post(
-        `http://localhost:4000/api/streams/${streamId}/remove-students`,
+        `${host}/api/streams/${streamId}/remove-students`,
         { studentIds: [studentId] }, // Отправляем массив studentIds в теле запроса
         { headers: { Authorization: `Bearer ${token}` } }
       );
   
       // Получаем обновленный список студентов для потока
       const updatedStreamResponse = await axios.get(
-       `http://localhost:4000/api/streams/getstudentsbystreamid/${streamId}`, // Исправлен путь и использован streamId
+       `${host}/api/streams/getstudentsbystreamid/${streamId}`, // Исправлен путь и использован streamId
         { headers: { Authorization: `Bearer ${token}` } }
       );
   

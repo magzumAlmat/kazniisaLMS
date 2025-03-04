@@ -151,7 +151,7 @@ export default function Document({id}) {
 
   const getLessonbyId=async()=>{
     const response = await axios.get(
-      `http://localhost:4000/api/lessons/${1}`,{
+      `${host}/api/lessons/${1}`,{
         // headers: {
         //   'Authorization': `Bearer ${token}`,
         //   'Content-Type': 'application/json', 

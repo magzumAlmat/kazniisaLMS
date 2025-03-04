@@ -34,7 +34,7 @@ const initialState = {
 // if (typeof window !== "undefined") {
 //   token = localStorage.getItem("token");
 // }
-
+const host=process.env.NEXT_PUBLIC_HOST
 
 const initializeToken = () => {
   let token = null;
@@ -504,7 +504,7 @@ export const createDocumentAction = (file, name) => async (dispatch) => {
   formData.append("name", name);
 
   try {
-    const response = await axios.post(`${host}upload`, formData, {
+    const response = await axios.post(`${host}/upload`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -520,7 +520,7 @@ export const  getCourseByIdAction = (id) => async(dispatch) => {
   console.log('1 getCourseByIdAction started  id=',id)
   
   const response = await axios.get(
-    `http://localhost:4000/api/courses/${id}`,{
+    `${host}/api/courses/${id}`,{
       // headers: {
       //   'Authorization': `Bearer ${token}`,
       //   'Content-Type': 'application/json', 
@@ -537,7 +537,7 @@ export const  getAllCoursesAction= () => async(dispatch) => {
   console.log('1 getAllCourse started')
   
   const response = await axios.get(
-    `${END_POINT}/api/courses`,{
+    `${host}/api/courses`,{
       // headers: {
       //   'Authorization': `Bearer ${token}`,
       //   'Content-Type': 'application/json', 
@@ -605,7 +605,7 @@ export const  getUserInfoAction =() => async(dispatch)=>{
   initializeToken()
   console.log('1 getUserInFo started token=,',token)
 
-  const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+  const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`,
     {headers: {
       'Authorization': `Bearer ${token}`,
     }
@@ -620,7 +620,7 @@ export const getAllLessonsAction = () => async (dispatch) => {
 
   try {
     const token = localStorage.getItem("token"); // Ensure the token is retrieved
-    const response = await axios.get("http://localhost:4000/api/lessons", {
+    const response = await axios.get(`${host}/api/lessons`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -637,7 +637,7 @@ export const getAllLessonsAction = () => async (dispatch) => {
 // const fetchUserInfo = async () => {
 //   console.log('fetchUserInfo started!')
 //   try {
-//     const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo",
+//     const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo",
 //     {headers: {
 //       'Authorization': `Bearer ${token}`,
 //     }
@@ -690,7 +690,7 @@ export const createUserAction = ({email, password} ) => async (dispatch) => {
 
   try {
     // Проверка, существует ли пользователь с таким email
-    const checkUserResponse = await axios.get(`http://localhost:4000/api/auth/check-email?email=${email}`);
+    const checkUserResponse = await axios.get(`${host}/api/auth/check-email?email=${email}`);
     
     if (checkUserResponse.data.exists) {
       
@@ -704,7 +704,7 @@ export const createUserAction = ({email, password} ) => async (dispatch) => {
     }
 
     // Если пользователя с таким email нет, продолжаем регистрацию
-    await axios.post('http://localhost:4000/api/register', {
+    await axios.post(`${host}/api/register`, {
       email,
       password,
       roleId: 3,
@@ -726,7 +726,7 @@ export const createTeacherAction = ({email, password} ) => async (dispatch) => {
 
   try {
     // Проверка, существует ли пользователь с таким email
-    const checkUserResponse = await axios.get(`http://localhost:4000/api/auth/check-email?email=${email}`);
+    const checkUserResponse = await axios.get(`${host}/api/auth/check-email?email=${email}`);
     
     if (checkUserResponse.data.exists) {
       
@@ -740,7 +740,7 @@ export const createTeacherAction = ({email, password} ) => async (dispatch) => {
     }
 
     // Если пользователя с таким email нет, продолжаем регистрацию
-    await axios.post('http://localhost:4000/api/register', {
+    await axios.post(`${host}/api/register`, {
        email,
      
       password,
@@ -763,7 +763,7 @@ export const createTeacherAction = ({email, password} ) => async (dispatch) => {
 
 //   try {
 //     // Отправка данных на сервер
-//     const response = await axios.post('http://localhost:4000/api/auth/sendmail', {
+//     const response = await axios.post('${host}/api/auth/sendmail', {
 //         email: email,
 //         name: 'notcompleted',
 //         lastname: 'notcompleted',
@@ -792,7 +792,7 @@ export const createTeacherAction = ({email, password} ) => async (dispatch) => {
 //       payload: error.response?.data?.error || error.message,
 //     });
 //   }
-//   // await axios.post(`http://localhost:4000/api/auth/sendmail`, {
+//   // await axios.post(`${host}/api/auth/sendmail`, {
 //   //   email: email,
 //   //   name: 'not completed',
 //   //   lastname: 'not completed',
@@ -823,9 +823,9 @@ export const loginInspectorAction = (email,password) => async(dispatch) => {
 };
 
 export const loginAction = ({ email, password }) => async (dispatch) => {
-  console.log('1 login Action started')
+  console.log('1 login Action started host- ',host)
   try {
-    const response = await axios.post(`${END_POINT}/api/auth/login`, {
+    const response = await axios.post(`http://localhost:4000/api/auth/login`, {
       email,
       password,
     });
@@ -1173,7 +1173,7 @@ export const addProgressAction = (userId,course) => async (dispatch) => {
   console.log('addProgressAction started')
   
        
-        // const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${course}`)
+        // const response = await axios.get(`${host}/api/course/progress/${userId}/${course}`)
           
         //   dispatch(addProgressReducer(response.data));
         

@@ -37,7 +37,7 @@ export default function UpdateUserRolePage() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/getallusers', {
+        const response = await axios.get('${host}/api/getallusers', {
           headers: { Authorization: `Bearer ${token}` },
         });
         // Проверяем, что данные пришли в ожидаемом формате
@@ -63,7 +63,7 @@ export default function UpdateUserRolePage() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
+      const response = await axios.get('${host}/api/auth/getAuthentificatedUserInfo', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -97,7 +97,7 @@ export default function UpdateUserRolePage() {
     console.log('Выбрана роль= ',roleId)
     e.preventDefault();
     try {
-      const response = await axios.put(`http://localhost:4000/api/users/${userId}/role`, {
+      const response = await axios.put(`${host}/api/users/${userId}/role`, {
         roleId: roleId,
       },
       {headers: {

@@ -26,7 +26,7 @@ export default function Courses() {
   const [userInfo, setUserInfo] = useState(null);
   const [progresses, setProgresses] = useState({});
   const [token, setToken] = useState(null); // Инициализируем токен как null
-
+  const host=process.env.NEXT_PUBLIC_HOST
   // Получение токена на стороне клиента
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -46,7 +46,7 @@ export default function Courses() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo", {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -60,7 +60,7 @@ export default function Courses() {
 
   const fetchAllProgresses = async (userId, courseId) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${courseId}`, {
+      const response = await axios.get(`${host}/api/course/progress/${userId}/${courseId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = response.data.course_progress;

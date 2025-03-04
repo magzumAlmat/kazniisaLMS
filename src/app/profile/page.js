@@ -28,7 +28,7 @@ const ProfilePage = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/profile", {
+      const response = await axios.get(`${host}/api/profile", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -50,7 +50,7 @@ const ProfilePage = () => {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo", {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -74,7 +74,7 @@ const ProfilePage = () => {
     e.preventDefault();
     try {
       await axios.put(
-        "http://localhost:4000/api/profile",
+        `${host}/api/profile",
         profileData,
         {
           headers: {

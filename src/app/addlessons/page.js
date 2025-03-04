@@ -40,7 +40,7 @@ export default function LessonsPage() {
   const [editingLesson, setEditingLesson] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const editorInstance = useRef(null);
-
+  const host=process.env.NEXT_PUBLIC_HOST
   // Получение токена на стороне клиента
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -120,7 +120,7 @@ export default function LessonsPage() {
 
   const fetchLessons = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/lessons", {
+      const response = await axios.get(`${host}/api/lessons`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLessons(response.data);
@@ -132,7 +132,7 @@ export default function LessonsPage() {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/courses", {
+      const response = await axios.get(`${host}/api/courses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCourses(response.data);
@@ -144,7 +144,7 @@ export default function LessonsPage() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo", {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -163,7 +163,7 @@ export default function LessonsPage() {
     }
     try {
       const response = await axios.post(
-        "http://localhost:4000/api/lessons",
+        `${host}/api/lessons`,
         {
           title,
           content: JSON.stringify(content),
@@ -187,7 +187,7 @@ export default function LessonsPage() {
   const updateLesson = async (id) => {
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/lessons/${id}`,
+        `${host}/api/lessons/${id}`,
         {
           title,
           content: JSON.stringify(content),
@@ -210,7 +210,7 @@ export default function LessonsPage() {
 
   const deleteLesson = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:4000/api/lessons/${id}`, {
+      const response = await axios.delete(`${host}/api/lessons/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.status === 204) {

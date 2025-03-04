@@ -32,12 +32,12 @@ export default function UserProgressPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { courses } = useSelector((state) => state.auth);
-
+  const host = process.env.NEXT_PUBLIC_HOST;
   // Загрузка пользователей и курсов
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const usersResponse = await axios.get('http://localhost:4000/api/getallusers', {
+        const usersResponse = await axios.get(`${host}/api/getallusers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(usersResponse.data.users);
@@ -65,7 +65,7 @@ export default function UserProgressPage() {
           const progressPromises = users.flatMap((user) =>
             courses.map((course) =>
               axios
-                .get(`http://localhost:4000/api/course/progress/${user.id}/${course.id}`, {
+                .get(`${host}/api/course/progress/${user.id}/${course.id}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 })
                 .then((response) => ({
@@ -105,7 +105,7 @@ export default function UserProgressPage() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo", {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);

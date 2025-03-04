@@ -22,6 +22,7 @@ import TopMenu from "@/components/topmenu";
 import { logoutAction } from "@/store/slices/authSlice";
 import { useRouter } from "next/navigation";
 
+
 export default function CoursesPage() {
  const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   const [courses, setCourses] = useState([]);
@@ -29,7 +30,7 @@ export default function CoursesPage() {
   const [description, setDescription] = useState("");
   const [editingCourse, setEditingCourse] = useState(null); // ID редактируемого курса
   // const userInfo  = useSelector((state) => state.auth.currentUser);
-  
+  const host=process.env.NEXT_PUBLIC_HOST
   const token = localStorage.getItem("token");
   const dispatch=useDispatch()
   const router=useRouter()
@@ -55,7 +56,7 @@ export default function CoursesPage() {
   const fetchUserInfo = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -70,7 +71,7 @@ export default function CoursesPage() {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/courses");
+      const response = await axios.get(`${host}/api/courses`);
       setCourses(response.data);
     } catch (error) {
       console.error("Ошибка при загрузке курсов:", error);
@@ -83,7 +84,7 @@ export default function CoursesPage() {
 
     try {
         const response = await axios.post(
-            "http://localhost:4000/api/courses",
+            `${host}/api/courses`,
             {
                 title,
                 description,
@@ -127,7 +128,7 @@ export default function CoursesPage() {
 
   const updateCourse = async (id) => {
     try {
-      const response = await axios.put(`http://localhost:4000/api/courses/${id}`, {
+      const response = await axios.put(`${host}/api/courses/${id}`, {
         title,
         description,
       },
@@ -148,7 +149,7 @@ export default function CoursesPage() {
 
   const deleteCourse = async (id) => {
     try {
-      await axios.delete(`http://localhost:4000/api/courses/${id}`,
+      await axios.delete(`${host}/api/courses/${id}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,

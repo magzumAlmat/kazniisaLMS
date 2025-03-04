@@ -28,7 +28,7 @@ const ProgressPage = () => {
   // Функция для инициализации прогресса
   const initializeProgress = async () => {
     try {
-      const response = await axios.post("http://localhost:4000/course/enroll", {
+      const response = await axios.post(`${host}/course/enroll`, {
         userId,
         courseId,
       });
@@ -42,7 +42,7 @@ const ProgressPage = () => {
   // Получение всех записей о прогрессе пользователя
   const fetchAllProgresses = async (userId) => {
     try {
-      const response = await axios.get(`http://localhost:4000/progress/all/${userId}`);
+      const response = await axios.get(`${host}/progress/all/${userId}`);
       setProgresses(response.data);
     } catch (error) {
       console.error("Error fetching progresses:", error);
@@ -52,7 +52,7 @@ const ProgressPage = () => {
   // Создание новой записи о прогрессе
   const createProgress = async () => {
     try {
-      const response = await axios.post("http://localhost:4000/progresses", {
+      const response = await axios.post(`${host}/progresses`, {
         status: "in_progress",
         completed_at: null,
         user_id: userId,
@@ -68,7 +68,7 @@ const ProgressPage = () => {
   // Обновление прогресса урока
   const updateLessonProgress = async () => {
     try {
-      const response = await axios.put("http://localhost:4000/progress/update", {
+      const response = await axios.put(`${host}/progress/update`, {
         user_id: userId,
         lesson_id: lessonId,
         progress_percentage: progressPercentage,
@@ -83,7 +83,7 @@ const ProgressPage = () => {
   // Удаление записи о прогрессе
   const deleteProgress = async (id) => {
     try {
-      await axios.delete(`http://localhost:4000/progresses/${id}`);
+      await axios.delete(`${host}/progresses/${id}`);
       console.log("Progress deleted");
       fetchAllProgresses(userId); // Обновляем список прогресса
     } catch (error) {
@@ -94,7 +94,7 @@ const ProgressPage = () => {
   // Получение прогресса курса
   const fetchCourseProgress = async () => {
     try {
-      const response = await axios.get(`http://localhost:4000/course/progress/${userId}/${courseId}`);
+      const response = await axios.get(`${host}/course/progress/${userId}/${courseId}`);
       setCourseProgress(response.data);
       console.log("Course progress fetched:", response.data);
     } catch (error) {

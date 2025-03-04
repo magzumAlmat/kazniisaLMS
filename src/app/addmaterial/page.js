@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -39,15 +39,15 @@ export default function MaterialsPage() {
   const [courses, setCourses] = useState([]);
   const [testFilePath, setTestFilePath] = useState("");
   const [userInfo, setUserInfo] = useState(null);
-  
+  const host = process.env.NEXT_PUBLIC_HOST;
   const token = localStorage.getItem("token");
-  
+
   const dispatch = useDispatch();
   const router = useRouter();
 
   if (!token) {
     console.error("Token not available");
-    router.push('/login'); // Перенаправление на логин, если токен отсутствует
+    router.push("/login");
     return null;
   }
 
@@ -99,21 +99,21 @@ export default function MaterialsPage() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
     } catch (err) {
-      console.error('Ошибка при загрузке информации о пользователе:', err);
+      console.error("Ошибка при загрузке информации о пользователе:", err);
       if (err.response && err.response.status === 401) {
-        router.push('/login');
+        router.push("/login");
       }
     }
   };
 
   const fetchMaterials = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/materials", {
+      const response = await axios.get(`${host}/api/materials`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMaterials(response.data);
@@ -124,7 +124,7 @@ export default function MaterialsPage() {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/courses", {
+      const response = await axios.get(`${host}/api/courses`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCourses(response.data);
@@ -135,7 +135,7 @@ export default function MaterialsPage() {
 
   const fetchLessons = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/lessons", {
+      const response = await axios.get(`${host}/api/lessons`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLessons(response.data);
@@ -158,7 +158,7 @@ export default function MaterialsPage() {
         formData.append("file", files[0]);
         formData.append("name", title);
 
-        uploadedFileResponse = await axios.post("http://localhost:4000/api/upload", formData, {
+        uploadedFileResponse = await axios.post(`${host}/api/upload`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -169,7 +169,7 @@ export default function MaterialsPage() {
         formData.append("file", documentFiles[0]);
         formData.append("name", title);
 
-        uploadedFileResponse = await axios.post("http://localhost:4000/api/upload", formData, {
+        uploadedFileResponse = await axios.post(`${host}/api/upload`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -180,7 +180,7 @@ export default function MaterialsPage() {
         formData.append("file", presentationFiles[0]);
         formData.append("name", title);
 
-        uploadedFileResponse = await axios.post("http://localhost:4000/api/upload", formData, {
+        uploadedFileResponse = await axios.post(`${host}/api/upload`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
@@ -192,7 +192,7 @@ export default function MaterialsPage() {
       }
 
       const materialResponse = await axios.post(
-        "http://localhost:4000/api/materials",
+        `${host}/api/materials`,
         {
           title,
           type,
@@ -223,7 +223,7 @@ export default function MaterialsPage() {
 
   const deleteMaterial = async (material_id) => {
     try {
-      await axios.delete(`http://localhost:4000/api/materials/${material_id}`, {
+      await axios.delete(`${host}/api/materials/${material_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMaterials(materials.filter((material) => material.material_id !== material_id));
@@ -234,8 +234,8 @@ export default function MaterialsPage() {
 
   const handleLogout = () => {
     dispatch(logoutAction());
-    localStorage.removeItem('token');
-    router.push('/login');
+    localStorage.removeItem("token");
+    router.push("/login");
   };
 
   return (
@@ -247,7 +247,9 @@ export default function MaterialsPage() {
 
           {/* Форма добавления/редактирования */}
           <Box mt={4}>
-            <Typography variant="h6">{editingMaterial ? "Редактировать материал" : "Создать новый материал"}</Typography>
+            <Typography variant="h6">
+              {editingMaterial ? "Редактировать материал" : "Создать новый материал"}
+            </Typography>
             <TextField
               label="Название"
               value={title}
@@ -287,7 +289,9 @@ export default function MaterialsPage() {
                   <input {...getDocumentInputProps()} />
                   <Typography>Перетащите документ сюда или нажмите для выбора</Typography>
                 </div>
-                {documentFiles.length > 0 && <Typography>Выбранный файл: {documentFiles[0].name}</Typography>}
+                {documentFiles.length > 0 && (
+                  <Typography>Выбранный файл: {documentFiles[0].name}</Typography>
+                )}
               </Box>
             )}
 
@@ -297,7 +301,9 @@ export default function MaterialsPage() {
                   <input {...getPresentationInputProps()} />
                   <Typography>Перетащите презентацию сюда или нажмите для выбора</Typography>
                 </div>
-                {presentationFiles.length > 0 && <Typography>Выбранный файл: {presentationFiles[0].name}</Typography>}
+                {presentationFiles.length > 0 && (
+                  <Typography>Выбранный файл: {presentationFiles[0].name}</Typography>
+                )}
               </Box>
             )}
 
@@ -324,19 +330,14 @@ export default function MaterialsPage() {
                   const course = courses.find((c) => c.id === lesson.course_id);
                   return (
                     <MenuItem key={lesson.id} value={lesson.id}>
-                      {course ? course.title : 'Курс не найден'} - {lesson.title}
+                      {course ? course.title : "Курс не найден"} - {lesson.title}
                     </MenuItem>
                   );
                 })}
               </Select>
             </FormControl>
 
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={createMaterial}
-              sx={{ mt: 2 }}
-            >
+            <Button variant="contained" color="primary" onClick={createMaterial} sx={{ mt: 2 }}>
               {editingMaterial ? "Обновить материал" : "Добавить материал"}
             </Button>
           </Box>
@@ -344,12 +345,14 @@ export default function MaterialsPage() {
           {/* Список материалов */}
           <Box mt={4}>
             <Typography variant="h5">Список материалов</Typography>
-         
+            <List>
               {materials.map((material) => (
-                <ListItem key={material.material_id}>
+                <ListItem key={`${material.material_id}-${Date.now()}`}>
                   <ListItemText
                     primary={material.title}
-                    secondary={`Урок: ${lessons.find((lesson) => lesson.id === material.lesson_id)?.title || "Неизвестно"}\nТип: ${material.type}\nФайл: ${material.file_path}`}
+                    secondary={`Урок: ${
+                      lessons.find((lesson) => lesson.id === material.lesson_id)?.title || "Неизвестно"
+                    }\nТип: ${material.type}\nФайл: ${material.file_path}`}
                   />
                   <ListItemSecondaryAction>
                     <IconButton
@@ -375,7 +378,7 @@ export default function MaterialsPage() {
                   </ListItemSecondaryAction>
                 </ListItem>
               ))}
-            
+            </List>
           </Box>
         </Box>
       </Container>

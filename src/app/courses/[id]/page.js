@@ -44,6 +44,7 @@ const VideoPlayer = ({ material }) => {
 };
 
 export default function CourseDetail() {
+  const host=process.env.NEXT_PUBLIC_HOST
   const { id } = useParams();
   const router = useRouter();
   const dispatch = useDispatch();
@@ -79,7 +80,7 @@ export default function CourseDetail() {
 
   const fetchLessons = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/lessons", {
+      const response = await axios.get(`${host}/api/lessons`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLessons(response.data);
@@ -90,18 +91,18 @@ export default function CourseDetail() {
 
   const fetchMaterials = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/materials", {
+      const response = await axios.get(`${host}/api/materials`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMaterials(response.data);
     } catch (error) {
-      console.error("Ошибка при загрузке материалов:", error);
+      console.error(`Ошибка при загрузке материалов:`, error);
     }
   };
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo", {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -115,7 +116,7 @@ export default function CourseDetail() {
 
   const fetchAllProgresses = async (userId, courseId) => {
     try {
-      const response = await axios.get(`http://localhost:4000/api/course/progress/${userId}/${courseId}`, {
+      const response = await axios.get(`${host}/api/course/progress/${userId}/${courseId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProgresses(response.data.lessons || []);
@@ -193,7 +194,7 @@ export default function CourseDetail() {
 
     try {
       await axios.put(
-        "http://localhost:4000/api/progress/update",
+        `${host}/api/progress/update`,
         {
           user_id: decoded.id,
           lesson_id: lessonId,

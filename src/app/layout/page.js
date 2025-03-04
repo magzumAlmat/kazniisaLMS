@@ -48,7 +48,7 @@
 
 //   const fetchLessons = async () => {
 //     try {
-//       const response = await axios.get("http://localhost:4000/api/lessons");
+//       const response = await axios.get(`${host}/api/lessons");
 //       setLessons(response.data); // Устанавливаем данные lessons
 //     } catch (error) {
 //       console.error("Ошибка при загрузке уроков:", error);
@@ -58,7 +58,7 @@
 
 //   const fetchUserInfo = async () => {
 //     try {
-//       const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo", {
+//       const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo", {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
 //         },
@@ -75,7 +75,7 @@
 
 //   const fetchProgresses = async () => {
 //     try {
-//       const response = await axios.get("http://localhost:4000/api/progresses", {
+//       const response = await axios.get(`${host}/api/progresses", {
 //         headers: {
 //           Authorization: `Bearer ${token}`,
 //         },
@@ -371,7 +371,7 @@ export default function Layout({ children }) {
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
   // Проверка наличия токена
-  
+  const host=process.env.NEXT_PUBLIC_HOST
 
   // Декодирование токена
   let decodedToken;
@@ -426,9 +426,10 @@ export default function Layout({ children }) {
 
   // Функция для загрузки уроков
   const fetchUserInfo = async () => {
-     const token = localStorage.getItem("token");
+    console.log('host= ',host)
+    const token = localStorage.getItem("token");
     try {
-      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
@@ -442,8 +443,9 @@ export default function Layout({ children }) {
   };
 
   const fetchLessons = async () => {
+    console.log('host= ',host)
     try {
-      const response = await axios.get("http://localhost:4000/api/lessons");
+      const response = await axios.get(`${host}/api/lessons`);
       setLessons(response.data);
     } catch (error) {
       console.error("Ошибка при загрузке уроков:", error);
@@ -454,7 +456,7 @@ export default function Layout({ children }) {
   // Функция для загрузки прогресса
   // const fetchProgresses = async () => {
   //   try {
-  //     const response = await axios.get("http://localhost:4000/api/progresses", {
+  //     const response = await axios.get(`${host}/api/progresses`, {
   //       headers: {
   //         Authorization: `Bearer ${token}`,
   //       },

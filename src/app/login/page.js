@@ -128,7 +128,7 @@ const LoginPage = () => {
 
 
           <GoogleButton
-              onClick={() => { redirect('http://localhost:4000/api/auth/google') }}
+              onClick={() => { redirect('${host}/api/auth/google') }}
              type="light"
             /> */}
 <br />
@@ -141,7 +141,7 @@ const LoginPage = () => {
           >
             Войти
           </Button>
-      <Button variant="contained"   onClick={() => { redirect('http://localhost:4000/api/auth/google') }}>
+      <Button variant="contained"   onClick={() => { redirect('${host}/api/auth/google') }}>
       <GoogleIcon mr={ 2 }/>
       </Button>
     </Stack>
@@ -156,7 +156,7 @@ const LoginPage = () => {
     
     
       <GoogleButton
-              onClick={() => { redirect('http://localhost:4000/api/auth/google') }}
+              onClick={() => { redirect('${host}/api/auth/google') }}
              type="light"
             />
      
@@ -175,14 +175,14 @@ const LoginPage = () => {
        
 {/* 
           <GoogleButton
-              onClick={() => { redirect('http://localhost:4000/api/auth/google') }}
+              onClick={() => { redirect('${host}/api/auth/google') }}
              type="light"
             /> */}
             {/* <Button
               variant="outlined"
               fullWidth
              
-              href="http://localhost:4000/api/auth/google" // URL для Google OAuth
+              href=`${host}/api/auth/google" // URL для Google OAuth
               sx={{
                 textTransform: 'none',
                 color: '#000',
