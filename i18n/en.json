@@ -1,0 +1,18 @@
+
+{
+    "Layout": {
+      "title": "Kazniisa LMS",
+      "welcome": "Hello, {name}",
+      "home": "Home",
+      "addRole": "Add Role",
+      "profile": "Profile",
+      "adminPanel": "Admin Panel",
+      "logout": "Logout",
+      "streams": "Streams",
+      "courses": "Courses",
+      "subjects": "Subjects",
+      "materials": "Materials",
+      "progress": "Progress",
+      "footer": "© 2025 Educational Platform. All rights reserved."
+    }
+  }

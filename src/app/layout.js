@@ -15,7 +15,11 @@ import { useDispatch } from "react-redux";
 import { loginReducer } from "@/store/slices/authSlice";
 import useTokenFromURL from '@/components/useTokenFromURL';
 import useTokenInitialization from '../store/slices/authSlice';
-export default function RootLayout({ children }) {
+import { NextIntlClientProvider } from 'next-intl';
+import { useRouter } from 'next/navigation';
+
+export default function RootLayout({ children}) {
+  // const router = useRouter();
  // useTokenInitialization()
  
   
@@ -24,6 +28,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <ReduxProvider>
         <body>{children}</body>
+        {/* <NextIntlClientProvider locale={locale} messages={require(`../../i18n/${locale}.json`)}> */}
+
+       {/* </NextIntlClientProvider> */}
       </ReduxProvider>
     </html>
   )

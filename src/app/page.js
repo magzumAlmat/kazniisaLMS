@@ -14,6 +14,21 @@ import { useDispatch } from "react-redux";
 import { loginReducer } from "@/store/slices/authSlice";
 import jwt_decode from "jwt-decode";
 
+
+
+export const metadata = {
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png' },
+    ],
+  }
+}
+
+
 export  function TokenInitializer() {
   const dispatch = useDispatch();
 

@@ -1,11 +1,9 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import List from "@editorjs/list";
-import Quote from "@editorjs/quote";
-import Table from "@editorjs/table";
 import {
   Container,
   Box,
@@ -26,45 +24,44 @@ import {
 import { Edit, Delete } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
 import TopMenu from "@/components/topmenu";
-import { getUserInfoAction, logoutAction } from "@/store/slices/authSlice";
-import RawTool from "@editorjs/raw";
-import SimpleImage from "@editorjs/simple-image";
-import Checklist from "@editorjs/checklist";
-import Embed from "@editorjs/embed";
-import "../style/base.css"
+import { logoutAction } from "@/store/slices/authSlice";
+import { useRouter } from "next/navigation";
+import "../style/base.css";
+
 export default function LessonsPage() {
   const dispatch = useDispatch();
-  const token = localStorage.getItem("token");
-  // const userInfo = useSelector((state) => state.auth.currentUser);
-  
-
+  const router = useRouter();
+  const [token, setToken] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [courses, setCourses] = useState([]);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState(null);
   const [courseId, setCourseId] = useState("");
   const [editingLesson, setEditingLesson] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
   const editorInstance = useRef(null);
-const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
-  if (!token) {
-    console.error("Token not available");
-    return <Typography>Токен отсутствует. Пожалуйста, войдите в систему.</Typography>;
-  }
 
+  // Получение токена на стороне клиента
   useEffect(() => {
-    fetchLessons();
-    fetchCourses();
- 
-    fetchUserInfo()
-
-    if (editorInstance.current) {
-      try {
-        editorInstance.current.destroy();
-      } catch (error) {
-        console.warn("Ошибка при уничтожении предыдущего экземпляра Editor.js:", error);
-      }
-      editorInstance.current = null;
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setToken(storedToken);
+    if (!storedToken) {
+      router.push("/login");
     }
+  }, [router]);
+
+  // Инициализация данных
+  useEffect(() => {
+    if (token) {
+      fetchLessons();
+      fetchCourses();
+      fetchUserInfo();
+    }
+  }, [token]);
+
+  // Инициализация EditorJS
+  useEffect(() => {
+    if (!token) return;
 
     if (!editorInstance.current) {
       const editor = new EditorJS({
@@ -84,74 +81,39 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
               defaultLevel: 1,
             },
           },
-          raw: RawTool,
-          image: SimpleImage,
-          checklist: {
-            class: Checklist,
-            inlineToolbar: true,
-          },
           list: {
             class: List,
             inlineToolbar: true,
-            config: {
-              defaultStyle: "unordered",
-            },
-          },
-          embed: {
-            class: Embed,
-            config: {
-              services: {
-                youtube: true,
-                coub: true,
-              },
-            },
-          },
-          quote: Quote,
-          table: {
-            class: Table,
-            inlineToolbar: true,
-            config: {
-              rows: 2,
-              cols: 3,
-            },
+            config: { defaultStyle: "unordered" },
           },
         },
-      
       });
       editorInstance.current = editor;
     }
 
     return () => {
-     if (editorInstance.current) {
+      if (editorInstance.current) {
         try {
           editorInstance.current.destroy();
+          editorInstance.current = null;
         } catch (error) {
-          console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
+          console.warn("Ошибка при уничтожении Editor.js:", error);
         }
-        editorInstance.current = null;
       }
     };
-  }, []);
+  }, [token]);
 
-  const fetchUserInfo = async () => {
-    try {
-      const response = await axios.get('http://localhost:4000/api/auth/getAuthentificatedUserInfo', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUserInfo(response.data);
-    } catch (err) {
-      console.error('Ошибка при загрузке информации о пользователе:', err);
-      if (err.response && err.response.status === 401) {
-        // Перенаправляем на страницу логина при 401
-        router.push('/login');
-      }
-    }
-  };
+  // Обновление содержимого при редактировании урока
   useEffect(() => {
     if (editingLesson && editorInstance.current) {
       const lesson = lessons.find((l) => l.id === editingLesson);
       if (lesson && lesson.content) {
-        editorInstance.current.render(JSON.parse(lesson.content));
+        try {
+          const parsedContent = JSON.parse(lesson.content);
+          editorInstance.current.render(parsedContent);
+        } catch (error) {
+          console.error("Ошибка при парсинге содержимого урока:", error);
+        }
       }
     }
   }, [editingLesson, lessons]);
@@ -180,6 +142,20 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
     }
   };
 
+  const fetchUserInfo = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/api/auth/getAuthentificatedUserInfo", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserInfo(response.data);
+    } catch (err) {
+      console.error("Ошибка при загрузке информации о пользователе:", err);
+      if (err.response && err.response.status === 401) {
+        router.push("/login");
+      }
+    }
+  };
+
   const createLesson = async () => {
     if (!courseId) {
       alert("Выберите курс!");
@@ -201,10 +177,7 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
         }
       );
       setLessons([...lessons, response.data]);
-      setTitle("");
-      setContent(null);
-      setCourseId("");
-      if (editorInstance.current) editorInstance.current.clear();
+      resetForm();
     } catch (error) {
       console.error("Ошибка при создании урока:", error);
       alert("Ошибка при создании урока: " + error.message);
@@ -218,7 +191,7 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
         {
           title,
           content: JSON.stringify(content),
-          courseId: Number(courseId),
+          course_id: Number(courseId), // Исправлено: course_id вместо courseId
         },
         {
           headers: {
@@ -228,11 +201,7 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
         }
       );
       setLessons(lessons.map((lesson) => (lesson.id === id ? response.data : lesson)));
-      setEditingLesson(null);
-      setTitle("");
-      setContent(null);
-      setCourseId("");
-      if (editorInstance.current) editorInstance.current.clear();
+      resetForm();
     } catch (error) {
       console.error("Ошибка при обновлении урока:", error);
       alert("Ошибка при обновлении урока: " + error.message);
@@ -240,35 +209,48 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
   };
 
   const deleteLesson = async (id) => {
-    console.log('delete id= ', id);
     try {
       const response = await axios.delete(`http://localhost:4000/api/lessons/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.status === 204) {
         setLessons(lessons.filter((lesson) => lesson.id !== id));
-        console.log('Lesson deleted successfully, id:', id);
       }
     } catch (error) {
-      console.error("Ошибка при удалении урока:", error.response ? error.response.data : error.message);
+      console.error("Ошибка при удалении урока:", error);
       alert("Ошибка при удалении урока: " + (error.response?.data?.error || error.message));
     }
   };
 
-  const handleLogout = () => {
-    console.log('HandleLogout called');
-    dispatch(logoutAction());
-    localStorage.removeItem('token');
-    window.location.href = '/login';
+  const resetForm = () => {
+    setEditingLesson(null);
+    setTitle("");
+    setContent(null);
+    setCourseId("");
+    if (editorInstance.current) {
+      editorInstance.current.clear();
+    }
   };
+
+  const handleLogout = () => {
+    dispatch(logoutAction());
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
+  if (!token) {
+    return (
+      <Typography sx={{ textAlign: "center", mt: 4 }}>
+        Токен отсутствует. Пожалуйста, войдите в систему.
+      </Typography>
+    );
+  }
 
   return (
     <>
       <TopMenu handleLogout={handleLogout} userInfo={userInfo} />
-      <Container maxWidth="md">
-        <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Typography variant="h4" sx={{ mb: 2, textAlign: "center" }}>
           Управление уроками
         </Typography>
         <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
@@ -282,7 +264,7 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
             onChange={(e) => setTitle(e.target.value)}
             sx={{ mt: 2 }}
           />
-          <Box id="editorjs" sx={{ mt: 2, border: "1px solid #ccc", minHeight: "10px" }} />
+          <Box id="editorjs" sx={{ mt: 2, border: "1px solid #ccc", minHeight: "200px" }} />
           <FormControl fullWidth sx={{ mt: 2 }}>
             <InputLabel>Выберите курс</InputLabel>
             <Select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
@@ -320,7 +302,7 @@ const [userInfo, setUserInfo] = useState(null); // Инициализируем 
                     onClick={() => {
                       setEditingLesson(lesson.id);
                       setTitle(lesson.title);
-                      setContent(JSON.parse(lesson.content));
+                      setContent(lesson.content ? JSON.parse(lesson.content) : null);
                       setCourseId(lesson.course_id);
                     }}
                   >

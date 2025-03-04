@@ -35,7 +35,7 @@ const VideoPlayer = ({ material }) => {
       <Typography variant="h6" sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}>
         {material.title}
       </Typography>
-      <video controls style={{ width: "100%", maxHeight: "300px" }}>
+      <video controls style={{ width: "50%", maxHeight: "335px" }}>
         <source src={material.file_path} type="video/mp4" />
         Ваш браузер не поддерживает воспроизведение видео.
       </video>

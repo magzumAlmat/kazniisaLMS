@@ -81,9 +81,12 @@ ul li a{
     background-color: yellow;
 }
 
+
+
 .editorjs-container .codex__editor {
     max-width: 100% !important; /* Убираем ограничение max-width */
     width: 100%; /* Растягиваем на всю ширину контейнера */
+
   }
   
   .editorjs-container .ce-block__content {
@@ -99,7 +102,13 @@ ul li a{
   .ce-block__content{
     /* background-color: yellow!important; */
     max-width: none!important;
+
   }
+
+.codex-editor__redactor{
+    padding-bottom: 0px!important;
+}
+
 
 
   .ce-toolbar__actions{
