@@ -27,7 +27,7 @@ const TopMenu = ({ userInfo, handleLogout }) => {
         { text: "Главная", href: "/layout" },
         { text: "Добавить роль", href: "/addrole" },
         { text: "Профиль", href: "/profile" },
-        { text: "Админ-панель", href: "/dashboard" },
+        // { text: "Админ-панель", href: "/dashboard" },
         { text: "Выйти", onClick: handleLogout },
       ],
       2: [
@@ -49,8 +49,8 @@ const TopMenu = ({ userInfo, handleLogout }) => {
     };
 
     return menuItems[userInfo.roleId] || [
-      { text: "Главная", href: "/layout" },
-      { text: "Войти", href: "/login" },
+      { text: "Главная", href: "/notauth" },
+      { text: "Выйти", onClick: handleLogout },
     ];
   };
 

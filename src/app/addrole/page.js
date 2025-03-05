@@ -32,12 +32,12 @@ export default function UpdateUserRolePage() {
   const token = localStorage.getItem("token");
   const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
   // Загрузка пользователей при монтировании компонента
-  
+  const host=process.env.NEXT_PUBLIC_HOST
   const dispatch=useDispatch()
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get('${host}/api/getallusers', {
+        const response = await axios.get(`${host}/api/getallusers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         // Проверяем, что данные пришли в ожидаемом формате
@@ -63,7 +63,7 @@ export default function UpdateUserRolePage() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get('${host}/api/auth/getAuthentificatedUserInfo', {
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);

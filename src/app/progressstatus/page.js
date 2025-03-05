@@ -19,6 +19,7 @@ import {
 import { useRouter } from "next/navigation";
 import TopMenu from "@/components/topmenu";
 import { logoutAction, getAllCoursesAction } from "@/store/slices/authSlice";
+import Link from "next/link";
 
 export default function UserProgressPage() {
   const dispatch = useDispatch();
@@ -42,7 +43,6 @@ export default function UserProgressPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(usersResponse.data.users);
-        // Фильтруем пользователей с roleId !== 1 и roleId !== 2
         const initialFilteredUsers = usersResponse.data.users.filter(
           (user) => user.roleId !== 1 && user.roleId !== 2
         );
@@ -115,7 +115,7 @@ export default function UserProgressPage() {
       });
       setUserInfo(response.data);
     } catch (error) {
-      console.error("Ошибка при загрузке уроков:", error);
+      console.error("Ошибка при загрузке данных пользователя:", error);
       if (error.response && error.response.status === 401) {
         router.push("/login");
       }
@@ -128,7 +128,7 @@ export default function UserProgressPage() {
     setSearchQuery(query);
 
     const filtered = users
-      .filter((user) => user.roleId !== 1 && user.roleId !== 2) // Исключаем roleId 1 и 2
+      .filter((user) => user.roleId !== 1 && user.roleId !== 2)
       .filter((user) => {
         const name = (user.name ?? "").toLowerCase();
         const lastname = (user.lastname ?? "").toLowerCase();
@@ -188,35 +188,53 @@ export default function UserProgressPage() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: "bold" }}>Пользователь</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", bgcolor: "#f5f5f5" }}>Пользователь</TableCell>
                   {courses.map((course) => (
-                    <TableCell key={course.id} sx={{ fontWeight: "bold" }}>
+                    <TableCell key={course.id} sx={{ fontWeight: "bold", bgcolor: "#f5f5f5" }}>
                       {course.title}
                     </TableCell>
                   ))}
+                  <TableCell sx={{ fontWeight: "bold", bgcolor: "#f5f5f5" }}>Действия</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
+                  <TableRow key={user.id} sx={{ "&:hover": { bgcolor: "#f9f9f9" } }}>
                     <TableCell>
-                      {user.name ?? ""} {user.lastname ?? ""} ({user.email})
+                      <Typography variant="body2">
+                        {user.name ?? ""} {user.lastname ?? ""} <br />
+                        <Typography component="span" color="textSecondary">
+                          ({user.email})
+                        </Typography>
+                        <br />
+                        <Typography component="span" color="textSecondary">
+                          {user.areasofactivity || "Не указано"}
+                        </Typography>
+                      </Typography>
                     </TableCell>
                     {courses.map((course) => (
                       <TableCell key={course.id}>
                         {progressData[user.id]?.[course.id] ?? 0}%
                       </TableCell>
                     ))}
+                    <TableCell>
+                      <Button
+                        component={Link}
+                        href={`/progressstatus/${user.id}`}
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        sx={{ textTransform: "none" }}
+                      >
+                        Детально
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
         </Paper>
-
-        <Button variant="outlined" color="primary" onClick={() => router.push("/courses")} sx={{ mt: 4 }}>
-          Назад к курсам
-        </Button>
       </Box>
     </>
   );
