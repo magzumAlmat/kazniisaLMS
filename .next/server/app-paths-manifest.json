@@ -1,7 +1,1 @@
-{
-  "/layout/page": "app/layout/page.js",
-  "/courses/[id]/page": "app/courses/[id]/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/progressstatus/page": "app/progressstatus/page.js",
-  "/progressstatus/[id]/page": "app/progressstatus/[id]/page.js"
-}
+{}
