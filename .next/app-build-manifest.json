@@ -6,21 +6,20 @@
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/courses/page": [
+    "/login/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/courses/page.js"
+      "static/chunks/app/login/page.js"
     ],
-    "/addmaterial/page": [
+    "/layout/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/addmaterial/page.js"
+      "static/chunks/app/layout/page.js"
     ],
-    "/addlessons/page": [
+    "/addrole/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/addlessons/page.css",
-      "static/chunks/app/addlessons/page.js"
+      "static/chunks/app/addrole/page.js"
     ],
     "/addcourse/page": [
       "static/chunks/webpack.js",
@@ -32,56 +31,41 @@
       "static/chunks/main-app.js",
       "static/chunks/app/addstreams/page.js"
     ],
-    "/courses/[id]/page": [
+    "/addlessons/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/courses/[id]/page.js"
+      "static/css/app/addlessons/page.css",
+      "static/chunks/app/addlessons/page.js"
     ],
-    "/profile/page": [
+    "/addmaterial/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/profile/page.js"
+      "static/chunks/app/addmaterial/page.js"
     ],
     "/progressstatus/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/progressstatus/page.js"
     ],
-    "/layout/page": [
+    "/courses/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/layout/page.js"
+      "static/chunks/app/courses/page.js"
     ],
-    "/login/page": [
+    "/profile/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
+      "static/chunks/app/profile/page.js"
     ],
-    "/register/page": [
+    "/courses/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/register/page.js"
-    ],
-    "/addrole/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/addrole/page.js"
-    ],
-    "/notauth/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/notauth/page.js"
+      "static/chunks/app/courses/[id]/page.js"
     ],
     "/progressstatus/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/progressstatus/[id]/page.js"
-    ],
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/css/app/page.css",
-      "static/chunks/app/page.js"
     ]
   }
 }

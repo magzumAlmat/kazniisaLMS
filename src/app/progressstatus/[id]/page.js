@@ -11,6 +11,7 @@ import {
   CircularProgress,
   Checkbox,
   FormControlLabel,
+  Button,
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllCoursesAction, logoutAction } from "@/store/slices/authSlice";
@@ -49,7 +50,6 @@ export default function ProgressDetail() {
         }
         setUser(foundUser);
 
-        // Выполняем действие без .unwrap()
         await dispatch(getAllCoursesAction());
       } catch (err) {
         console.error("Ошибка при загрузке данных:", err);
@@ -148,6 +148,11 @@ export default function ProgressDetail() {
     router.push("/login");
   };
 
+  // Проверка, есть ли прогресс >= 1% по любому курсу
+  const isProgressSufficient = () => {
+    return Object.values(progressData).some((progress) => progress >= 0.1);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
@@ -196,14 +201,19 @@ export default function ProgressDetail() {
               checked={isTestPassed}
               onChange={handleCheckboxChange}
               color="primary"
+              disabled={!isProgressSufficient()} // Блокируем чекбокс, если прогресс < 1%
             />
           }
           label="Пройден ли тест на сайте Building Smart?"
         />
-<br />
-        <button>
-          сформировать отчет
-        </button>
+        <br />
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ mt: 2 }}
+        >
+          Сформировать отчет
+        </Button>
       </Box>
     </>
   );
