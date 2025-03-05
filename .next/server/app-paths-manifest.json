@@ -1,8 +1,9 @@
 {
   "/layout/page": "app/layout/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/courses/page": "app/courses/page.js",
+  "/progressstatus/page": "app/progressstatus/page.js",
   "/courses/[id]/page": "app/courses/[id]/page.js",
-  "/login/page": "app/login/page.js",
-  "/register/page": "app/register/page.js"
+  "/addstreams/page": "app/addstreams/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/addcourse/page": "app/addcourse/page.js",
+  "/addlessons/page": "app/addlessons/page.js"
 }

@@ -209,6 +209,7 @@ export default function CourseDetail() {
       setProgresses(updatedProgresses);
       alert("Урок завершен");
       router.push(`/courses/${id}`);
+      window.location.reload();
     } catch (error) {
       console.error("Ошибка при завершении урока:", error);
     }

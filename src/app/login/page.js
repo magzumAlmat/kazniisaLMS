@@ -17,10 +17,9 @@ const LoginPage = () => {
   const isAuth = useSelector((state) => state.auth.isAuth); // Получаем состояние авторизации
   const dispatch = useDispatch();
   const router = useRouter();
-
+  const host=process.env.NEXT_PUBLIC_HOST
   // Эффект для отслеживания изменения isAuth
-  
-  
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -65,7 +64,8 @@ const LoginPage = () => {
        
     //   });
     e.preventDefault();
-  dispatch(loginAction({ email, password }))
+    
+    dispatch(loginAction({ email, password }))
     .then(() => {
       dispatch(authorize(true));
     })
@@ -131,9 +131,9 @@ const LoginPage = () => {
               onClick={() => { redirect('${host}/api/auth/google') }}
              type="light"
             /> */}
-<br />
-<Stack direction="row" spacing={2}>
-<Button
+        <br />
+        <Stack direction="row" spacing={2}>
+        <Button
             type="submit"
             fullWidth
             variant="contained"
@@ -141,7 +141,7 @@ const LoginPage = () => {
           >
             Войти
           </Button>
-      <Button variant="contained"   onClick={() => { redirect('${host}/api/auth/google') }}>
+      <Button variant="contained"   onClick={() => { redirect(`${host}/api/auth/google`) }}>
       <GoogleIcon mr={ 2 }/>
       </Button>
     </Stack>

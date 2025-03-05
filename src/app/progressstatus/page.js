@@ -1,7 +1,7 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import axios from 'axios';
+"use client";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -15,24 +15,25 @@ import {
   CircularProgress,
   Button,
   TextField,
-} from '@mui/material';
-import { useRouter } from 'next/navigation';
-import TopMenu from '@/components/topmenu';
-import { logoutAction, getAllCoursesAction } from '@/store/slices/authSlice';
+} from "@mui/material";
+import { useRouter } from "next/navigation";
+import TopMenu from "@/components/topmenu";
+import { logoutAction, getAllCoursesAction } from "@/store/slices/authSlice";
 
 export default function UserProgressPage() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   const [userInfo, setUserInfo] = useState(null);
   const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]); // Отфильтрованный список пользователей
-  const [searchQuery, setSearchQuery] = useState(''); // Значение поискового поля
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [progressData, setProgressData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const { courses } = useSelector((state) => state.auth);
   const host = process.env.NEXT_PUBLIC_HOST;
+
   // Загрузка пользователей и курсов
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -41,12 +42,16 @@ export default function UserProgressPage() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(usersResponse.data.users);
-        setFilteredUsers(usersResponse.data.users); // Изначально показываем всех пользователей
+        // Фильтруем пользователей с roleId !== 1 и roleId !== 2
+        const initialFilteredUsers = usersResponse.data.users.filter(
+          (user) => user.roleId !== 1 && user.roleId !== 2
+        );
+        setFilteredUsers(initialFilteredUsers);
 
         dispatch(getAllCoursesAction());
       } catch (err) {
-        console.error('Ошибка при загрузке данных:', err);
-        setError('Не удалось загрузить пользователей или курсы');
+        console.error("Ошибка при загрузке данных:", err);
+        setError("Не удалось загрузить пользователей или курсы");
       }
     };
 
@@ -91,8 +96,8 @@ export default function UserProgressPage() {
 
           setProgressData(progressMap);
         } catch (err) {
-          console.error('Ошибка при загрузке прогресса:', err);
-          setError('Ошибка при загрузке данных прогресса');
+          console.error("Ошибка при загрузке прогресса:", err);
+          setError("Ошибка при загрузке данных прогресса");
         } finally {
           setLoading(false);
         }
@@ -112,7 +117,7 @@ export default function UserProgressPage() {
     } catch (error) {
       console.error("Ошибка при загрузке уроков:", error);
       if (error.response && error.response.status === 401) {
-        router.push('/login');
+        router.push("/login");
       }
     }
   };
@@ -122,25 +127,27 @@ export default function UserProgressPage() {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
 
-    const filtered = users.filter((user) => {
-      const name = (user.name ?? '').toLowerCase();
-      const lastname = (user.lastname ?? '').toLowerCase();
-      const email = (user.email ?? '').toLowerCase();
-      return name.includes(query) || lastname.includes(query) || email.includes(query);
-    });
+    const filtered = users
+      .filter((user) => user.roleId !== 1 && user.roleId !== 2) // Исключаем roleId 1 и 2
+      .filter((user) => {
+        const name = (user.name ?? "").toLowerCase();
+        const lastname = (user.lastname ?? "").toLowerCase();
+        const email = (user.email ?? "").toLowerCase();
+        return name.includes(query) || lastname.includes(query) || email.includes(query);
+      });
 
     setFilteredUsers(filtered);
   };
 
   const handleLogout = () => {
     dispatch(logoutAction());
-    localStorage.removeItem('token');
-    router.push('/login');
+    localStorage.removeItem("token");
+    router.push("/login");
   };
 
   if (!users.length || !courses.length || loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
         <CircularProgress />
         <Typography>Loading data...</Typography>
       </Box>
@@ -149,7 +156,7 @@ export default function UserProgressPage() {
 
   if (error) {
     return (
-      <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
+      <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
         <Typography color="error">{error}</Typography>
       </Box>
     );
@@ -158,8 +165,8 @@ export default function UserProgressPage() {
   return (
     <>
       <TopMenu handleLogout={handleLogout} userInfo={userInfo} />
-      <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
+      <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold", mb: 4 }}>
           Анализ прогресса пользователей
         </Typography>
 
@@ -181,9 +188,9 @@ export default function UserProgressPage() {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Пользователь</TableCell>
+                  <TableCell sx={{ fontWeight: "bold" }}>Пользователь</TableCell>
                   {courses.map((course) => (
-                    <TableCell key={course.id} sx={{ fontWeight: 'bold' }}>
+                    <TableCell key={course.id} sx={{ fontWeight: "bold" }}>
                       {course.title}
                     </TableCell>
                   ))}
@@ -193,7 +200,7 @@ export default function UserProgressPage() {
                 {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      {user.name ?? ''} {user.lastname ?? ''} ({user.email})
+                      {user.name ?? ""} {user.lastname ?? ""} ({user.email})
                     </TableCell>
                     {courses.map((course) => (
                       <TableCell key={course.id}>
@@ -207,12 +214,7 @@ export default function UserProgressPage() {
           </TableContainer>
         </Paper>
 
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => router.push('/courses')}
-          sx={{ mt: 4 }}
-        >
+        <Button variant="outlined" color="primary" onClick={() => router.push("/courses")} sx={{ mt: 4 }}>
           Назад к курсам
         </Button>
       </Box>
