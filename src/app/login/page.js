@@ -1,24 +1,22 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { redirect, useRouter } from 'next/navigation'; // Используем next/navigation вместо next/router
-import { Container, Typography, TextField, Button, Box, Link, Grid,Stack } from '@mui/material';
-import { LockOutlined } from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
-import { authorize, loginAction } from '@/store/slices/authSlice';
-import GoogleIcon from '@mui/icons-material/Google';
-import GoogleButton from 'react-google-button'
-import ButtonGroup from '@mui/material/ButtonGroup';
-import axios from 'axios';
-import SaveIcon from '@mui/icons-material/Save';
+"use client";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Container, Typography, TextField, Button, Box, Link, Grid, Stack, Alert } from "@mui/material";
+import { LockOutlined, Google as GoogleIcon } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import { authorize, setError } from "@/store/slices/authSlice";
+import jwtDecode from "jwt-decode";
+import axios from "axios";
+
 const LoginPage = () => {
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const isAuth = useSelector((state) => state.auth.isAuth); // Получаем состояние авторизации
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [localError, setLocalError] = useState(""); // Локальное состояние для ошибки
+  const isAuth = useSelector((state) => state.auth.isAuth);
+  const reduxError = useSelector((state) => state.auth.error); // Ошибка из Redux
   const dispatch = useDispatch();
   const router = useRouter();
-  const host=process.env.NEXT_PUBLIC_HOST
-  // Эффект для отслеживания изменения isAuth
+  const host = process.env.NEXT_PUBLIC_HOST;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -32,8 +30,8 @@ const LoginPage = () => {
           localStorage.removeItem("token");
           window.location.href = "/login";
         } else {
-          dispatch(authorize(true));
-          router.push('/layout');
+          dispatch(authorize({ isAuth: true, token }));
+          router.push("/layout");
         }
       } catch (error) {
         console.error("Invalid token:", error);
@@ -42,37 +40,34 @@ const LoginPage = () => {
       }
     }
   }, [dispatch, router]);
-  
-  
+
   useEffect(() => {
     if (isAuth) {
-      router.push('/layout'); // Перенаправляем на /layout, если isAuth === true
+      router.push("/layout");
     }
   }, [isAuth, router]);
 
-
-
-
-  const handleSubmit = (e) => {
-    // e.preventDefault();
-    // dispatch(loginAction({ email, password }))
-    //   .then(() => {
-    //     dispatch(authorize(true)); 
-    //   })
-    //   .catch((error) => {
-    //     console.error('Ошибка при входе:', error);
-       
-    //   });
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    dispatch(loginAction({ email, password }))
-    .then(() => {
-      dispatch(authorize(true));
-    })
-    .catch((error) => {
-      // console.error("Ошибка при входе:", error);
-      // alert("Неверный email или пароль"); // Show error message
-    });
+    setLocalError(""); // Сбрасываем локальную ошибку
+    dispatch(setError(null)); // Сбрасываем ошибку в Redux
+
+    try {
+      // Выполняем запрос на сервер напрямую
+      const response = await axios.post(`${host}/api/auth/login`, { email, password });
+      const { token } = response.data;
+
+      // Сохраняем токен в localStorage
+      localStorage.setItem("token", token);
+
+      // Устанавливаем авторизацию в Redux
+      dispatch(authorize({ isAuth: true, token }));
+    } catch (error) {
+      console.error("Ошибка при входе:", error);
+      const errorMessage = error.response?.data?.message || "Неверный email или пароль";
+      setLocalError(errorMessage); // Устанавливаем локальную ошибку
+      dispatch(setError(errorMessage)); // Устанавливаем ошибку в Redux
+    }
   };
 
   return (
@@ -80,15 +75,20 @@ const LoginPage = () => {
       <Box
         sx={{
           marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         }}
       >
-        <LockOutlined sx={{ fontSize: 40, color: 'primary.main' }} />
+        <LockOutlined sx={{ fontSize: 40, color: "primary.main" }} />
         <Typography component="h1" variant="h5">
           Вход
         </Typography>
+        {(localError || reduxError) && (
+          <Alert severity="error" sx={{ mt: 2, width: "100%" }}>
+            {localError || reduxError}
+          </Alert>
+        )}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -117,84 +117,28 @@ const LoginPage = () => {
               />
             </Grid>
           </Grid>
-          {/* <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Войти
-          </Button>
-
-
-          <GoogleButton
-              onClick={() => { redirect('${host}/api/auth/google') }}
-             type="light"
-            /> */}
-        <br />
-        <Stack direction="row" spacing={2}>
-        <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{ mt: 3, mb: 2 }}
-          >
-            Войти
-          </Button>
-      <Button variant="contained"   onClick={() => { redirect(`${host}/api/auth/google`) }}>
-      <GoogleIcon mr={ 2 }/>
-      </Button>
-    </Stack>
-
-
-<br />
-
-{/* <ButtonGroup variant="outlined" aria-label="Loading button group" spacing={2}>
-      <Button size="large">   Войти   </Button>
-      <divider/>
-    
-    
-    
-      <GoogleButton
-              onClick={() => { redirect('${host}/api/auth/google') }}
-             type="light"
-            />
-     
-    </ButtonGroup> */}
-
-          <Grid container justifyContent="flex-end">
+          <br />
+          <Stack direction="row" spacing={2}>
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+              Войти
+            </Button>
+            <Button variant="contained" onClick={() => (window.location.href = `${host}/api/auth/google`)}>
+              <GoogleIcon sx={{ mr: 1 }} />
+            </Button>
+          </Stack>
+          <br />
+          <Grid container justifyContent="space-between">
+            <Grid item>
+              <Link href="/forgotpassword" variant="body2">
+                Забыл пароль
+              </Link>
+            </Grid>
             <Grid item>
               <Link href="/register" variant="body2">
                 Нет аккаунта? Зарегистрируйтесь
               </Link>
             </Grid>
           </Grid>
-
-          {/* Кнопка входа через Google */}
-          <Box sx={{ mt: 2, width: '100%' }}>
-       
-{/* 
-          <GoogleButton
-              onClick={() => { redirect('${host}/api/auth/google') }}
-             type="light"
-            /> */}
-            {/* <Button
-              variant="outlined"
-              fullWidth
-             
-              href=`${host}/api/auth/google" // URL для Google OAuth
-              sx={{
-                textTransform: 'none',
-                color: '#000',
-                borderColor: '#ccc',
-                '&:hover': {
-                  borderColor: '#aaa',
-                },
-              }}
-            >
-              <GoogleIcon mr={ 2 }/>  Войти через Google
-            </Button> */}
-          </Box>
         </Box>
       </Box>
     </Container>

@@ -384,6 +384,7 @@ export default function Layout({ children }) {
     window.location.href = "/login"; // Перенаправляем на страницу входа
     return null;
   }
+
   console.log("1. URL search params:", window.location.search);
   console.log("2. Token from URL:", token);
 
@@ -560,7 +561,7 @@ export default function Layout({ children }) {
       // Роль не определена
       return (
         <>
-          <Link href="/">Главная</Link>
+          <Link href="/noauth">Главная</Link>
           <Button color="inherit" onClick={handleLogout}>
             Выйти
           </Button>

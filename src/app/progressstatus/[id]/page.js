@@ -31,8 +31,8 @@ export default function ProgressDetail() {
   const [error, setError] = useState(null);
   const [isTestPassed, setIsTestPassed] = useState(false);
   const [streams, setStreams] = useState([]);
-  const [allCourses, setAllCourses] = useState([]); // Для хранения всех курсов
-  const [allTeachers, setAllTeachers] = useState([]); // Для хранения всех учителей
+  const [allCourses, setAllCourses] = useState([]);
+  const [allTeachers, setAllTeachers] = useState([]);
   const { courses } = useSelector((state) => state.auth);
   const host = process.env.NEXT_PUBLIC_HOST;
 
@@ -59,13 +59,11 @@ export default function ProgressDetail() {
         });
         setStreams(streamsResponse.data.streams || []);
 
-        // Загружаем все курсы
         const coursesResponse = await axios.get(`${host}/api/courses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setAllCourses(coursesResponse.data.courses || []);
 
-        // Загружаем всех учителей (roleId === 2 для учителей)
         const teachersResponse = await axios.get(`${host}/api/getallusers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -131,7 +129,6 @@ export default function ProgressDetail() {
   }, [user, courses, token]);
 
   const fetchUserInfo = async () => {
-     // Логируем курсы для проверки
     try {
       const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -170,21 +167,22 @@ export default function ProgressDetail() {
   };
 
   const isProgressSufficient = () => {
-    return Object.values(progressData).some((progress) => progress >= 0.1);
+    // Вычисляем средний прогресс по всем курсам
+    const totalProgress = Object.values(progressData).reduce((acc, progress) => acc + progress, 0);
+    const averageProgress = courses.length > 0 ? totalProgress / courses.length : 0;
+    return averageProgress === 100; // Чекбокс активен только при 100% прогрессе
   };
 
   const handleGenerateReport = async () => {
-    console.log("All Courses:", allCourses,'courses- ',courses);
+    console.log("All Courses:", allCourses, "courses-", courses);
     try {
       setLoading(true);
 
-      // Получаем всех пользователей и фильтруем только студентов (roleId === 3)
       const allUsersResponse = await axios.get(`${host}/api/getallusers`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const allUsers = allUsersResponse.data.users.filter((u) => u.roleId === 3);
 
-      // Формируем данные для отчета
       const reportData = await Promise.all(
         allUsers.map(async (u) => {
           const progressPromises = courses.map((course) =>
@@ -208,7 +206,6 @@ export default function ProgressDetail() {
             data.lessons.some((lesson) => lesson.isfinished === "yes")
           );
 
-          // Находим поток, в котором состоит студент
           let userStreamInfo = "Не состоит в потоке";
           for (const stream of streams) {
             try {
@@ -236,12 +233,10 @@ export default function ProgressDetail() {
         })
       );
 
-      // Подсчитываем процент студентов с isfinished == "yes"
       const totalUsers = reportData.length;
       const finishedUsers = reportData.filter((data) => data["Progress isfinished"] === "yes").length;
       const finishedPercentage = totalUsers > 0 ? (finishedUsers / totalUsers * 100).toFixed(2) : 0;
 
-      // Добавляем строку с процентом в конец отчета
       reportData.push({
         "User": "Итого",
         "Progress": "",
@@ -250,19 +245,17 @@ export default function ProgressDetail() {
         "Поток в котором он состоит": "",
       });
 
-      // Создаем рабочий лист и книгу Excel
       const worksheet = XLSX.utils.json_to_sheet(reportData);
       worksheet["!cols"] = [
-        { wch: 30 }, // User
-        { wch: 10 }, // Progress
-        { wch: 20 }, // Progress isfinished
-        { wch: 20 }, // areasofactivity
-        { wch: 80 }, // Поток в котором он состоит
+        { wch: 30 },
+        { wch: 10 },
+        { wch: 20 },
+        { wch: 20 },
+        { wch: 80 },
       ];
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
 
-      // Генерируем файл и скачиваем его
       const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
       const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
       saveAs(blob, `Student_Progress_Report_${new Date().toISOString().split("T")[0]}.xlsx`);

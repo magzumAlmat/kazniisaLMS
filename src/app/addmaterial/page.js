@@ -216,6 +216,7 @@ export default function MaterialsPage() {
       setDocumentFiles([]);
       setPresentationFiles([]);
       setTestFilePath("");
+      window.location.reload()
     } catch (error) {
       console.error("Ошибка при создании материала:", error);
     }

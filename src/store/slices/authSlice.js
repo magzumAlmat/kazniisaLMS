@@ -18,7 +18,7 @@ const initialState = {
   allBanners:'',
   allCompanies:[],
   allRevises:'',
-  error:'',
+  error: null,
   uploadProgress: 0,
   courses:[],
   currentCourse:[],
@@ -27,7 +27,8 @@ const initialState = {
   loading: true,
   loadingCourses:true,
   completedLessons:[],
-  progress:[]
+  progress:[],
+  
 };
 
 // let token;
@@ -107,6 +108,15 @@ export const authSlice = createSlice({
   
     getAllCoursesAction: (state, action) => {
       state.courses = action.payload;
+    },
+    // authorize: (state, action) => {
+    //   state.isAuth = action.payload.isAuth;
+    //   state.token = action.payload.token || null;
+    //   state.error = null;
+    // },
+    setError: (state, action) => {
+      state.error = action.payload;
+      state.isAuth = false;
     },
 
     setError: (state, action) => {
@@ -252,10 +262,12 @@ export const authSlice = createSlice({
     authorize: (state, action) => {
 
       console.log('Auth slice im in authorize')
-      state.someVar=action.payload
-      state.authToken=null
-      state.authToken=action.payload
-      
+      // state.someVar=action.payload
+      // state.authToken=null
+      // state.authToken=action.payload
+      state.isAuth = action.payload.isAuth;
+      state.token = action.payload.token || null;
+      state.error = null;
       console.log('PAYLOAD=',action.payload.token,'codeFromServer=',state.currentUser)
 
       const decoded = jwt_decode(action.payload.token);
