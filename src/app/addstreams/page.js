@@ -1,7 +1,7 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import axios from 'axios';
+"use client";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import axios from "axios";
 import {
   Box,
   Typography,
@@ -24,15 +24,15 @@ import {
   InputLabel,
   Chip,
   CircularProgress,
-} from '@mui/material';
-import { useRouter } from 'next/navigation';
-import TopMenu from '@/components/topmenu';
-import { logoutAction, getAllCoursesAction } from '@/store/slices/authSlice';
+} from "@mui/material";
+import { useRouter } from "next/navigation";
+import TopMenu from "@/components/topmenu";
+import { logoutAction, getAllCoursesAction } from "@/store/slices/authSlice";
 
 export default function StreamsPage() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   const [streams, setStreams] = useState([]);
   const [users, setUsers] = useState([]);
@@ -40,85 +40,97 @@ export default function StreamsPage() {
   const [openEdit, setOpenEdit] = useState(false);
   const [openStudents, setOpenStudents] = useState(false);
   const [openViewStudents, setOpenViewStudents] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [newStream, setNewStream] = useState({
-    name: '',
-    startDate: '',
-    endDate: '',
-    cost: '',
-    maxStudents: '',
-    courseId: '',
-    teacherId: '',
+    name: "",
+    startDate: "",
+    endDate: "",
+    cost: "",
+    maxStudents: "",
+    courseId: "",
+    teacherId: "",
   });
   const [editStream, setEditStream] = useState(null);
   const [selectedStream, setSelectedStream] = useState(null);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const { courses } = useSelector((state) => state.auth);
   const [userInfo, setUserInfo] = useState(null);
-  const host=process.env.NEXT_PUBLIC_HOST
+  const host = process.env.NEXT_PUBLIC_HOST;
+
   useEffect(() => {
     const fetchData = async () => {
       if (!token) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
       setLoading(true);
       try {
-        const streamsResponse = await axios.get(`${host}/api/streams`, {
+        // Загружаем информацию о пользователе
+        const userInfoResponse = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Streams Response:', streamsResponse.data);
+        setUserInfo(userInfoResponse.data);
 
-        const streamsWithStudents = await Promise.all(
-          streamsResponse.data.streams.map(async (stream) => {
-            const studentsResponse = await axios.get(
-              `${host}/api/streams/getstudentsbystreamid/${stream.id}`,
-              // Исправлен путь
-              { headers: { Authorization: `Bearer ${token}` } }
+        // Загружаем потоки с обработкой пустого ответа
+        let streamsWithStudents = [];
+        try {
+          const streamsResponse = await axios.get(`${host}/api/streams`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          console.log("Streams Response:", streamsResponse.data);
+
+          // Если потоки есть, загружаем студентов для каждого
+          if (streamsResponse.data.streams && streamsResponse.data.streams.length > 0) {
+            streamsWithStudents = await Promise.all(
+              streamsResponse.data.streams.map(async (stream) => {
+                const studentsResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${stream.id}`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                });
+                return { ...stream, students: studentsResponse.data.students };
+              })
             );
-            return { ...stream, students: studentsResponse.data.students };
-          })
-        );
-        setStreams(streamsWithStudents || []);
+          }
+        
+        } catch (streamErr) {
+          console.error("Ошибка при загрузке потоков:", streamErr);
+          // Если ошибка связана с отсутствием потоков, продолжаем с пустым массивом
+          if (streamErr.response && (streamErr.response.status === 404 || streamErr.response.data?.error === "Потоки не найдены")) {
+            streamsWithStudents = [];
+          } else {
+            throw streamErr; // Другие ошибки передаем дальше
+          }
+        }
+        setStreams(streamsWithStudents);
 
+        // Загружаем пользователей
         const usersResponse = await axios.get(`${host}/api/getallusers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Users Response:', usersResponse.data);
+        console.log("Users Response:", usersResponse.data);
         setUsers(usersResponse.data.users || []);
 
-        dispatch(getAllCoursesAction());
+        // Загружаем курсы
+        await dispatch(getAllCoursesAction());
       } catch (err) {
-        console.error('Ошибка при загрузке данных:', err);
-        setError('Не удалось загрузить данные');
+        console.error("Ошибка при загрузке данных:", err);
+        setError("Не удалось загрузить данные");
+        if (err.response && err.response.status === 401) {
+          router.push("/login");
+        }
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
-    fetchUserInfo();
   }, [dispatch, token, router]);
 
-  const fetchUserInfo = async () => {
-    try {
-      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUserInfo(response.data);
-    } catch (err) {
-      console.error('Ошибка при загрузке информации о пользователе:', err);
-      if (err.response && err.response.status === 401) {
-        // Перенаправляем на страницу логина при 401
-        router.push('/login');
-      }
-    }
-  };
   const handleCreateStream = async () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${host}/api/stream`, // Исправлен endpoint на /streams
+        `${host}/api/stream`,
         {
           ...newStream,
           cost: parseFloat(newStream.cost),
@@ -140,16 +152,13 @@ export default function StreamsPage() {
         teacherId: "",
       });
       setError(null);
-      router.push('/addstreams');
-      window.location.reload()
+      window.location.reload();
     } catch (err) {
       setError(err.response?.data?.error || "Ошибка при создании потока");
     } finally {
       setLoading(false);
     }
   };
-
-  
 
   const handleUpdateStream = async () => {
     try {
@@ -166,8 +175,8 @@ export default function StreamsPage() {
       setOpenEdit(false);
       setEditStream(null);
     } catch (err) {
-      console.error('Ошибка при обновлении потока:', err);
-      setError('Ошибка при обновлении потока');
+      console.error("Ошибка при обновлении потока:", err);
+      setError("Ошибка при обновлении потока");
     }
   };
 
@@ -178,8 +187,8 @@ export default function StreamsPage() {
       });
       setStreams(streams.filter((s) => s.id !== streamId));
     } catch (err) {
-      console.error('Ошибка при удалении потока:', err);
-      setError('Ошибка при удалении потока');
+      console.error("Ошибка при удалении потока:", err);
+      setError("Ошибка при удалении потока");
     }
   };
 
@@ -197,71 +206,52 @@ export default function StreamsPage() {
       setOpenStudents(false);
       setSelectedStudents([]);
     } catch (err) {
-      console.error('Ошибка при добавлении студентов:', err);
-      setError('Ошибка при добавлении студентов');
+      console.error("Ошибка при добавлении студентов:", err);
+      setError("Ошибка при добавлении студентов");
     }
   };
-
-  // const handleRemoveStudent = async (streamId, studentId) => {
-  //   console.log('1 Удаление юзера',streamId,studentId)
-  //   try {
-  //     await axios.post(
-  //       `${host}/api/streams/${streamId}/remove-students`,
-  //       { studentIds: [studentId] }, // Отправляем массив studentIds в теле запроса
-  //       // { headers: { Authorization: `Bearer ${token}` } }
-  //     );
-  //     const updatedStreamResponse = await axios.get( `${host}/api/streams/getstudentsbystreamid/${stream.id}`
-  //     // , {
-  //     //   headers: { Authorization: `Bearer ${token}` },
-  //     // }
-  //   );
-  //     setStreams(streams.map((s) => (s.id === streamId ? { ...s, students: updatedStreamResponse.data.students } : s)));
-
-  //   } catch (err) {
-  //     console.error('Ошибка при удалении студента:', err);
-  //     setError('Ошибка при удалении студента');
-  //   }
-  // };
 
   const handleRemoveStudent = async (streamId, studentId) => {
-    console.log('1 Удаление юзера', streamId, studentId);
+    console.log("1 Удаление юзера", streamId, studentId);
     try {
-      // Удаляем студента из потока
       await axios.post(
         `${host}/api/streams/${streamId}/remove-students`,
-        { studentIds: [studentId] }, // Отправляем массив studentIds в теле запроса
+        { studentIds: [studentId] },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      // Получаем обновленный список студентов для потока
-      const updatedStreamResponse = await axios.get(
-       `${host}/api/streams/getstudentsbystreamid/${streamId}`, // Исправлен путь и использован streamId
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-  
-      // Обновляем состояние streams с актуальным списком студентов
+
+      const updatedStreamResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${streamId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       setStreams(streams.map((s) => (s.id === streamId ? { ...s, students: updatedStreamResponse.data.students } : s)));
     } catch (err) {
-      console.error('Ошибка при удалении студента:', err);
-      setError('Ошибка при удалении студента');
+      console.error("Ошибка при удалении студента:", err);
+      setError("Ошибка при удалении студента");
     }
     setOpenStudents(false);
-      setSelectedStudents([]);
-    // alert('Юзер успешно удален')
+    setSelectedStudents([]);
   };
 
-
-  
   const handleLogout = () => {
     dispatch(logoutAction());
-    localStorage.removeItem('token');
-    router.push('/login');
+    localStorage.removeItem("token");
+    router.push("/login");
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
         <CircularProgress />
+        <Typography>Loading data...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
+        <Typography color="error">{error}</Typography>
       </Box>
     );
   }
@@ -269,8 +259,8 @@ export default function StreamsPage() {
   return (
     <>
       <TopMenu handleLogout={handleLogout} userInfo={userInfo} />
-      <Box sx={{ maxWidth: 1200, mx: 'auto', p: 3 }}>
-        <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 4 }}>
+      <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: "bold", mb: 4 }}>
           Управление потоками
         </Typography>
         {error && <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>}
@@ -280,7 +270,7 @@ export default function StreamsPage() {
         </Button>
 
         {streams.length === 0 ? (
-          <Paper elevation={3} sx={{ p: 3, borderRadius: 2, textAlign: 'center' }}>
+          <Paper elevation={3} sx={{ p: 3, borderRadius: 2, textAlign: "center" }}>
             <Typography variant="h6" color="textSecondary">
               Потоки отсутствуют. Создайте новый поток, чтобы начать.
             </Typography>
@@ -290,11 +280,34 @@ export default function StreamsPage() {
             <TableContainer>
               <Table>
                 <TableHead>
-                  <TableRow><TableCell>Название</TableCell><TableCell>Курс</TableCell><TableCell>Учитель</TableCell><TableCell>Дата начала</TableCell><TableCell>Дата окончания</TableCell><TableCell>Стоимость</TableCell><TableCell>Макс. студентов</TableCell><TableCell>Действия</TableCell></TableRow>
+                  <TableRow>
+                    <TableCell>Название</TableCell>
+                    <TableCell>Курс</TableCell>
+                    <TableCell>Учитель</TableCell>
+                    <TableCell>Дата начала</TableCell>
+                    <TableCell>Дата окончания</TableCell>
+                    <TableCell>Стоимость</TableCell>
+                    <TableCell>Макс. студентов</TableCell>
+                    <TableCell>Действия</TableCell>
+                  </TableRow>
                 </TableHead>
                 <TableBody>
                   {streams.map((stream) => (
-                    <TableRow key={stream.id}><TableCell>{stream.name}</TableCell><TableCell>{stream.course?.title || 'Не указан'}</TableCell><TableCell>{stream.teacher ? `${stream.teacher.name ?? ''} ${stream.teacher.lastname ?? ''}` : 'Не указан'}</TableCell><TableCell>{new Date(stream.startDate).toLocaleDateString()}</TableCell><TableCell>{new Date(stream.endDate).toLocaleDateString()}</TableCell><TableCell>{stream.cost}</TableCell><TableCell>{stream.maxStudents}</TableCell><TableCell><Button onClick={() => { setEditStream(stream); setOpenEdit(true); }}>Редактировать</Button><Button color="error" onClick={() => handleDeleteStream(stream.id)}>Удалить</Button><Button onClick={() => { setSelectedStream(stream); setOpenStudents(true); }}>Студенты</Button><Button onClick={() => { setSelectedStream(stream); setOpenViewStudents(true); }}>Просмотр студентов</Button></TableCell></TableRow>
+                    <TableRow key={stream.id}>
+                      <TableCell>{stream.name}</TableCell>
+                      <TableCell>{stream.course?.title || "Не указан"}</TableCell>
+                      <TableCell>{stream.teacher ? `${stream.teacher.name ?? ""} ${stream.teacher.lastname ?? ""}` : "Не указан"}</TableCell>
+                      <TableCell>{new Date(stream.startDate).toLocaleDateString()}</TableCell>
+                      <TableCell>{new Date(stream.endDate).toLocaleDateString()}</TableCell>
+                      <TableCell>{stream.cost}</TableCell>
+                      <TableCell>{stream.maxStudents}</TableCell>
+                      <TableCell>
+                        <Button onClick={() => { setEditStream(stream); setOpenEdit(true); }}>Редактировать</Button>
+                        <Button color="error" onClick={() => handleDeleteStream(stream.id)}>Удалить</Button>
+                        <Button onClick={() => { setSelectedStream(stream); setOpenStudents(true); }}>Студенты</Button>
+                        <Button onClick={() => { setSelectedStream(stream); setOpenViewStudents(true); }}>Просмотр студентов</Button>
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
@@ -329,11 +342,13 @@ export default function StreamsPage() {
                 value={newStream.teacherId}
                 onChange={(e) => setNewStream({ ...newStream, teacherId: e.target.value })}
               >
-                {users.filter((u) => u.roleId === 2).map((teacher) => (
-                  <MenuItem key={teacher.id} value={teacher.id}>
-                    {teacher.name ?? ''} {teacher.lastname ?? ''}
-                  </MenuItem>
-                ))}
+                {users
+                  .filter((u) => u.roleId === 2)
+                  .map((teacher) => (
+                    <MenuItem key={teacher.id} value={teacher.id}>
+                      {teacher.name ?? ""} {teacher.lastname ?? ""}
+                    </MenuItem>
+                  ))}
               </Select>
             </FormControl>
             <TextField
@@ -393,7 +408,7 @@ export default function StreamsPage() {
                   label="Дата начала"
                   type="date"
                   fullWidth
-                  value={editStream.startDate.split('T')[0]}
+                  value={editStream.startDate.split("T")[0]}
                   onChange={(e) => setEditStream({ ...editStream, startDate: e.target.value })}
                   sx={{ mt: 2 }}
                   InputLabelProps={{ shrink: true }}
@@ -402,7 +417,7 @@ export default function StreamsPage() {
                   label="Дата окончания"
                   type="date"
                   fullWidth
-                  value={editStream.endDate.split('T')[0]}
+                  value={editStream.endDate.split("T")[0]}
                   onChange={(e) => setEditStream({ ...editStream, endDate: e.target.value })}
                   sx={{ mt: 2 }}
                   InputLabelProps={{ shrink: true }}
@@ -442,7 +457,7 @@ export default function StreamsPage() {
                   {selectedStream.students?.map((student) => (
                     <Chip
                       key={student.id}
-                      label={`${student.name ?? ''} ${student.lastname ?? ''} ${student.email ?? ''}`}
+                      label={`${student.name ?? ""} ${student.lastname ?? ""} ${student.email ?? ""}`}
                       onDelete={() => handleRemoveStudent(selectedStream.id, student.id)}
                       sx={{ mr: 1, mb: 1 }}
                     />
@@ -456,10 +471,10 @@ export default function StreamsPage() {
                     value={selectedStudents}
                     onChange={(e) => setSelectedStudents(e.target.value)}
                     renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                         {selected.map((id) => {
                           const student = users.find((u) => u.id === id);
-                          return <Chip key={id} label={`${student?.name ?? ''} ${student?.lastname ?? ''}`} />;
+                          return <Chip key={id} label={`${student?.name ?? ""} ${student?.lastname ?? ""}`} />;
                         })}
                       </Box>
                     )}
@@ -468,7 +483,7 @@ export default function StreamsPage() {
                       .filter((u) => u.roleId === 3 && !selectedStream.students?.some((s) => s.id === u.id))
                       .map((student) => (
                         <MenuItem key={student.id} value={student.id}>
-                          {student.name ?? ''} {student.lastname ?? ''} ({student.email})
+                          {student.name ?? ""} {student.lastname ?? ""} ({student.email})
                         </MenuItem>
                       ))}
                   </Select>
@@ -492,7 +507,7 @@ export default function StreamsPage() {
                   {selectedStream.students?.length > 0 ? (
                     selectedStream.students.map((student) => (
                       <Typography key={student.id} sx={{ mb: 1 }}>
-                        {student.name ?? ''} {student.lastname ?? ''} ({student.email})
+                        {student.name ?? ""} {student.lastname ?? ""} ({student.email})
                       </Typography>
                     ))
                   ) : (
