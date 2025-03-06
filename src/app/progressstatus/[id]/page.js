@@ -16,6 +16,8 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { getAllCoursesAction, logoutAction } from "@/store/slices/authSlice";
 import TopMenu from "@/components/topmenu";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function ProgressDetail() {
   const { id } = useParams();
@@ -28,10 +30,12 @@ export default function ProgressDetail() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isTestPassed, setIsTestPassed] = useState(false);
+  const [streams, setStreams] = useState([]);
+  const [allCourses, setAllCourses] = useState([]); // Для хранения всех курсов
+  const [allTeachers, setAllTeachers] = useState([]); // Для хранения всех учителей
   const { courses } = useSelector((state) => state.auth);
   const host = process.env.NEXT_PUBLIC_HOST;
 
-  // Загрузка данных пользователя и курсов
   useEffect(() => {
     if (!token) {
       router.push("/login");
@@ -50,6 +54,23 @@ export default function ProgressDetail() {
         }
         setUser(foundUser);
 
+        const streamsResponse = await axios.get(`${host}/api/streams`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setStreams(streamsResponse.data.streams || []);
+
+        // Загружаем все курсы
+        const coursesResponse = await axios.get(`${host}/api/courses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAllCourses(coursesResponse.data.courses || []);
+
+        // Загружаем всех учителей (roleId === 2 для учителей)
+        const teachersResponse = await axios.get(`${host}/api/getallusers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setAllTeachers(teachersResponse.data.users.filter((u) => u.roleId === 2) || []);
+
         await dispatch(getAllCoursesAction());
       } catch (err) {
         console.error("Ошибка при загрузке данных:", err);
@@ -62,7 +83,6 @@ export default function ProgressDetail() {
     fetchInitialData();
   }, [dispatch, token, id, router]);
 
-  // Загрузка прогресса и начального состояния чекбокса
   useEffect(() => {
     if (user && courses.length) {
       const fetchProgress = async () => {
@@ -111,6 +131,7 @@ export default function ProgressDetail() {
   }, [user, courses, token]);
 
   const fetchUserInfo = async () => {
+     // Логируем курсы для проверки
     try {
       const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -148,9 +169,109 @@ export default function ProgressDetail() {
     router.push("/login");
   };
 
-  // Проверка, есть ли прогресс >= 1% по любому курсу
   const isProgressSufficient = () => {
     return Object.values(progressData).some((progress) => progress >= 0.1);
+  };
+
+  const handleGenerateReport = async () => {
+    console.log("All Courses:", allCourses,'courses- ',courses);
+    try {
+      setLoading(true);
+
+      // Получаем всех пользователей и фильтруем только студентов (roleId === 3)
+      const allUsersResponse = await axios.get(`${host}/api/getallusers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const allUsers = allUsersResponse.data.users.filter((u) => u.roleId === 3);
+
+      // Формируем данные для отчета
+      const reportData = await Promise.all(
+        allUsers.map(async (u) => {
+          const progressPromises = courses.map((course) =>
+            axios
+              .get(`${host}/api/course/progress/${u.id}/${course.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              .then((response) => ({
+                courseId: course.id,
+                data: response.data,
+              }))
+              .catch(() => ({
+                courseId: course.id,
+                data: { lessons: [], course_progress: 0 },
+              }))
+          );
+
+          const progressResults = await Promise.all(progressPromises);
+          const userProgress = progressResults.reduce((acc, { data }) => acc + data.course_progress, 0) / courses.length || 0;
+          const isFinished = progressResults.some(({ data }) =>
+            data.lessons.some((lesson) => lesson.isfinished === "yes")
+          );
+
+          // Находим поток, в котором состоит студент
+          let userStreamInfo = "Не состоит в потоке";
+          for (const stream of streams) {
+            try {
+              const studentsResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${stream.id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              if (studentsResponse.data.students.some((student) => student.id === u.id)) {
+                const course = courses.find((c) => c.id === stream.courseId);
+                const teacher = allTeachers.find((t) => t.id === stream.teacherId);
+                userStreamInfo = `${stream.name} | Начало: ${new Date(stream.startDate).toLocaleDateString()} | Конец: ${new Date(stream.endDate).toLocaleDateString()} | Стоимость: ${stream.cost} | Макс. студентов: ${stream.maxStudents} | Курс: ${course?.title || "Не указан"} | Учитель: ${teacher ? `${teacher.name ?? ""} ${teacher.lastname ?? ""}` : "Не указан"}`;
+                break;
+              }
+            } catch (streamErr) {
+              console.error(`Ошибка при загрузке студентов для потока ${stream.id}:`, streamErr);
+            }
+          }
+
+          return {
+            "User": `${u.name ?? ""} ${u.lastname ?? ""} (${u.email})`,
+            "Progress": `${userProgress.toFixed(2)}%`,
+            "Progress isfinished": isFinished ? "yes" : "no",
+            "areasofactivity": u.areasofactivity || "Не указано",
+            "Поток в котором он состоит": userStreamInfo,
+          };
+        })
+      );
+
+      // Подсчитываем процент студентов с isfinished == "yes"
+      const totalUsers = reportData.length;
+      const finishedUsers = reportData.filter((data) => data["Progress isfinished"] === "yes").length;
+      const finishedPercentage = totalUsers > 0 ? (finishedUsers / totalUsers * 100).toFixed(2) : 0;
+
+      // Добавляем строку с процентом в конец отчета
+      reportData.push({
+        "User": "Итого",
+        "Progress": "",
+        "Progress isfinished": `${finishedPercentage}% студентов с isfinished = yes`,
+        "areasofactivity": "",
+        "Поток в котором он состоит": "",
+      });
+
+      // Создаем рабочий лист и книгу Excel
+      const worksheet = XLSX.utils.json_to_sheet(reportData);
+      worksheet["!cols"] = [
+        { wch: 30 }, // User
+        { wch: 10 }, // Progress
+        { wch: 20 }, // Progress isfinished
+        { wch: 20 }, // areasofactivity
+        { wch: 80 }, // Поток в котором он состоит
+      ];
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+
+      // Генерируем файл и скачиваем его
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+      saveAs(blob, `Student_Progress_Report_${new Date().toISOString().split("T")[0]}.xlsx`);
+    } catch (err) {
+      console.error("Ошибка при формировании отчета:", err);
+      setError("Не удалось сформировать отчет");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -201,7 +322,7 @@ export default function ProgressDetail() {
               checked={isTestPassed}
               onChange={handleCheckboxChange}
               color="primary"
-              disabled={!isProgressSufficient()} // Блокируем чекбокс, если прогресс < 1%
+              disabled={!isProgressSufficient()}
             />
           }
           label="Пройден ли тест на сайте Building Smart?"
@@ -211,8 +332,10 @@ export default function ProgressDetail() {
           variant="contained"
           color="primary"
           sx={{ mt: 2 }}
+          onClick={handleGenerateReport}
+          disabled={loading}
         >
-          Сформировать отчет
+          {loading ? "Формирование..." : "Сформировать отчет"}
         </Button>
       </Box>
     </>

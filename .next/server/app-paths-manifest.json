@@ -1,9 +1,7 @@
 {
-  "/addstreams/page": "app/addstreams/page.js",
+  "/progressstatus/[id]/page": "app/progressstatus/[id]/page.js",
   "/login/page": "app/login/page.js",
   "/layout/page": "app/layout/page.js",
-  "/addcourse/page": "app/addcourse/page.js",
   "/progressstatus/page": "app/progressstatus/page.js",
-  "/profile/page": "app/profile/page.js",
-  "/progressstatus/[id]/page": "app/progressstatus/[id]/page.js"
+  "/addstreams/page": "app/addstreams/page.js"
 }
