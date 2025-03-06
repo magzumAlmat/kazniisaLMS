@@ -22,7 +22,7 @@ export default function ProgressMobileStepper() {
 
   const fetchLessons = async () => {
     try {
-      const response = await axios.get(`${host}/api/lessons");
+      const response = await axios.get(`${host}/api/lessons`);
       setLessons(response.data);
       console.log('lessons= ',lessons)
     } catch (error) {

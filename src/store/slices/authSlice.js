@@ -1,7 +1,7 @@
 
 import { createSlice, current } from '@reduxjs/toolkit';
 import axios from 'axios';
-import END_POINT from '@/components/config/index';
+import END_POINT from '../../components/config/index';
 import jwt_decode from 'jwt-decode';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux'; // Import useDispatch

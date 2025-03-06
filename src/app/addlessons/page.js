@@ -23,8 +23,8 @@ import {
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import { useSelector, useDispatch } from "react-redux";
-import TopMenu from "@/components/topmenu";
-import { logoutAction } from "@/store/slices/authSlice";
+import TopMenu from "../../components/topmenu";
+import { logoutAction } from "../../store/slices/authSlice";
 import { useRouter } from "next/navigation";
 import "../style/base.css";
 

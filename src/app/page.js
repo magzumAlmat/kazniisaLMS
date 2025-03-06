@@ -11,7 +11,7 @@ import { useTokenInitialization } from '../store/slices/authSlice';
 
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { loginReducer } from "@/store/slices/authSlice";
+import { loginReducer } from "../store/slices/authSlice";
 import jwt_decode from "jwt-decode";
 
 

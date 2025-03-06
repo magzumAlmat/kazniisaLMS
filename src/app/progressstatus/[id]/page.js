@@ -14,8 +14,8 @@ import {
   Button,
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
-import { getAllCoursesAction, logoutAction } from "@/store/slices/authSlice";
-import TopMenu from "@/components/topmenu";
+import { getAllCoursesAction, logoutAction } from "../../../store/slices/authSlice";
+import TopMenu from "../../../components/topmenu";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 

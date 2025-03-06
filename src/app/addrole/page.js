@@ -14,9 +14,9 @@ import {
   Alert,
 } from "@mui/material";
 import jwtDecode from "jwt-decode";
-import TopMenu from "@/components/topmenu";
+import TopMenu from "../../components/topmenu";
 import { useDispatch } from "react-redux";
-import { logoutAction } from "@/store/slices/authSlice";
+import { logoutAction } from "../../store/slices/authSlice";
 import { useRouter } from 'next/navigation';
 
 

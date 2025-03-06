@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { createUserAction, createTeacherAction } from '@/store/slices/authSlice';
+import { createUserAction, createTeacherAction } from '../../store/slices/authSlice';
 import { Container, Typography, TextField, Button, Box, Link, Grid, Snackbar, Alert } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 import Checkbox from '@mui/material/Checkbox';

@@ -18,12 +18,12 @@ import {
   Divider,
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
-import { getAllCoursesAction, logoutAction } from "@/store/slices/authSlice";
+import { getAllCoursesAction, logoutAction } from "../../../store/slices/authSlice";
 import EditorJS from "@editorjs/editorjs";
 import Header from "@editorjs/header";
 import List from "@editorjs/list";
 import Paragraph from "@editorjs/paragraph";
-import TopMenu from "@/components/topmenu";
+import TopMenu from "../../../components/topmenu";
 
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Container, Typography, TextField, Button, Box, Link, Grid, Stack, Alert } from "@mui/material";
 import { LockOutlined, Google as GoogleIcon } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { authorize, setError } from "@/store/slices/authSlice";
+import { authorize, setError } from "../../store/slices/authSlice";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 

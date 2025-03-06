@@ -26,8 +26,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import TopMenu from "@/components/topmenu";
-import { logoutAction, getAllCoursesAction } from "@/store/slices/authSlice";
+import TopMenu from "../../components/topmenu";
+import { logoutAction, getAllCoursesAction } from "../../store/slices/authSlice";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 

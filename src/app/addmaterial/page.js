@@ -20,9 +20,9 @@ import {
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import { useDropzone } from "react-dropzone";
-import TopMenu from "@/components/topmenu";
+import TopMenu from "../../components/topmenu";
 import { useSelector, useDispatch } from "react-redux";
-import { logoutAction, getUserInfoAction } from "@/store/slices/authSlice";
+import { logoutAction, getUserInfoAction } from "../../store/slices/authSlice";
 import { useRouter } from "next/navigation";
 
 export default function MaterialsPage() {

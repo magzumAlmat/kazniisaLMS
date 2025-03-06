@@ -17,9 +17,9 @@ import {
 } from "@mui/material";
 import { Edit, Delete } from "@mui/icons-material";
 import jwtDecode from "jwt-decode";
-import { getUserInfoAction } from "@/store/slices/authSlice";
-import TopMenu from "@/components/topmenu";
-import { logoutAction } from "@/store/slices/authSlice";
+
+import TopMenu from "../../components/topmenu";
+import { logoutAction } from "../../store/slices/authSlice";
 import { useRouter } from "next/navigation";
 
 

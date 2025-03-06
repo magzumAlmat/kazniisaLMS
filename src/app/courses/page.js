@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllCoursesAction, logoutAction } from "@/store/slices/authSlice";
+import { getAllCoursesAction, logoutAction } from "../../store/slices/authSlice";
 import {
   Card,
   CardContent,
@@ -14,7 +14,7 @@ import {
   Box,
 } from "@mui/material";
 import Link from "next/link";
-import TopMenu from "@/components/topmenu";
+import TopMenu from "../../components/topmenu";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 

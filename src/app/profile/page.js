@@ -1,10 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import TopMenu from "@/components/topmenu";
+import TopMenu from "../../components/topmenu";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import { logoutAction } from "@/store/slices/authSlice";
+import { logoutAction } from "../../store/slices/authSlice";
 import { Box, TextField, Button, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 
 const ProfilePage = () => {
