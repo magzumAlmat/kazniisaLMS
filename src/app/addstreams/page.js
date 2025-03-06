@@ -28,6 +28,8 @@ import {
 import { useRouter } from "next/navigation";
 import TopMenu from "@/components/topmenu";
 import { logoutAction, getAllCoursesAction } from "@/store/slices/authSlice";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function StreamsPage() {
   const dispatch = useDispatch();
@@ -56,6 +58,7 @@ export default function StreamsPage() {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const { courses } = useSelector((state) => state.auth);
   const [userInfo, setUserInfo] = useState(null);
+  const [allCourses, setAllCourses] = useState([]);
   const host = process.env.NEXT_PUBLIC_HOST;
 
   useEffect(() => {
@@ -66,13 +69,11 @@ export default function StreamsPage() {
       }
       setLoading(true);
       try {
-        // Загружаем информацию о пользователе
         const userInfoResponse = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUserInfo(userInfoResponse.data);
 
-        // Загружаем потоки с обработкой пустого ответа
         let streamsWithStudents = [];
         try {
           const streamsResponse = await axios.get(`${host}/api/streams`, {
@@ -80,7 +81,6 @@ export default function StreamsPage() {
           });
           console.log("Streams Response:", streamsResponse.data);
 
-          // Если потоки есть, загружаем студентов для каждого
           if (streamsResponse.data.streams && streamsResponse.data.streams.length > 0) {
             streamsWithStudents = await Promise.all(
               streamsResponse.data.streams.map(async (stream) => {
@@ -91,26 +91,28 @@ export default function StreamsPage() {
               })
             );
           }
-        
         } catch (streamErr) {
           console.error("Ошибка при загрузке потоков:", streamErr);
-          // Если ошибка связана с отсутствием потоков, продолжаем с пустым массивом
           if (streamErr.response && (streamErr.response.status === 404 || streamErr.response.data?.error === "Потоки не найдены")) {
             streamsWithStudents = [];
           } else {
-            throw streamErr; // Другие ошибки передаем дальше
+            throw streamErr;
           }
         }
         setStreams(streamsWithStudents);
 
-        // Загружаем пользователей
         const usersResponse = await axios.get(`${host}/api/getallusers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("Users Response:", usersResponse.data);
         setUsers(usersResponse.data.users || []);
 
-        // Загружаем курсы
+        const coursesResponse = await axios.get(`${host}/api/courses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("Courses Response:", coursesResponse.data);
+        setAllCourses(coursesResponse.data.courses || []);
+
         await dispatch(getAllCoursesAction());
       } catch (err) {
         console.error("Ошибка при загрузке данных:", err);
@@ -233,6 +235,90 @@ export default function StreamsPage() {
     setSelectedStudents([]);
   };
 
+  const handleGenerateStreamReport = async (stream) => {
+    console.log('stream= ',stream)
+    try {
+      setLoading(true);
+
+      const studentsResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${stream.id}`
+      //   , {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // }
+    );
+      const students = studentsResponse.data.students || [];
+
+      console.log('students= ',students)
+      const course = courses.find((c) => c.id === stream.courseId) || { title: "Не указан" };
+      console.log('course===',course)
+      const teacher = users.find((u) => u.id === stream.teacherId) || { name: "Не указан", lastname: "" };
+
+      const reportData = await Promise.all(
+        students.map(async (student) => {
+          const progressPromises = [axios
+            .get(`${host}/api/course/progress/${student.id}/${stream.courseId}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((response) => ({
+              courseId: stream.courseId,
+              data: response.data,
+            }))
+            .catch(() => ({
+              courseId: stream.courseId,
+              data: { lessons: [], course_progress: 0 },
+            }))];
+
+          const progressResults = await Promise.all(progressPromises);
+         // const userProgress = progressResults.reduce((acc, { data }) => acc + data.course_progress, 0) || 0;
+          const isFinished = progressResults.some(({ data }) => data.lessons.some((lesson) => lesson.isfinished === "yes"));
+          const userProgress = progressResults.reduce((acc, { data }) => acc + data.course_progress, 0) / progressResults.length || 0;
+          
+          return {
+            "Student": `${student.name ?? ""} ${student.lastname ?? ""} (${student.email})`,
+            "Course": course.title,
+            "Teacher": `${teacher.name ?? ""} ${teacher.lastname ?? ""}`,
+            "Progress": `${userProgress.toFixed(2)}%`,
+            "Is Finished": isFinished ? "yes" : "no",
+            "Areas of Activity": student.areasofactivity || "Не указано",
+          };
+        })
+      );
+
+      const streamInfo = [
+        { "Field": "Название потока", "Value": stream.name },
+        { "Field": "Курс", "Value": course.title },
+        { "Field": "Учитель", "Value": `${teacher.name ?? ""} ${teacher.lastname ?? ""}` },
+        { "Field": "Дата начала", "Value": new Date(stream.startDate).toLocaleDateString() },
+        { "Field": "Дата окончания", "Value": new Date(stream.endDate).toLocaleDateString() },
+        { "Field": "Стоимость", "Value": stream.cost },
+        { "Field": "Макс. студентов", "Value": stream.maxStudents },
+        { "Field": "", "Value": "" },
+      ];
+
+      const fullReportData = [...streamInfo, ...reportData];
+
+      const worksheet = XLSX.utils.json_to_sheet(fullReportData);
+      worksheet["!cols"] = [
+        { wch: 30 },
+        { wch: 40 },
+        { wch: 30 },
+        { wch: 40 },
+        { wch: 30 },
+        { wch: 40 },
+      ];
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Stream Report");
+
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+      saveAs(blob, `Stream_${stream.name}_Report_${new Date().toISOString().split("T")[0]}.xlsx`);
+    } catch (err) {
+      console.error("Ошибка при генерации отчета:", err);
+      setError("Не удалось сгенерировать отчет по потоку");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     dispatch(logoutAction());
     localStorage.removeItem("token");
@@ -292,23 +378,30 @@ export default function StreamsPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {streams.map((stream) => (
-                    <TableRow key={stream.id}>
-                      <TableCell>{stream.name}</TableCell>
-                      <TableCell>{stream.course?.title || "Не указан"}</TableCell>
-                      <TableCell>{stream.teacher ? `${stream.teacher.name ?? ""} ${stream.teacher.lastname ?? ""}` : "Не указан"}</TableCell>
-                      <TableCell>{new Date(stream.startDate).toLocaleDateString()}</TableCell>
-                      <TableCell>{new Date(stream.endDate).toLocaleDateString()}</TableCell>
-                      <TableCell>{stream.cost}</TableCell>
-                      <TableCell>{stream.maxStudents}</TableCell>
-                      <TableCell>
-                        <Button onClick={() => { setEditStream(stream); setOpenEdit(true); }}>Редактировать</Button>
-                        <Button color="error" onClick={() => handleDeleteStream(stream.id)}>Удалить</Button>
-                        <Button onClick={() => { setSelectedStream(stream); setOpenStudents(true); }}>Студенты</Button>
-                        <Button onClick={() => { setSelectedStream(stream); setOpenViewStudents(true); }}>Просмотр студентов</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {streams.map((stream) => {
+                    const course = courses.find((c) => c.id === stream.courseId) || { title: "Не указан" };
+                    console.log('render course= ',course)
+                    const teacher = users.find((u) => u.id === stream.teacherId) || { name: "Не указан", lastname: "" };
+
+                    return (
+                      <TableRow key={stream.id}>
+                        <TableCell>{stream.name}</TableCell>
+                        <TableCell>{course.title}</TableCell>
+                        <TableCell>{`${teacher.name ?? ""} ${teacher.lastname ?? ""}`}</TableCell>
+                        <TableCell>{new Date(stream.startDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{new Date(stream.endDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{stream.cost}</TableCell>
+                        <TableCell>{stream.maxStudents}</TableCell>
+                        <TableCell>
+                          <Button onClick={() => { setEditStream(stream); setOpenEdit(true); }}>Редактировать</Button>
+                          <Button color="error" onClick={() => handleDeleteStream(stream.id)}>Удалить</Button>
+                          <Button onClick={() => { setSelectedStream(stream); setOpenStudents(true); }}>Студенты</Button>
+                          <Button onClick={() => { setSelectedStream(stream); setOpenViewStudents(true); }}>Просмотр студентов</Button>
+                          <Button onClick={() => handleGenerateStreamReport(stream)}>Отчет по потоку</Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

@@ -70,6 +70,7 @@ export default function ProgressDetail() {
         setAllTeachers(teachersResponse.data.users.filter((u) => u.roleId === 2) || []);
 
         await dispatch(getAllCoursesAction());
+        
       } catch (err) {
         console.error("Ошибка при загрузке данных:", err);
         setError("Не удалось загрузить данные пользователя или курсы");
