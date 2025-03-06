@@ -1,5 +1,9 @@
 {
-  "/addstreams/page": "app/addstreams/page.js",
-  "/layout/page": "app/layout/page.js",
-  "/login/page": "app/login/page.js"
+  "/progressstatus/page": "app/progressstatus/page.js",
+  "/progressstatus/[id]/page": "app/progressstatus/[id]/page.js",
+  "/courses/[id]/page": "app/courses/[id]/page.js",
+  "/addcourse/page": "app/addcourse/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/courses/page": "app/courses/page.js",
+  "/addstreams/page": "app/addstreams/page.js"
 }

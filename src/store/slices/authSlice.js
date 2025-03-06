@@ -837,7 +837,7 @@ export const loginInspectorAction = (email,password) => async(dispatch) => {
 export const loginAction = ({ email, password }) => async (dispatch) => {
   console.log('1 login Action started host- ',host)
   try {
-    const response = await axios.post(`http://localhost:4000/api/auth/login`, {
+    const response = await axios.post(`${host}/api/auth/login`, {
       email,
       password,
     });
