@@ -19,12 +19,14 @@ import {
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllCoursesAction, logoutAction } from "../../../store/slices/authSlice";
-import EditorJS from "@editorjs/editorjs";
-import Header from "@editorjs/header";
-import List from "@editorjs/list";
+
 import Paragraph from "@editorjs/paragraph";
 import TopMenu from "../../../components/topmenu";
 
+import dynamic from "next/dynamic";
+const EditorJS = dynamic(() => import("@editorjs/editorjs").then(mod => mod.default), { ssr: false });
+const Header = dynamic(() => import("@editorjs/header").then(mod => mod.default), { ssr: false });
+const List = dynamic(() => import("@editorjs/list").then(mod => mod.default), { ssr: false });
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
     return <Typography>Видео недоступно.</Typography>;
