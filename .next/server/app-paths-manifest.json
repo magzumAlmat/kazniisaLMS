@@ -1,4 +1,5 @@
 {
-  "/login/page": "app/login/page.js",
-  "/layout/page": "app/layout/page.js"
+  "/addstreams/page": "app/addstreams/page.js",
+  "/layout/page": "app/layout/page.js",
+  "/login/page": "app/login/page.js"
 }

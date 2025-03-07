@@ -34,7 +34,7 @@ import { saveAs } from "file-saver";
 export default function StreamsPage() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(null);
 
   const [streams, setStreams] = useState([]);
   const [users, setUsers] = useState([]);
@@ -61,19 +61,30 @@ export default function StreamsPage() {
   const [allCourses, setAllCourses] = useState([]);
   const host = process.env.NEXT_PUBLIC_HOST;
 
+  // Получаем token на клиенте
+  useEffect(() => {
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setToken(storedToken);
+
+    if (!storedToken) {
+      router.push("/login");
+    }
+  }, [router]);
+
+  // Загружаем данные после получения token
   useEffect(() => {
     const fetchData = async () => {
-      if (!token) {
-        router.push("/login");
-        return;
-      }
+      if (!token) return;
+
       setLoading(true);
       try {
+        // Информация о пользователе
         const userInfoResponse = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUserInfo(userInfoResponse.data);
 
+        // Потоки
         let streamsWithStudents = [];
         try {
           const streamsResponse = await axios.get(`${host}/api/streams`, {
@@ -87,26 +98,31 @@ export default function StreamsPage() {
                 const studentsResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${stream.id}`, {
                   headers: { Authorization: `Bearer ${token}` },
                 });
-                return { ...stream, students: studentsResponse.data.students };
+                return { ...stream, students: studentsResponse.data.students || [] };
               })
             );
+          } else {
+            streamsWithStudents = []; // Нет потоков в ответе
           }
         } catch (streamErr) {
-          console.error("Ошибка при загрузке потоков:", streamErr);
-          if (streamErr.response && (streamErr.response.status === 404 || streamErr.response.data?.error === "Потоки не найдены")) {
+          console.warn("Предупреждение при загрузке потоков:", streamErr.message);
+          // Если 404 или "Потоки не найдены", считаем это нормальным случаем
+          if (streamErr.response && streamErr.response.status === 404) {
             streamsWithStudents = [];
           } else {
-            throw streamErr;
+            throw streamErr; // Пробрасываем другие ошибки
           }
         }
         setStreams(streamsWithStudents);
 
+        // Пользователи
         const usersResponse = await axios.get(`${host}/api/getallusers`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("Users Response:", usersResponse.data);
         setUsers(usersResponse.data.users || []);
 
+        // Курсы
         const coursesResponse = await axios.get(`${host}/api/courses`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -115,8 +131,8 @@ export default function StreamsPage() {
 
         await dispatch(getAllCoursesAction());
       } catch (err) {
-        console.error("Ошибка при загрузке данных:", err);
-        setError("Не удалось загрузить данные");
+        console.error("Критическая ошибка при загрузке данных:", err);
+        setError(err.response?.data?.message || "Не удалось загрузить данные");
         if (err.response && err.response.status === 401) {
           router.push("/login");
         }
@@ -214,7 +230,7 @@ export default function StreamsPage() {
   };
 
   const handleRemoveStudent = async (streamId, studentId) => {
-    console.log("1 Удаление юзера", streamId, studentId);
+    console.log("Удаление юзера", streamId, studentId);
     try {
       await axios.post(
         `${host}/api/streams/${streamId}/remove-students`,
@@ -236,42 +252,41 @@ export default function StreamsPage() {
   };
 
   const handleGenerateStreamReport = async (stream) => {
-    console.log('stream= ',stream)
+    console.log('stream= ', stream);
     try {
       setLoading(true);
 
-      const studentsResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${stream.id}`
-      //   , {
-      //   headers: { Authorization: `Bearer ${token}` },
-      // }
-    );
+      const studentsResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${stream.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const students = studentsResponse.data.students || [];
 
-      console.log('students= ',students)
+      console.log('students= ', students);
       const course = courses.find((c) => c.id === stream.courseId) || { title: "Не указан" };
-      console.log('course===',course)
+      console.log('course===', course);
       const teacher = users.find((u) => u.id === stream.teacherId) || { name: "Не указан", lastname: "" };
 
       const reportData = await Promise.all(
         students.map(async (student) => {
-          const progressPromises = [axios
-            .get(`${host}/api/course/progress/${student.id}/${stream.courseId}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            .then((response) => ({
-              courseId: stream.courseId,
-              data: response.data,
-            }))
-            .catch(() => ({
-              courseId: stream.courseId,
-              data: { lessons: [], course_progress: 0 },
-            }))];
+          const progressPromises = [
+            axios
+              .get(`${host}/api/course/progress/${student.id}/${stream.courseId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              .then((response) => ({
+                courseId: stream.courseId,
+                data: response.data,
+              }))
+              .catch(() => ({
+                courseId: stream.courseId,
+                data: { lessons: [], course_progress: 0 },
+              })),
+          ];
 
           const progressResults = await Promise.all(progressPromises);
-         // const userProgress = progressResults.reduce((acc, { data }) => acc + data.course_progress, 0) || 0;
           const isFinished = progressResults.some(({ data }) => data.lessons.some((lesson) => lesson.isfinished === "yes"));
           const userProgress = progressResults.reduce((acc, { data }) => acc + data.course_progress, 0) / progressResults.length || 0;
-          
+
           return {
             "Student": `${student.name ?? ""} ${student.lastname ?? ""} (${student.email})`,
             "Course": course.title,
@@ -324,6 +339,14 @@ export default function StreamsPage() {
     localStorage.removeItem("token");
     router.push("/login");
   };
+
+  if (!token) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+        <Typography>Перенаправление на страницу входа...</Typography>
+      </Box>
+    );
+  }
 
   if (loading) {
     return (
@@ -380,7 +403,7 @@ export default function StreamsPage() {
                 <TableBody>
                   {streams.map((stream) => {
                     const course = courses.find((c) => c.id === stream.courseId) || { title: "Не указан" };
-                    console.log('render course= ',course)
+                    console.log('render course= ', course);
                     const teacher = users.find((u) => u.id === stream.teacherId) || { name: "Не указан", lastname: "" };
 
                     return (
