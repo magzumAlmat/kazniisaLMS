@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const withNextIntl = require('next-intl/plugin')();
 const nextConfig = {
-    reactStrictMode: true,
+    webpack(config) {
+        config.infrastructureLogging = { debug: /PackFileCache/ }
+        return config;
+      }
 }
 
-module.exports = withNextIntl(nextConfig);
+module.exports = withNextIntl(
+    
+);

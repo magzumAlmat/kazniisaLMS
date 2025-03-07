@@ -22,49 +22,55 @@ import TopMenu from "../../components/topmenu";
 import { logoutAction } from "../../store/slices/authSlice";
 import { useRouter } from "next/navigation";
 
-
 export default function CoursesPage() {
- const [userInfo, setUserInfo] = useState(null); // Инициализируем как null
+  const [userInfo, setUserInfo] = useState(null);
   const [courses, setCourses] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [editingCourse, setEditingCourse] = useState(null); // ID редактируемого курса
-  // const userInfo  = useSelector((state) => state.auth.currentUser);
-  const host=process.env.NEXT_PUBLIC_HOST
-  const token = localStorage.getItem("token");
-  const dispatch=useDispatch()
-  const router=useRouter()
-  console.log('userInfo from slice= ',userInfo)
- 
-  
-    console.log('2 userTokenINITZ token=', token);
-   
-    let decodedToken = jwtDecode(token);
-     console.log('3 getUsersPosts decoded=', decodedToken.username);
-  
-    if (!token) {
-      // Handle the case where the token is not available or invalid
+  const [editingCourse, setEditingCourse] = useState(null);
+  const [token, setToken] = useState(null); // Инициализируем token как null
+  const host = process.env.NEXT_PUBLIC_HOST;
+  const dispatch = useDispatch();
+  const router = useRouter();
+
+  // Получаем token только на клиенте
+  useEffect(() => {
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setToken(storedToken);
+
+    if (!storedToken) {
       console.error("Token not available");
+      router.push("/login");
       return;
     }
 
+    try {
+      const decodedToken = jwtDecode(storedToken);
+      console.log("Decoded token:", decodedToken.username);
+    } catch (error) {
+      console.error("Invalid token:", error);
+      router.push("/login");
+    }
+  }, [router]);
+
+  // Загружаем данные после получения token
   useEffect(() => {
-    fetchCourses();
-    fetchUserInfo();
-  }, []);
+    if (token) {
+      fetchCourses();
+      fetchUserInfo();
+    }
+  }, [token]);
 
   const fetchUserInfo = async () => {
-    const token = localStorage.getItem("token");
     try {
       const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserInfo(response.data);
     } catch (err) {
-      console.error('Ошибка при загрузке информации о пользователе:', err);
+      console.error("Ошибка при загрузке информации о пользователе:", err);
       if (err.response && err.response.status === 401) {
-        // Перенаправляем на страницу логина при 401
-        router.push('/login');
+        router.push("/login");
       }
     }
   };
@@ -79,65 +85,47 @@ export default function CoursesPage() {
   };
 
   const createCourse = async () => {
-    const token = localStorage.getItem("token");
-    console.log('token= ', token);
-
     try {
-        const response = await axios.post(
-            `${host}/api/courses`,
-            {
-                title,
-                description,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json', // Устанавливаем тип контента как JSON
-                },
-            }
-        );
-
-        // Если запрос успешен, добавляем новый курс в список
-        setCourses([...courses, response.data]);
-        setTitle("");
-        setDescription("");
-
-        // Выводим сообщение об успехе
-        alert("Курс успешно создан!");
-    } catch (error) {
-        console.error("Ошибка при создании курса:", error);
-
-        // Проверяем статус ошибки
-        if (error.response) {
-            const { status, data } = error.response;
-
-            if (status === 401) {
-                alert("Ошибка: Необходимо авторизоваться.");
-            } else if (status === 403) {
-                alert("Ошибка: У вас нет прав для создания курса.");
-            } else if (status === 400) {
-                alert(`Ошибка: ${data.message || "Некорректные данные."}`);
-            } else {
-                alert("Произошла ошибка. Попробуйте позже.");
-            }
-        } else {
-            alert("Не удалось подключиться к серверу. Проверьте соединение.");
+      const response = await axios.post(
+        `${host}/api/courses`,
+        { title, description },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
+      );
+      setCourses([...courses, response.data]);
+      setTitle("");
+      setDescription("");
+      alert("Курс успешно создан!");
+    } catch (error) {
+      console.error("Ошибка при создании курса:", error);
+      if (error.response) {
+        const { status, data } = error.response;
+        if (status === 401) alert("Ошибка: Необходимо авторизоваться.");
+        else if (status === 403) alert("Ошибка: У вас нет прав для создания курса.");
+        else if (status === 400) alert(`Ошибка: ${data.message || "Некорректные данные."}`);
+        else alert("Произошла ошибка. Попробуйте позже.");
+      } else {
+        alert("Не удалось подключиться к серверу. Проверьте соединение.");
+      }
     }
-};
+  };
 
   const updateCourse = async (id) => {
     try {
-      const response = await axios.put(`${host}/api/courses/${id}`, {
-        title,
-        description,
-      },
-      {
+      const response = await axios.put(
+        `${host}/api/courses/${id}`,
+        { title, description },
+        {
           headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json', 
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-      });
+        }
+      );
       setCourses(courses.map((course) => (course.id === id ? response.data : course)));
       setEditingCourse(null);
       setTitle("");
@@ -149,13 +137,11 @@ export default function CoursesPage() {
 
   const deleteCourse = async (id) => {
     try {
-      await axios.delete(`${host}/api/courses/${id}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                   
-                },
-            })
+      await axios.delete(`${host}/api/courses/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setCourses(courses.filter((course) => course.id !== id));
     } catch (error) {
       console.error("Ошибка при удалении курса:", error);
@@ -163,87 +149,93 @@ export default function CoursesPage() {
   };
 
   const handleLogout = () => {
-      console.log('HandleLogout called');
-      dispatch(logoutAction());
-      localStorage.removeItem('token');
-      router.push('/login');
-    };
+    console.log("HandleLogout called");
+    dispatch(logoutAction());
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
+  // Пока token не загружен, можно показать загрузку или редирект
+  if (!token) {
+    return (
+      <Typography variant="h6" sx={{ textAlign: "center", mt: 4 }}>
+        Загрузка...
+      </Typography>
+    );
+  }
 
   return (
     <>
-    <TopMenu handleLogout={handleLogout}  userInfo={userInfo} />
-    <Container maxWidth="md">
-      <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
-        Управление курсами
-      </Typography>
-
-      {/* Форма добавления/редактирования */}
-      <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6">
-          {editingCourse ? "Редактировать курс" : "Создать новый курс"}
+      <TopMenu handleLogout={handleLogout} userInfo={userInfo} />
+      <Container maxWidth="md">
+        <Typography variant="h4" sx={{ mt: 4, mb: 2, textAlign: "center" }}>
+          Управление курсами
         </Typography>
-        <TextField
-          fullWidth
-          label="Название курса"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          sx={{ mt: 2 }}
-        />
-        <TextField
-          fullWidth
-          label="Описание курса"
-          multiline
-          rows={3}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          sx={{ mt: 2 }}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{ mt: 2 }}
-          onClick={editingCourse ? () => updateCourse(editingCourse) : createCourse}
-        >
-          {editingCourse ? "Обновить курс" : "Добавить курс"}
-        </Button>
-      </Paper>
 
-      {/* Список курсов */}
-      <List>
-        {courses.map((course) => (
-          <Paper key={course.id} elevation={3} sx={{ mb: 2 }}>
-            <ListItem>
-              <ListItemText
-                primary={course.title}
-                secondary={course.description}
-              />
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  aria-label="edit"
-                  color="primary"
-                  onClick={() => {
-                    setEditingCourse(course.id);
-                    setTitle(course.title);
-                    setDescription(course.description);
-                  }}
-                >
-                  <Edit />
-                </IconButton>
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  color="error"
-                  onClick={() => deleteCourse(course.id)}
-                >
-                  <Delete />
-                </IconButton>
-              </ListItemSecondaryAction>
-            </ListItem>
-          </Paper>
-        ))}
-      </List>
-    </Container>
+        {/* Форма добавления/редактирования */}
+        <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+          <Typography variant="h6">
+            {editingCourse ? "Редактировать курс" : "Создать новый курс"}
+          </Typography>
+          <TextField
+            fullWidth
+            label="Название курса"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <TextField
+            fullWidth
+            label="Описание курса"
+            multiline
+            rows={3}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+            onClick={editingCourse ? () => updateCourse(editingCourse) : createCourse}
+          >
+            {editingCourse ? "Обновить курс" : "Добавить курс"}
+          </Button>
+        </Paper>
+
+        {/* Список курсов */}
+        <List>
+          {courses.map((course) => (
+            <Paper key={course.id} elevation={3} sx={{ mb: 2 }}>
+              <ListItem>
+                <ListItemText primary={course.title} secondary={course.description} />
+                <ListItemSecondaryAction>
+                  <IconButton
+                    edge="end"
+                    aria-label="edit"
+                    color="primary"
+                    onClick={() => {
+                      setEditingCourse(course.id);
+                      setTitle(course.title);
+                      setDescription(course.description);
+                    }}
+                  >
+                    <Edit />
+                  </IconButton>
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    color="error"
+                    onClick={() => deleteCourse(course.id)}
+                  >
+                    <Delete />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+            </Paper>
+          ))}
+        </List>
+      </Container>
     </>
   );
 }
