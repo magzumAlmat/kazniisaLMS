@@ -40,11 +40,21 @@ export default function MaterialsPage() {
   const [testFilePath, setTestFilePath] = useState("");
   const [userInfo, setUserInfo] = useState(null);
   const host = process.env.NEXT_PUBLIC_HOST;
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(null);
 
   const dispatch = useDispatch();
   const router = useRouter();
 
+   useEffect(() => {
+        const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+        setToken(storedToken);
+    
+        if (!storedToken) {
+          router.push("/login");
+        }
+      }, [router]);
+
+      
   if (!token) {
     console.error("Token not available");
     router.push("/login");

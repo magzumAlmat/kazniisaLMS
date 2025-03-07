@@ -369,7 +369,8 @@ export default function Layout({ children }) {
   const [lessons, setLessons] = useState([]); // Уроки
   const [progress, setProgress] = useState([]); // Прогресс
   const dispatch = useDispatch();
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(null);
+  //const token = localStorage.getItem("token");
   // Проверка наличия токена
   const host=process.env.NEXT_PUBLIC_HOST
 
@@ -389,6 +390,15 @@ export default function Layout({ children }) {
   console.log("2. Token from URL:", token);
 
   
+   useEffect(() => {
+      const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      setToken(storedToken);
+  
+      if (!storedToken) {
+        router.push("/login");
+      }
+    }, [router]);
+    
   if (token) {
     try {
       const decoded = jwtDecode(token);

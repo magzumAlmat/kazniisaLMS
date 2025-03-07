@@ -1,6 +1,1 @@
-{
-  "/progressstatus/page": "app/progressstatus/page.js",
-  "/login/page": "app/login/page.js",
-  "/layout/page": "app/layout/page.js",
-  "/progressstatus/[id]/page": "app/progressstatus/[id]/page.js"
-}
+{}
