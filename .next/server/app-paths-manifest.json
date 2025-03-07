@@ -1,1 +1,5 @@
-{}
+{
+  "/addstreams/page": "app/addstreams/page.js",
+  "/addcourse/page": "app/addcourse/page.js",
+  "/addlessons/page": "app/addlessons/page.js"
+}

@@ -43,6 +43,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuth) {
+      console.log('isAuth= ',isAuth)
       router.push("/layout");
     }
   }, [isAuth, router]);

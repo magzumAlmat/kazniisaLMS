@@ -1,9 +1,9 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import EditorJS from "@editorjs/editorjs";
-import Header from "@editorjs/header";
-import List from "@editorjs/list";
+const EditorJS = dynamic(() => import("@editorjs/editorjs"), { ssr: false });
+const Header = dynamic(() => import("@editorjs/header"), { ssr: false });
+const List = dynamic(() => import("@editorjs/list"), { ssr: false });
 import {
   Container,
   Box,
@@ -27,6 +27,13 @@ import TopMenu from "../../components/topmenu";
 import { logoutAction } from "../../store/slices/authSlice";
 import { useRouter } from "next/navigation";
 import "../style/base.css";
+
+
+import dynamic from "next/dynamic";
+// const EditorJS = dynamic(() => import("@editorjs/editorjs"), { ssr: false });
+// const Header = dynamic(() => import("@editorjs/header"), { ssr: false });
+// const List = dynamic(() => import("@editorjs/list"), { ssr: false });
+
 
 export default function LessonsPage() {
   const dispatch = useDispatch();
@@ -264,7 +271,9 @@ export default function LessonsPage() {
             onChange={(e) => setTitle(e.target.value)}
             sx={{ mt: 2 }}
           />
-          <Box id="editorjs" sx={{ mt: 2, border: "1px solid #ccc", minHeight: "200px" }} />
+     {typeof window !== 'undefined' && (
+        <Box id="editorjs" sx={{ mt: 2, border: "1px solid #ccc", minHeight: "200px" }} />
+      )}
           <FormControl fullWidth sx={{ mt: 2 }}>
             <InputLabel>Выберите курс</InputLabel>
             <Select value={courseId} onChange={(e) => setCourseId(e.target.value)}>

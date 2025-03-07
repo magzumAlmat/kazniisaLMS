@@ -359,6 +359,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getAllCoursesAction, logoutAction, getUserInfo, getUserInfoAction } from "../../store/slices/authSlice";
 import useTokenFromURL from "../../components/useTokenFromURL";
 import TopMenu from "../../components/topmenu";
+import { useRouter } from "next/navigation";
 
 export default function Layout({ children }) {
   // Инициализация состояния и хуков
@@ -373,21 +374,9 @@ export default function Layout({ children }) {
   //const token = localStorage.getItem("token");
   // Проверка наличия токена
   const host=process.env.NEXT_PUBLIC_HOST
-
+const router=useRouter
   // Декодирование токена
-  let decodedToken;
-  try {
-    decodedToken = jwtDecode(token);
-    console.log("Decoded token:", decodedToken);
-  } catch (error) {
-    console.error("Invalid token:", error);
-    localStorage.removeItem("token");
-    window.location.href = "/login"; // Перенаправляем на страницу входа
-    return null;
-  }
-
-  console.log("1. URL search params:", window.location.search);
-  console.log("2. Token from URL:", token);
+ 
 
   
    useEffect(() => {
@@ -395,10 +384,13 @@ export default function Layout({ children }) {
       setToken(storedToken);
   
       if (!storedToken) {
-        router.push("/login");
+        // setTimeout(20000)
+        // router.push("/login");
+        console.log('StoredToken= ',storedToken)
       }
     }, [router]);
     
+
   if (token) {
     try {
       const decoded = jwtDecode(token);
@@ -409,7 +401,7 @@ export default function Layout({ children }) {
       console.error("5. Invalid token:", error.message);
     }
   } else {
-    console.error("6. Token not found in URL");
+    // console.error("6. Token not found in URL");
   }
 
   // Вызов хука для обработки токена из URL
@@ -448,7 +440,8 @@ export default function Layout({ children }) {
       console.error('Ошибка при загрузке информации о пользователе:', err);
       if (err.response && err.response.status === 401) {
         // Перенаправляем на страницу логина при 401
-        router.push('/login');
+        console.log('Перенаправляю на логин',err.response)
+        // router.push('/login');
       }
     }
   };
