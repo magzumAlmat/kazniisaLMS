@@ -342,7 +342,7 @@ export default function StreamsPage() {
 
   if (!token) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+      <Box >
         <Typography>Перенаправление на страницу входа...</Typography>
       </Box>
     );
@@ -350,8 +350,8 @@ export default function StreamsPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
-        <CircularProgress />
+      <Box >
+        {/* <CircularProgress /> */}
         <Typography>Loading data...</Typography>
       </Box>
     );
