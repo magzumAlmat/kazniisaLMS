@@ -54,10 +54,23 @@ export default function ProgressDetail() {
         }
         setUser(foundUser);
 
+        try{
+
         const streamsResponse = await axios.get(`${host}/api/streams`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setStreams(streamsResponse.data.streams || []);
+
+      } catch (streamErr) {
+        console.warn("Предупреждение при загрузке потоков:", streamErr.message);
+        // Если 404 или "Потоки не найдены", считаем это нормальным случаем
+        if (streamErr.response && streamErr.response.status === 404) {
+           setStreams([]);
+        } else {
+          throw streamErr; // Пробрасываем другие ошибки
+        }
+      }
+
 
         const coursesResponse = await axios.get(`${host}/api/courses`, {
           headers: { Authorization: `Bearer ${token}` },
