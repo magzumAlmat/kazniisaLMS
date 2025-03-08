@@ -48,6 +48,7 @@ const TopMenu = ({ userInfo, handleLogout }) => {
 
     return menuItems[userInfo.roleId] || [
       { text: "Главная", href: "/notauth" },
+      { text: "Профиль", href: "/profile" },
       { text: "Выйти", onClick: handleLogout },
     ];
   };

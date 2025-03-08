@@ -5,7 +5,18 @@ import TopMenu from "../../components/topmenu";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { logoutAction } from "../../store/slices/authSlice";
-import { Box, TextField, Button, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  Snackbar,
+} from "@mui/material"; // Добавляем Snackbar
 import jwtDecode from "jwt-decode";
 
 const ProfilePage = () => {
@@ -17,6 +28,9 @@ const ProfilePage = () => {
     phone: "",
     areasofactivity: "",
   });
+  const [errorMessage, setErrorMessage] = useState(""); // Для ошибок
+  const [successMessage, setSuccessMessage] = useState(""); // Для успеха
+  const [openSnackbar, setOpenSnackbar] = useState(false); // Управление видимостью Snackbar
   const dispatch = useDispatch();
   const router = useRouter();
   const host = process.env.NEXT_PUBLIC_HOST;
@@ -30,7 +44,6 @@ const ProfilePage = () => {
     "Девелопмент и недвижимость",
   ];
 
-  // Инициализация токена и проверка его валидности
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     console.log("Stored token:", storedToken);
@@ -44,15 +57,14 @@ const ProfilePage = () => {
     try {
       const decodedToken = jwtDecode(storedToken);
       console.log("Decoded token:", decodedToken);
-      setToken(storedToken); // Устанавливаем токен только после успешного декодирования
+      setToken(storedToken);
     } catch (error) {
       console.error("Invalid token:", error.message);
-      localStorage.removeItem("token"); // Удаляем некорректный токен
+      localStorage.removeItem("token");
       router.push("/login");
     }
   }, [router]);
 
-  // Загрузка данных профиля и информации о пользователе
   useEffect(() => {
     if (!token) {
       console.log("Token is null, skipping fetch");
@@ -61,7 +73,7 @@ const ProfilePage = () => {
 
     fetchProfile();
     fetchUserInfo();
-  }, [token]); // Зависимость только от token
+  }, [token]);
 
   const fetchProfile = async () => {
     console.log("fetchProfile started");
@@ -112,8 +124,12 @@ const ProfilePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("ProfileData:", profileData);
+    setErrorMessage(""); // Сбрасываем ошибку
+    setSuccessMessage(""); // Сбрасываем успех
+    setOpenSnackbar(false); // Закрываем предыдущий Snackbar
+
     try {
-      await axios.put(
+      const response = await axios.put(
         `${host}/api/profile`,
         profileData,
         {
@@ -123,17 +139,23 @@ const ProfilePage = () => {
           },
         }
       );
-      alert("Профиль успешно обновлен!");
+      console.log("Response from server:", response.data); // Логируем ответ сервера
+      setSuccessMessage(response.data.message || "Профиль успешно обновлен");
+      setOpenSnackbar(true); // Показываем Snackbar с успехом
     } catch (error) {
       console.error("Ошибка при обновлении профиля:", error);
+      console.log("Error response:", error.response); // Логируем полный ответ об ошибке
       if (error.response) {
         if (error.response.status === 401) {
           router.push("/login");
         } else {
-          alert(`Ошибка: ${error.response.data.message || "Попробуйте позже."}`);
+          const message = error.response.data?.message || "Произошла ошибка при обновлении профиля";
+          setErrorMessage(message);
+          setOpenSnackbar(true); // Показываем Snackbar с ошибкой
         }
       } else {
-        alert("Не удалось подключиться к серверу.");
+        setErrorMessage("Не удалось подключиться к серверу");
+        setOpenSnackbar(true);
       }
     }
   };
@@ -144,13 +166,21 @@ const ProfilePage = () => {
     router.push("/login");
   };
 
+  // Закрытие Snackbar
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
+    setErrorMessage("");
+    setSuccessMessage("");
+  };
+
   return (
     <>
-    <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
+      <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
       <Box sx={{ padding: "20px", maxWidth: "400px", margin: "0 auto" }}>
         <Typography variant="h4" gutterBottom>
           Мой профиль
         </Typography>
+
         <form onSubmit={handleSubmit}>
           <Box sx={{ marginBottom: "15px" }}>
             <TextField
@@ -222,6 +252,22 @@ const ProfilePage = () => {
             Сохранить
           </Button>
         </form>
+
+        {/* Snackbar для сообщений */}
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={6000} // Скрывается через 6 секунд
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }} // Появляется сверху по центру
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={errorMessage ? "error" : "success"}
+            sx={{ width: "100%" }}
+          >
+            {errorMessage || successMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </>
   );
