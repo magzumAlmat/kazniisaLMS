@@ -251,6 +251,89 @@ export default function StreamsPage() {
     setSelectedStudents([]);
   };
 
+  // const handleGenerateStreamReport = async (stream) => {
+  //   console.log('stream= ', stream);
+  //   try {
+  //     setLoading(true);
+
+  //     const studentsResponse = await axios.get(`${host}/api/streams/getstudentsbystreamid/${stream.id}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     const students = studentsResponse.data.students || [];
+
+  //     console.log('students= ', students);
+  //     const course = courses.find((c) => c.id === stream.courseId) || { title: "Не указан" };
+  //     console.log('course===', course);
+  //     const teacher = users.find((u) => u.id === stream.teacherId) || { name: "Не указан", lastname: "" };
+
+  //     const reportData = await Promise.all(
+  //       students.map(async (student) => {
+  //         const progressPromises = [
+  //           axios
+  //             .get(`${host}/api/course/progress/${student.id}/${stream.courseId}`, {
+  //               headers: { Authorization: `Bearer ${token}` },
+  //             })
+  //             .then((response) => ({
+  //               courseId: stream.courseId,
+  //               data: response.data,
+  //             }))
+  //             .catch(() => ({
+  //               courseId: stream.courseId,
+  //               data: { lessons: [], course_progress: 0 },
+  //             })),
+  //         ];
+
+  //         const progressResults = await Promise.all(progressPromises);
+  //         const isFinished = progressResults.some(({ data }) => data.lessons.some((lesson) => lesson.isfinished === "yes"));
+  //         const userProgress = progressResults.reduce((acc, { data }) => acc + data.course_progress, 0) / progressResults.length || 0;
+
+  //         return {
+  //           "Student": `${student.name ?? ""} ${student.lastname ?? ""} (${student.email})`,
+  //           "Course": course.title,
+  //           "Teacher": `${teacher.name ?? ""} ${teacher.lastname ?? ""}`,
+  //           "Progress": `${userProgress.toFixed(2)}%`,
+  //           "Is Finished": isFinished ? "yes" : "no",
+  //           "Areas of Activity": student.areasofactivity || "Не указано",
+  //         };
+  //       })
+  //     );
+
+  //     const streamInfo = [
+  //       { "Field": "Название потока", "Value": stream.name },
+  //       { "Field": "Курс", "Value": course.title },
+  //       { "Field": "Учитель", "Value": `${teacher.name ?? ""} ${teacher.lastname ?? ""}` },
+  //       { "Field": "Дата начала", "Value": new Date(stream.startDate).toLocaleDateString() },
+  //       { "Field": "Дата окончания", "Value": new Date(stream.endDate).toLocaleDateString() },
+  //       { "Field": "Стоимость", "Value": stream.cost },
+  //       { "Field": "Макс. студентов", "Value": stream.maxStudents },
+  //       { "Field": "", "Value": "" },
+  //     ];
+
+  //     const fullReportData = [...streamInfo, ...reportData];
+
+  //     const worksheet = XLSX.utils.json_to_sheet(fullReportData);
+  //     worksheet["!cols"] = [
+  //       { wch: 30 },
+  //       { wch: 40 },
+  //       { wch: 30 },
+  //       { wch: 40 },
+  //       { wch: 30 },
+  //       { wch: 40 },
+  //     ];
+  //     const workbook = XLSX.utils.book_new();
+  //     XLSX.utils.book_append_sheet(workbook, worksheet, "Stream Report");
+
+  //     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  //     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+  //     saveAs(blob, `Stream_${stream.name}_Report_${new Date().toISOString().split("T")[0]}.xlsx`);
+  //   } catch (err) {
+  //     console.error("Ошибка при генерации отчета:", err);
+  //     setError("Не удалось сгенерировать отчет по потоку");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleGenerateStreamReport = async (stream) => {
     console.log('stream= ', stream);
     try {
@@ -334,6 +417,8 @@ export default function StreamsPage() {
     }
   };
 
+
+  
   const handleLogout = () => {
     dispatch(logoutAction());
     localStorage.removeItem("token");

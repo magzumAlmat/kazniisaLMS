@@ -18,7 +18,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 const TopMenu = ({ userInfo, handleLogout }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Функция для отрисовки меню в зависимости от роли пользователя
   const renderMenuByRole = () => {
     if (!userInfo) return [];
 
@@ -27,7 +26,6 @@ const TopMenu = ({ userInfo, handleLogout }) => {
         { text: "Главная", href: "/layout" },
         { text: "Добавить роль", href: "/addrole" },
         { text: "Профиль", href: "/profile" },
-        // { text: "Админ-панель", href: "/dashboard" },
         { text: "Выйти", onClick: handleLogout },
       ],
       2: [
@@ -81,39 +79,12 @@ const TopMenu = ({ userInfo, handleLogout }) => {
 
   return (
     <>
-      <AppBar
-        position="static"
-        sx={{
-          bgcolor: "#1976d2",
-          borderBottom: "2px solid #1565c0",
-        }}
-      >
-        <Toolbar
-          sx={{
-            flexWrap: "wrap",
-            justifyContent: { xs: "space-between", sm: "space-between" },
-            py: { xs: 1, sm: 2 },
-            minHeight: { xs: 48, sm: 64 }, // Уменьшаем высоту на мобильных
-          }}
-        >
-          <Typography
-            variant="h6"
-            component="div"
-            sx={{
-              fontWeight: "bold",
-              color: "#fff",
-              fontSize: { xs: "1rem", sm: "1.25rem" },
-            }}
-          >
+      <AppBar position="static" sx={{ bgcolor: "#1976d2", borderBottom: "2px solid #1565c0" }}>
+        <Toolbar sx={{ flexWrap: "wrap", justifyContent: { xs: "space-between", sm: "space-between" }, py: { xs: 1, sm: 2 } }}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: "bold", color: "#fff", fontSize: { xs: "1rem", sm: "1.25rem" } }}>
             Kazniisa LMS
           </Typography>
-          <Box
-            sx={{
-              display: { xs: "none", sm: "flex" },
-              gap: { xs: 1, sm: 2, md: 3 },
-              flexWrap: "wrap",
-            }}
-          >
+          <Box sx={{ display: { xs: "none", sm: "flex" }, gap: { xs: 1, sm: 2, md: 3 }, flexWrap: "wrap" }}>
             {renderMenuByRole().map((item, index) => (
               <Button
                 key={index}
@@ -121,11 +92,7 @@ const TopMenu = ({ userInfo, handleLogout }) => {
                 component={item.href ? Link : "button"}
                 href={item.href}
                 onClick={item.onClick}
-                sx={{
-                  fontSize: { xs: "0.75rem", sm: "0.875rem", md: "1rem" },
-                  px: { xs: 1, sm: 2 },
-                  minWidth: "auto",
-                }}
+                sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem", md: "1rem" }, px: { xs: 1, sm: 2 }, minWidth: "auto" }}
               >
                 {item.text}
               </Button>

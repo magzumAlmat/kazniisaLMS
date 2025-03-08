@@ -12,7 +12,28 @@ const NotAuth = () => {
       const dispatch = useDispatch();
       const router = useRouter();
       const host=process.env.NEXT_PUBLIC_HOST
-      const token = localStorage.getItem("token");
+      const [token, setToken] = useState(null); // Инициализируем token как null
+
+  
+   // Получаем token только на клиенте
+   useEffect(() => {
+     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+     setToken(storedToken);
+ 
+     if (!storedToken) {
+       console.error("Token not available");
+       router.push("/login");
+       return;
+     }
+ 
+     try {
+       const decodedToken = jwtDecode(storedToken);
+       console.log("Decoded token:", decodedToken.username);
+     } catch (error) {
+       console.error("Invalid token:", error);
+       router.push("/login");
+     }
+   }, [router]);
 
  useEffect(() => {
     if (!token) {

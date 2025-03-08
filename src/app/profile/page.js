@@ -6,21 +6,21 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { logoutAction } from "../../store/slices/authSlice";
 import { Box, TextField, Button, Typography, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import jwtDecode from "jwt-decode";
 
 const ProfilePage = () => {
   const [userInfo, setUserInfo] = useState(null);
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(null);
   const [profileData, setProfileData] = useState({
     name: "",
     lastname: "",
     phone: "",
-    areasofactivity: "", // Добавляем новое поле
+    areasofactivity: "",
   });
   const dispatch = useDispatch();
   const router = useRouter();
   const host = process.env.NEXT_PUBLIC_HOST;
 
-  // Список значений для areasofactivity
   const activityOptions = [
     "Управление строительными проектами",
     "Проектирование",
@@ -30,17 +30,41 @@ const ProfilePage = () => {
     "Девелопмент и недвижимость",
   ];
 
+  // Инициализация токена и проверка его валидности
   useEffect(() => {
-    if (!token) {
-      console.log("token is null", token);
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    console.log("Stored token:", storedToken);
+
+    if (!storedToken) {
+      console.error("Token not available");
       router.push("/login");
       return;
     }
-    fetchProfile();
-    fetchUserInfo();
+
+    try {
+      const decodedToken = jwtDecode(storedToken);
+      console.log("Decoded token:", decodedToken);
+      setToken(storedToken); // Устанавливаем токен только после успешного декодирования
+    } catch (error) {
+      console.error("Invalid token:", error.message);
+      localStorage.removeItem("token"); // Удаляем некорректный токен
+      router.push("/login");
+    }
   }, [router]);
 
+  // Загрузка данных профиля и информации о пользователе
+  useEffect(() => {
+    if (!token) {
+      console.log("Token is null, skipping fetch");
+      return;
+    }
+
+    fetchProfile();
+    fetchUserInfo();
+  }, [token]); // Зависимость только от token
+
   const fetchProfile = async () => {
+    console.log("fetchProfile started");
     try {
       const response = await axios.get(`${host}/api/profile`, {
         headers: {
@@ -51,7 +75,7 @@ const ProfilePage = () => {
         name: response.data.name ?? "",
         lastname: response.data.lastname ?? "",
         phone: response.data.phone ?? "",
-        areasofactivity: response.data.areasofactivity ?? "", // Добавляем areasofactivity
+        areasofactivity: response.data.areasofactivity ?? "",
       };
       setProfileData(data);
     } catch (error) {
@@ -63,6 +87,7 @@ const ProfilePage = () => {
   };
 
   const fetchUserInfo = async () => {
+    console.log("fetchUserInfo started");
     try {
       const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -85,8 +110,8 @@ const ProfilePage = () => {
   };
 
   const handleSubmit = async (e) => {
-    console.log('ProfileData',profileData)
     e.preventDefault();
+    console.log("ProfileData:", profileData);
     try {
       await axios.put(
         `${host}/api/profile`,
@@ -121,7 +146,7 @@ const ProfilePage = () => {
 
   return (
     <>
-      <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
+      <TopMenu userInfo={userInfo} />
       <Box sx={{ padding: "20px", maxWidth: "400px", margin: "0 auto" }}>
         <Typography variant="h4" gutterBottom>
           Мой профиль

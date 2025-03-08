@@ -72,7 +72,7 @@ const LoginPage = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <>
       <Box
         sx={{
           marginTop: 8,
@@ -142,7 +142,7 @@ const LoginPage = () => {
           </Grid>
         </Box>
       </Box>
-    </Container>
+    </>
   );
 };
 

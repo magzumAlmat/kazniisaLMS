@@ -20,11 +20,12 @@ import { useRouter } from "next/navigation";
 import TopMenu from "../../components/topmenu";
 import { logoutAction, getAllCoursesAction } from "../../store/slices/authSlice";
 import Link from "next/link";
+import jwtDecode from "jwt-decode";
 
 export default function UserProgressPage() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(null); // Инициализируем token как null
   const [userInfo, setUserInfo] = useState(null);
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -34,6 +35,27 @@ export default function UserProgressPage() {
   const [error, setError] = useState(null);
   const { courses } = useSelector((state) => state.auth);
   const host = process.env.NEXT_PUBLIC_HOST;
+  
+  useEffect(() => {
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    console.log("Stored token:", storedToken);
+
+    if (!storedToken) {
+      console.error("Token not available");
+       router.push("/login");
+      return;
+    }
+
+    try {
+      const decodedToken = jwtDecode(storedToken);
+      console.log("Decoded token:", decodedToken);
+      setToken(storedToken); // Устанавливаем токен только после успешного декодирования
+    } catch (error) {
+      console.error("Invalid token:", error.message);
+      localStorage.removeItem("token"); // Удаляем некорректный токен
+      router.push("/login");
+    }
+  }, [router]);
 
   // Загрузка пользователей и курсов
   useEffect(() => {
