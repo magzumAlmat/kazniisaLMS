@@ -146,7 +146,7 @@ const ProfilePage = () => {
 
   return (
     <>
-      <TopMenu userInfo={userInfo} />
+    <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
       <Box sx={{ padding: "20px", maxWidth: "400px", margin: "0 auto" }}>
         <Typography variant="h4" gutterBottom>
           Мой профиль

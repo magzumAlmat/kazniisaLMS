@@ -4,7 +4,7 @@ import { Container, Box, Typography } from "@mui/material";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { getAllCoursesAction } from "../../store/slices/authSlice";
+import { getAllCoursesAction, logoutAction } from "../../store/slices/authSlice"; // Добавляем logoutAction
 import TopMenu from "../../components/topmenu";
 import { useRouter } from "next/navigation";
 
@@ -14,28 +14,24 @@ export default function Layout({ children }) {
   const [userInfo, setUserInfo] = useState(null);
   const [token, setToken] = useState(null);
   const [lessons, setLessons] = useState([]);
-  const [isLoggingOut, setIsLoggingOut] = useState(false); // Флаг для предотвращения редиректов
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const host = process.env.NEXT_PUBLIC_HOST;
 
-  // Проверка токена и установка начального состояния
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     console.log("Stored token:", storedToken);
 
-    // Если токена нет или он пустой, и мы не в процессе выхода, перенаправляем на логин
     if (!storedToken || storedToken.trim() === "" && !isLoggingOut) {
       console.log("No valid token found, redirecting to login...");
       router.push("/login");
       return;
     }
 
-    // Если мы в процессе выхода, ничего не делаем
     if (isLoggingOut) {
       console.log("Currently logging out, skipping token check...");
       return;
     }
 
-    // Проверяем и декодируем токен
     try {
       const decoded = jwtDecode(storedToken);
       console.log("Decoded token:", decoded);
@@ -50,13 +46,11 @@ export default function Layout({ children }) {
     }
   }, [router, isLoggingOut]);
 
-  // Загрузка данных после установки токена
   useEffect(() => {
     if (!token || isLoggingOut) return;
 
     const fetchInitialData = async () => {
       try {
-        // Загрузка курсов через Redux
         dispatch(getAllCoursesAction())
           .then(() => {
             console.log("Courses fetched successfully");
@@ -65,10 +59,7 @@ export default function Layout({ children }) {
             console.error("Error fetching courses:", error);
           });
 
-        // Загрузка информации о пользователе
         await fetchUserInfo();
-
-        // Загрузка уроков
         await fetchLessons();
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -104,16 +95,15 @@ export default function Layout({ children }) {
     }
   };
 
-  // Обработчик выхода, переданный в TopMenu
   const handleLogout = () => {
     console.log("Logging out...");
-    setIsLoggingOut(true); // Устанавливаем флаг перед выходом
+    setIsLoggingOut(true);
     localStorage.removeItem("token");
-    setToken(null); // Сбрасываем токен в состоянии
+    setToken(null);
+    dispatch(logoutAction()); // Сбрасываем состояние авторизации в Redux
     router.push("/login");
   };
 
-  // Если токена нет и мы не в процессе выхода, ничего не рендерим
   if (!token && !isLoggingOut) {
     console.log("No token and not logging out, rendering null...");
     return null;

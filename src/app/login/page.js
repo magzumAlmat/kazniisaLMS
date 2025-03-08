@@ -4,75 +4,80 @@ import { useRouter } from "next/navigation";
 import { Container, Typography, TextField, Button, Box, Link, Grid, Stack, Alert } from "@mui/material";
 import { LockOutlined, Google as GoogleIcon } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { authorize, setError } from "../../store/slices/authSlice";
+import { authorize, setError, logoutAction } from "../../store/slices/authSlice"; // Добавляем logoutAction
 import jwtDecode from "jwt-decode";
 import axios from "axios";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [localError, setLocalError] = useState(""); // Локальное состояние для ошибки
+  const [localError, setLocalError] = useState("");
   const isAuth = useSelector((state) => state.auth.isAuth);
-  const reduxError = useSelector((state) => state.auth.error); // Ошибка из Redux
+  const reduxError = useSelector((state) => state.auth.error);
   const dispatch = useDispatch();
   const router = useRouter();
   const host = process.env.NEXT_PUBLIC_HOST;
 
+  // Проверка токена только при монтировании
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    console.log("Stored token on login page:", storedToken);
+
+    if (storedToken) {
       try {
-        const decodedToken = jwtDecode(token);
+        const decodedToken = jwtDecode(storedToken);
         const currentTime = Date.now() / 1000;
 
         if (decodedToken.exp && decodedToken.exp < currentTime) {
-          console.error("Token expired");
+          console.log("Token expired, logging out...");
+          dispatch(logoutAction()); // Сбрасываем состояние в Redux
           localStorage.removeItem("token");
-          window.location.href = "/login";
+          router.push("/login");
         } else {
-          dispatch(authorize({ isAuth: true, token }));
+          console.log("Valid token found, redirecting to layout...");
+          dispatch(authorize({ isAuth: true, token: storedToken }));
           router.push("/layout");
         }
       } catch (error) {
-        console.error("Invalid token:", error);
+        console.error("Invalid token on login page:", error);
+        dispatch(logoutAction()); // Сбрасываем состояние в Redux
         localStorage.removeItem("token");
-        window.location.href = "/login";
+        router.push("/login");
       }
     }
-  }, [dispatch, router]);
+    // Убираем зависимости, чтобы useEffect срабатывал только при монтировании
+  }, []); // Пустой массив зависимостей
 
+  // Перенаправление при изменении isAuth
   useEffect(() => {
     if (isAuth) {
-      console.log('isAuth= ',isAuth)
+      console.log("isAuth changed to true, redirecting to layout...");
       router.push("/layout");
     }
   }, [isAuth, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLocalError(""); // Сбрасываем локальную ошибку
-    dispatch(setError(null)); // Сбрасываем ошибку в Redux
+    setLocalError("");
+    dispatch(setError(null));
 
     try {
-      // Выполняем запрос на сервер напрямую
       const response = await axios.post(`${host}/api/auth/login`, { email, password });
       const { token } = response.data;
 
-      // Сохраняем токен в localStorage
       localStorage.setItem("token", token);
-
-      // Устанавливаем авторизацию в Redux
       dispatch(authorize({ isAuth: true, token }));
+      router.push("/layout"); // Перенаправляем после успешного входа
     } catch (error) {
       console.error("Ошибка при входе:", error);
       const errorMessage = error.response?.data?.message || "Неверный email или пароль";
-      setLocalError(errorMessage); // Устанавливаем локальную ошибку
-      dispatch(setError(errorMessage)); // Устанавливаем ошибку в Redux
+      setLocalError(errorMessage);
+      dispatch(setError(errorMessage));
     }
   };
 
   return (
-    <>
+    <Container component="main" maxWidth="xs">
       <Box
         sx={{
           marginTop: 8,
@@ -142,7 +147,7 @@ const LoginPage = () => {
           </Grid>
         </Box>
       </Box>
-    </>
+    </Container>
   );
 };
 
