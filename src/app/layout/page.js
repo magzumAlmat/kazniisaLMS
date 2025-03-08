@@ -374,7 +374,7 @@ export default function Layout({ children }) {
   //const token = localStorage.getItem("token");
   // Проверка наличия токена
   const host=process.env.NEXT_PUBLIC_HOST
-const router=useRouter
+  const router=useRouter
   // Декодирование токена
  
 

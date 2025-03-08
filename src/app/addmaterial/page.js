@@ -39,28 +39,32 @@ export default function MaterialsPage() {
   const [courses, setCourses] = useState([]);
   const [testFilePath, setTestFilePath] = useState("");
   const [userInfo, setUserInfo] = useState(null);
-  const host = process.env.NEXT_PUBLIC_HOST;
   const [token, setToken] = useState(null);
+  const host = process.env.NEXT_PUBLIC_HOST;
 
   const dispatch = useDispatch();
   const router = useRouter();
 
-   useEffect(() => {
-        const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-        setToken(storedToken);
-    
-        if (!storedToken) {
-          router.push("/login");
-        }
-      }, [router]);
+  // Check token and redirect if not present
+  useEffect(() => {
+    const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    setToken(storedToken);
+    if (!storedToken) {
+      router.push("/login");
+    }
+  }, [router]);
 
-      
-  if (!token) {
-    console.error("Token not available");
-    router.push("/login");
-    return null;
-  }
+  // Fetch data only if token is present
+  useEffect(() => {
+    if (token) {
+      fetchMaterials();
+      fetchLessons();
+      fetchCourses();
+      fetchUserInfo();
+    }
+  }, [token]);
 
+  // Dropzone setup
   const { getRootProps: getVideoRootProps, getInputProps: getVideoInputProps } = useDropzone({
     accept: "video/*",
     onDrop: (acceptedFiles) => {
@@ -99,13 +103,6 @@ export default function MaterialsPage() {
       );
     },
   });
-
-  useEffect(() => {
-    fetchMaterials();
-    fetchLessons();
-    fetchCourses();
-    fetchUserInfo();
-  }, []);
 
   const fetchUserInfo = async () => {
     try {
@@ -226,7 +223,7 @@ export default function MaterialsPage() {
       setDocumentFiles([]);
       setPresentationFiles([]);
       setTestFilePath("");
-      window.location.reload()
+      window.location.reload();
     } catch (error) {
       console.error("Ошибка при создании материала:", error);
     }
@@ -248,6 +245,11 @@ export default function MaterialsPage() {
     localStorage.removeItem("token");
     router.push("/login");
   };
+
+  // Render nothing until token is resolved
+  if (token === null) {
+    return null; // Or a loading spinner
+  }
 
   return (
     <>
@@ -271,12 +273,7 @@ export default function MaterialsPage() {
             />
             <FormControl fullWidth sx={{ mt: 2 }}>
               <InputLabel>Тип материала</InputLabel>
-              <Select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                fullWidth
-                required
-              >
+              <Select value={type} onChange={(e) => setType(e.target.value)} fullWidth required>
                 <MenuItem value="video">Видео</MenuItem>
                 <MenuItem value="document">Документ</MenuItem>
                 <MenuItem value="presentation">Презентация</MenuItem>

@@ -19,14 +19,16 @@ import {
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllCoursesAction, logoutAction } from "../../../store/slices/authSlice";
-
-import Paragraph from "@editorjs/paragraph";
 import TopMenu from "../../../components/topmenu";
-
 import dynamic from "next/dynamic";
-const EditorJS = dynamic(() => import("@editorjs/editorjs").then(mod => mod.default), { ssr: false });
-const Header = dynamic(() => import("@editorjs/header").then(mod => mod.default), { ssr: false });
-const List = dynamic(() => import("@editorjs/list").then(mod => mod.default), { ssr: false });
+
+// Динамическая загрузка Editor.js и инструментов
+const EditorJS = dynamic(() => import("@editorjs/editorjs").then((mod) => mod.default), { ssr: false });
+const Header = dynamic(() => import("@editorjs/header").then((mod) => mod.default), { ssr: false });
+const List = dynamic(() => import("@editorjs/list").then((mod) => mod.default), { ssr: false });
+const Paragraph = dynamic(() => import("@editorjs/paragraph").then((mod) => mod.default), { ssr: false });
+
+// Компонент VideoPlayer
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
     return <Typography>Видео недоступно.</Typography>;
@@ -46,7 +48,7 @@ const VideoPlayer = ({ material }) => {
 };
 
 export default function CourseDetail() {
-  const host=process.env.NEXT_PUBLIC_HOST
+  const host = process.env.NEXT_PUBLIC_HOST;
   const { id } = useParams();
   const router = useRouter();
   const dispatch = useDispatch();
@@ -61,7 +63,7 @@ export default function CourseDetail() {
   const [userInfo, setUserInfo] = useState(null);
   const isMobile = useMediaQuery("(max-width: 600px)");
 
-  // Получение токена на стороне клиента
+  // Получение токена
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     setToken(storedToken);
@@ -98,7 +100,7 @@ export default function CourseDetail() {
       });
       setMaterials(response.data);
     } catch (error) {
-      console.error(`Ошибка при загрузке материалов:`, error);
+      console.error("Ошибка при загрузке материалов:", error);
     }
   };
 
@@ -132,49 +134,84 @@ export default function CourseDetail() {
       fetchAllProgresses(userInfo.id, id);
     }
   }, [userInfo, id, token]);
-  const filteredLessons = lessons.filter((lesson) => lesson.course_id === Number(id));
-  useEffect(() => {
-    if (filteredLessons[activeTab] && filteredLessons[activeTab].content) {
-      try {
-        const content = JSON.parse(filteredLessons[activeTab].content);
 
-        if (!content || typeof content !== "object" || !Array.isArray(content.blocks)) {
+  const filteredLessons = lessons.filter((lesson) => lesson.course_id === Number(id));
+
+  // Инициализация Editor.js
+  useEffect(() => {
+    if (!filteredLessons.length || !filteredLessons[activeTab]?.content) {
+      const container = document.getElementById("editorjs-container");
+      if (container) container.innerHTML = "<p>Нет содержимого для отображения.</p>";
+      return;
+    }
+
+    const initEditor = async () => {
+      try {
+        const rawContent = JSON.parse(filteredLessons[activeTab].content);
+        console.log("Raw content:", rawContent);
+
+        // Проверяем формат данных
+        let editorData;
+        if (rawContent.blocks && Array.isArray(rawContent.blocks)) {
+          editorData = rawContent; // Данные уже в формате Editor.js
+        } else if (rawContent.id && rawContent.type && rawContent.data) {
+          // Если это один блок, оборачиваем его в массив blocks
+          editorData = { blocks: [rawContent] };
+        } else {
           throw new Error("Некорректный формат данных для Editor.js");
         }
 
-        if (editorInstance.current) {
-          editorInstance.current.destroy();
+        console.log("Editor data:", editorData);
+
+        // Уничтожаем предыдущий экземпляр редактора
+        if (editorInstance.current && typeof editorInstance.current.destroy === "function") {
+          await editorInstance.current.destroy();
           editorInstance.current = null;
         }
 
         const container = document.getElementById("editorjs-container");
-        if (container) container.innerHTML = "";
+        if (!container) {
+          throw new Error("Контейнер #editorjs-container не найден");
+        }
+        container.innerHTML = ""; // Очищаем контейнер
 
+        // Создаем новый экземпляр Editor.js
         const editor = new EditorJS({
           holder: "editorjs-container",
           readOnly: true,
-          data: content,
+          data: editorData.blocks[0].data,
           tools: {
             header: Header,
             list: List,
             paragraph: Paragraph,
           },
+          onReady: () => {
+            console.log("Editor.js готов с данными:", editorData.blocks[0].data);
+          },
         });
 
         editorInstance.current = editor;
       } catch (error) {
-        console.error("Ошибка при парсинге содержимого урока:", error);
+        console.error("Ошибка при инициализации Editor.js:", error);
+        const container = document.getElementById("editorjs-container");
+        if (container) {
+          container.innerHTML = `<p>Ошибка: ${error.message}</p>`;
+        }
       }
-    }
+    };
+
+    initEditor();
 
     return () => {
-      if (editorInstance.current) {
-        try {
-          editorInstance.current.destroy();
-        } catch (error) {
-          console.warn("Ошибка при уничтожении экземпляра Editor.js:", error);
-        }
-        editorInstance.current = null;
+      if (editorInstance.current && typeof editorInstance.current.destroy === "function") {
+        editorInstance.current
+          .destroy()
+          .then(() => {
+            editorInstance.current = null;
+          })
+          .catch((err) => {
+            console.warn("Ошибка при уничтожении Editor.js:", err);
+          });
       }
     };
   }, [activeTab, filteredLessons]);
@@ -231,7 +268,6 @@ export default function CourseDetail() {
     );
   }
 
-  
   const filteredMaterials = materials.filter(
     (material) => material.lesson_id === filteredLessons[activeTab]?.id
   );
@@ -261,7 +297,6 @@ export default function CourseDetail() {
           p: { xs: 1, sm: 2 },
         }}
       >
-        {/* Вкладки */}
         <Tabs
           orientation={isMobile ? "horizontal" : "vertical"}
           variant="scrollable"
@@ -296,7 +331,6 @@ export default function CourseDetail() {
           ))}
         </Tabs>
 
-        {/* Контент */}
         <Box
           sx={{
             flexGrow: 1,
@@ -347,8 +381,16 @@ export default function CourseDetail() {
               />
             )}
 
-            <Box id="editorjs-container" sx={{ mt: 2, minHeight: "50px", fontSize: { xs: "0.875rem", sm: "1rem" } }} />
-
+            <div
+              id="editorjs-container"
+              style={{
+                minHeight: "300px",
+                fontSize: isMobile ? "0.875rem" : "1rem",
+                border: "1px solid #e0e0e0",
+                padding: "10px",
+                borderRadius: "4px",
+              }}
+            />
             <Divider sx={{ my: 2 }} />
 
             <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
