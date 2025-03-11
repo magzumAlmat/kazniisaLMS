@@ -57,6 +57,7 @@ const LoginPage = () => {
   }, [isAuth, router]);
 
   const handleSubmit = async (e) => {
+    console.log('handleSubmit started')
     e.preventDefault();
     setLocalError("");
     dispatch(setError(null));
