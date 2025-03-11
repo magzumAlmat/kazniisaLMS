@@ -477,40 +477,35 @@ export default function LessonsPage() {
 
   // Инициализация Editor.js
   useEffect(() => {
-    if (!token || !editingLesson) return;
+    if (!token) return;
   
     const initEditor = async () => {
       try {
         const [EditorJS, Header, List] = await Promise.all([
-          import("@editorjs/editorjs").then(mod => mod.default),
-          import("@editorjs/header").then(mod => mod.default),
-          import("@editorjs/list").then(mod => mod.default)
+          import("@editorjs/editorjs").then((mod) => mod.default),
+          import("@editorjs/header").then((mod) => mod.default),
+          import("@editorjs/list").then((mod) => mod.default),
         ]);
   
-        const currentLesson = lessons.find(l => l.id === editingLesson);
-        const parsedContent = currentLesson?.content 
-          ? JSON.parse(currentLesson.content) 
-          : { blocks: [] };
-  
-        // Уничтожаем предыдущий экземпляр
+        // Уничтожаем предыдущий экземпляр, если он существует
         if (editorInstance.current?.destroy) {
           await editorInstance.current.destroy();
         }
   
-        // Создаем новый экземпляр
+        // Создаем новый экземпляр EditorJS
         const editor = new EditorJS({
           holder: "editorjs-container",
           tools: {
-            header: { class: Header, config: { levels: [2, 3], defaultLevel: 2 }},
-            list: { class: List, inlineToolbar: true }
+            header: { class: Header, config: { levels: [2, 3], defaultLevel: 2 } },
+            list: { class: List, inlineToolbar: true },
           },
           placeholder: "Введите содержимое урока...",
-          data: parsedContent,
+          data: { blocks: [] }, // Начальные данные пустые
           onChange: async () => {
-            const savedData = await editorInstance.current.save();
+            const savedData = await editor.save();
             setContent(savedData);
           },
-          logLevel: "ERROR" // Отключаем лишние логи
+          logLevel: "ERROR",
         });
   
         editorInstance.current = editor;
@@ -520,7 +515,32 @@ export default function LessonsPage() {
     };
   
     initEditor();
-  }, [editingLesson, token]);
+  
+    // Очистка при размонтировании
+    return () => {
+      if (editorInstance.current?.destroy) {
+        editorInstance.current.destroy();
+      }
+    };
+  }, [token]);
+  
+  // Отдельный useEffect для загрузки данных при редактировании
+  useEffect(() => {
+    if (!editorInstance.current || !editingLesson) return;
+  
+    const loadLessonData = async () => {
+      const currentLesson = lessons.find((l) => l.id === editingLesson);
+      const parsedContent = currentLesson?.content
+        ? JSON.parse(currentLesson.content)
+        : { blocks: [] };
+  
+      // Загружаем данные в редактор
+      await editorInstance.current.render(parsedContent);
+      setContent(parsedContent);
+    };
+  
+    loadLessonData();
+  }, [editingLesson, lessons]);
 
   // Загрузка уроков
   const fetchLessons = async () => {
