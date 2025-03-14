@@ -1,8 +1,13 @@
 {
   "/page": "app/page.js",
   "/layout/page": "app/layout/page.js",
+<<<<<<< HEAD
   "/courses/page": "app/courses/page.js",
   "/courses/[id]/page": "app/courses/[id]/page.js",
   "/profile/page": "app/profile/page.js",
   "/login/page": "app/login/page.js"
+=======
+  "/addlessons/page": "app/addlessons/page.js",
+  "/addcourse/page": "app/addcourse/page.js"
+>>>>>>> 78933ca88515492180030fd7411558a1fd40f06c
 }
