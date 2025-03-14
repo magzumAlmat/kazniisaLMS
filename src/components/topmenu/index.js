@@ -80,7 +80,7 @@ const TopMenu = ({ userInfo, handleLogout }) => {
 
   return (
     <>
-      <AppBar position="static" sx={{ bgcolor: "#1976d2", borderBottom: "2px solid #1565c0" }}>
+      <AppBar position="static" sx={{ bgcolor: "#374151", borderBottom: "2px solid #1565c0" }}>
         <Toolbar sx={{ flexWrap: "wrap", justifyContent: { xs: "space-between", sm: "space-between" }, py: { xs: 1, sm: 2 } }}>
           <Typography variant="h6" component="div" sx={{ fontWeight: "bold", color: "#fff", fontSize: { xs: "1rem", sm: "1.25rem" } }}>
             Kazniisa LMS

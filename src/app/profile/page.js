@@ -16,8 +16,62 @@ import {
   MenuItem,
   Alert,
   Snackbar,
-} from "@mui/material"; // Добавляем Snackbar
+  createTheme,
+  ThemeProvider,
+} from "@mui/material";
 import jwtDecode from "jwt-decode";
+
+// Создаем тему
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#10b981", // Зеленый акцент (emerald-500)
+      contrastText: "#fff",
+    },
+    secondary: {
+      main: "#3b82f6", // Синий акцент (blue-500)
+    },
+    background: {
+      default: "#1f2937", // Темно-серый фон (gray-800)
+      paper: "#374151", // Чуть светлее для панелей (gray-700)
+    },
+    text: {
+      primary: "#fff",
+      secondary: "#d1d5db", // Светло-серый для текста (gray-300)
+    },
+  },
+  typography: {
+    fontFamily: "'Inter', 'Roboto', sans-serif",
+    h4: { fontWeight: 600 },
+    h6: { fontWeight: 500 },
+    body2: { fontWeight: 400 },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          borderRadius: "8px",
+          padding: "8px 16px",
+          transition: "all 0.2s ease-in-out",
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "8px",
+            borderColor: "#4b5563", // Gray-600
+            "&:hover fieldset": {
+              borderColor: "#10b981", // Зеленый при наведении
+            },
+          },
+        },
+      },
+    },
+  },
+});
 
 const ProfilePage = () => {
   const [userInfo, setUserInfo] = useState(null);
@@ -28,9 +82,9 @@ const ProfilePage = () => {
     phone: "",
     areasofactivity: "",
   });
-  const [errorMessage, setErrorMessage] = useState(""); // Для ошибок
-  const [successMessage, setSuccessMessage] = useState(""); // Для успеха
-  const [openSnackbar, setOpenSnackbar] = useState(false); // Управление видимостью Snackbar
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const dispatch = useDispatch();
   const router = useRouter();
   const host = process.env.NEXT_PUBLIC_HOST;
@@ -46,60 +100,47 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    console.log("Stored token:", storedToken);
-
     if (!storedToken) {
-      console.error("Token not available");
       router.push("/login");
       return;
     }
 
     try {
       const decodedToken = jwtDecode(storedToken);
-      console.log("Decoded token:", decodedToken);
       setToken(storedToken);
     } catch (error) {
-      console.error("Invalid token:", error.message);
       localStorage.removeItem("token");
       router.push("/login");
     }
   }, [router]);
 
   useEffect(() => {
-    if (!token) {
-      console.log("Token is null, skipping fetch");
-      return;
-    }
+    if (!token) return;
 
     fetchProfile();
     fetchUserInfo();
   }, [token]);
 
   const fetchProfile = async () => {
-    console.log("fetchProfile started");
     try {
       const response = await axios.get(`${host}/api/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const data = {
+      setProfileData({
         name: response.data.name ?? "",
         lastname: response.data.lastname ?? "",
         phone: response.data.phone ?? "",
         areasofactivity: response.data.areasofactivity ?? "",
-      };
-      setProfileData(data);
+      });
     } catch (error) {
       console.error("Ошибка при загрузке профиля:", error);
-      if (error.response && error.response.status === 401) {
+      if (error.response?.status === 401) {
         router.push("/login");
       }
     }
   };
 
   const fetchUserInfo = async () => {
-    console.log("fetchUserInfo started");
     try {
       const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -107,7 +148,7 @@ const ProfilePage = () => {
       setUserInfo(response.data);
     } catch (err) {
       console.error("Ошибка при загрузке информации о пользователе:", err);
-      if (err.response && err.response.status === 401) {
+      if (err.response?.status === 401) {
         router.push("/login");
       }
     }
@@ -123,10 +164,9 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("ProfileData:", profileData);
-    setErrorMessage(""); // Сбрасываем ошибку
-    setSuccessMessage(""); // Сбрасываем успех
-    setOpenSnackbar(false); // Закрываем предыдущий Snackbar
+    setErrorMessage("");
+    setSuccessMessage("");
+    setOpenSnackbar(false);
 
     try {
       const response = await axios.put(
@@ -139,19 +179,17 @@ const ProfilePage = () => {
           },
         }
       );
-      console.log("Response from server:", response.data); // Логируем ответ сервера
       setSuccessMessage(response.data.message || "Профиль успешно обновлен");
-      setOpenSnackbar(true); // Показываем Snackbar с успехом
+      setOpenSnackbar(true);
     } catch (error) {
       console.error("Ошибка при обновлении профиля:", error);
-      console.log("Error response:", error.response); // Логируем полный ответ об ошибке
       if (error.response) {
         if (error.response.status === 401) {
           router.push("/login");
         } else {
           const message = error.response.data?.message || "Произошла ошибка при обновлении профиля";
           setErrorMessage(message);
-          setOpenSnackbar(true); // Показываем Snackbar с ошибкой
+          setOpenSnackbar(true);
         }
       } else {
         setErrorMessage("Не удалось подключиться к серверу");
@@ -166,7 +204,6 @@ const ProfilePage = () => {
     router.push("/login");
   };
 
-  // Закрытие Snackbar
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
     setErrorMessage("");
@@ -174,102 +211,135 @@ const ProfilePage = () => {
   };
 
   return (
-    <>
+    <ThemeProvider theme={theme}>
       <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
-      <Box sx={{ padding: "20px", maxWidth: "400px", margin: "0 auto" }}>
-        <Typography variant="h4" gutterBottom>
-          Мой профиль
-        </Typography>
-
-        <form onSubmit={handleSubmit}>
-          <Box sx={{ marginBottom: "15px" }}>
-            <TextField
-              label="Имя"
-              name="name"
-              value={profileData.name}
-              onChange={handleChange}
-              placeholder="Введите имя"
-              required
-              fullWidth
-              variant="outlined"
-            />
-          </Box>
-
-          <Box sx={{ marginBottom: "15px" }}>
-            <TextField
-              label="Фамилия"
-              name="lastname"
-              value={profileData.lastname}
-              onChange={handleChange}
-              placeholder="Введите фамилию"
-              required
-              fullWidth
-              variant="outlined"
-            />
-          </Box>
-
-          <Box sx={{ marginBottom: "15px" }}>
-            <TextField
-              label="Телефон"
-              name="phone"
-              value={profileData.phone}
-              onChange={handleChange}
-              placeholder="Введите телефон"
-              required
-              fullWidth
-              variant="outlined"
-            />
-          </Box>
-
-          <Box sx={{ marginBottom: "15px" }}>
-            <FormControl fullWidth variant="outlined">
-              <InputLabel>Сфера деятельности</InputLabel>
-              <Select
-                name="areasofactivity"
-                value={profileData.areasofactivity}
-                onChange={handleChange}
-                label="Сфера деятельности"
-                required
-              >
-                <MenuItem value="">
-                  <em>Выберите сферу</em>
-                </MenuItem>
-                {activityOptions.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-
-          <Button
-            type="submit"
-            variant="contained"
-            color="success"
-            sx={{ padding: "10px 15px", borderRadius: "5px" }}
-          >
-            Сохранить
-          </Button>
-        </form>
-
-        {/* Snackbar для сообщений */}
-        <Snackbar
-          open={openSnackbar}
-          autoHideDuration={6000} // Скрывается через 6 секунд
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }} // Появляется сверху по центру
+      <Box
+        sx={{
+          bgcolor: theme.palette.background.default,
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Box
+          sx={{
+            bgcolor: theme.palette.background.paper,
+            borderRadius: "12px",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+            py: 6,
+            px: 4,
+            width: "100%",
+            maxWidth: "400px",
+          }}
         >
-          <Alert
-            onClose={handleCloseSnackbar}
-            severity={errorMessage ? "error" : "success"}
-            sx={{ width: "100%" }}
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{
+              color: theme.palette.text.primary,
+              textAlign: "center",
+              fontWeight: 600,
+            }}
           >
-            {errorMessage || successMessage}
-          </Alert>
-        </Snackbar>
+            Мой профиль
+          </Typography>
+
+          <form onSubmit={handleSubmit}>
+            <Box sx={{ marginBottom: "15px" }}>
+              <TextField
+                label="Имя"
+                name="name"
+                value={profileData.name}
+                onChange={handleChange}
+                placeholder="Введите имя"
+                required
+                fullWidth
+                variant="outlined"
+              />
+            </Box>
+
+            <Box sx={{ marginBottom: "15px" }}>
+              <TextField
+                label="Фамилия"
+                name="lastname"
+                value={profileData.lastname}
+                onChange={handleChange}
+                placeholder="Введите фамилию"
+                required
+                fullWidth
+                variant="outlined"
+              />
+            </Box>
+
+            <Box sx={{ marginBottom: "15px" }}>
+              <TextField
+                label="Телефон"
+                name="phone"
+                value={profileData.phone}
+                onChange={handleChange}
+                placeholder="Введите телефон"
+                required
+                fullWidth
+                variant="outlined"
+              />
+            </Box>
+
+            <Box sx={{ marginBottom: "15px" }}>
+              <FormControl fullWidth variant="outlined">
+                <InputLabel>Сфера деятельности</InputLabel>
+                <Select
+                  name="areasofactivity"
+                  value={profileData.areasofactivity}
+                  onChange={handleChange}
+                  label="Сфера деятельности"
+                  required
+                >
+                  <MenuItem value="">
+                    <em>Выберите сферу</em>
+                  </MenuItem>
+                  {activityOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{
+                "&:hover": {
+                  bgcolor: "#059669", // Темнее зеленого
+                },
+              }}
+            >
+              Сохранить
+            </Button>
+          </form>
+
+          {/* Snackbar для сообщений */}
+          <Snackbar
+            open={openSnackbar}
+            autoHideDuration={6000}
+            onClose={handleCloseSnackbar}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          >
+            <Alert
+              onClose={handleCloseSnackbar}
+              severity={errorMessage ? "error" : "success"}
+              sx={{ width: "100%" }}
+            >
+              {errorMessage || successMessage}
+            </Alert>
+          </Snackbar>
+        </Box>
       </Box>
-    </>
+    </ThemeProvider>
   );
 };
 

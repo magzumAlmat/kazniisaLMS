@@ -21,18 +21,85 @@ import { useSelector, useDispatch } from "react-redux";
 import { getAllCoursesAction, logoutAction } from "../../../store/slices/authSlice";
 import TopMenu from "../../../components/topmenu";
 import DOMPurify from "dompurify";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// Компонент VideoPlayer (без изменений)
+// Тема в стиле Next.js Template от lucasbaquinoo
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#10b981", // Зеленый акцент (emerald-500)
+      contrastText: "#fff",
+    },
+    secondary: {
+      main: "#3b82f6", // Синий акцент (blue-500)
+    },
+    success: {
+      main: "#22c55e", // Зеленый для завершенных уроков
+    },
+    background: {
+      default: "#1f2937", // Темно-серый фон (gray-800)
+      paper: "#374151", // Чуть светлее для панелей (gray-700)
+    },
+    text: {
+      primary: "#fff",
+      secondary: "#d1d5db", // Светло-серый для текста (gray-300)
+    },
+  },
+  typography: {
+    fontFamily: "'Inter', 'Roboto', sans-serif",
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 500 },
+    subtitle1: { fontWeight: 400 },
+    body1: { fontWeight: 400 },
+    body2: { fontWeight: 400 },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
+          borderRadius: "8px",
+          padding: "8px 16px",
+          transition: "all 0.2s ease-in-out",
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: "12px",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          borderColor: "#4b5563", // gray-600
+        },
+      },
+    },
+  },
+});
+
+// Компонент VideoPlayer
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
-    return <Typography>Видео недоступно.</Typography>;
+    return (
+      <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>
+        Видео недоступно.
+      </Typography>
+    );
   }
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}>
+      <Typography
+        variant="h6"
+        sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.125rem", sm: "1.25rem" }, mb: 1 }}
+      >
         {material.title}
       </Typography>
-      <video controls style={{ width: "50%", maxHeight: "335px" }}>
+      <video controls style={{ width: "100%", maxHeight: "400px", borderRadius: "8px" }}>
         <source src={material.file_path} type="video/mp4" />
         Ваш браузер не поддерживает воспроизведение видео.
       </video>
@@ -55,7 +122,6 @@ export default function CourseDetail() {
   const [userInfo, setUserInfo] = useState(null);
   const isMobile = useMediaQuery("(max-width: 600px)");
 
-  // Получение токена
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     setToken(storedToken);
@@ -64,7 +130,6 @@ export default function CourseDetail() {
     }
   }, [router]);
 
-  // Загрузка данных
   useEffect(() => {
     if (token) {
       fetchLessons();
@@ -79,7 +144,6 @@ export default function CourseDetail() {
       const response = await axios.get(`${host}/api/lessons`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Сортируем уроки по id по возрастанию
       const sortedLessons = response.data.sort((a, b) => a.id - b.id);
       console.log("Sorted lessons:", sortedLessons);
       setLessons(sortedLessons);
@@ -131,14 +195,16 @@ export default function CourseDetail() {
     }
   }, [userInfo, id, token]);
 
-  // Фильтрация уроков после сортировки
   const filteredLessons = lessons.filter((lesson) => lesson.course_id === Number(id));
   console.log("Filtered lessons:", filteredLessons);
 
-  // Рендеринг текста с использованием DOMPurify
   const renderLessonContent = () => {
     if (!filteredLessons.length || !filteredLessons[activeTab]?.content) {
-      return <Typography>Нет содержимого для отображения.</Typography>;
+      return (
+        <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>
+          Нет содержимого для отображения.
+        </Typography>
+      );
     }
 
     try {
@@ -160,13 +226,17 @@ export default function CourseDetail() {
       return (
         <Typography
           variant="body1"
-          sx={{ lineHeight: 1.6 }}
+          sx={{ color: theme.palette.text.secondary, lineHeight: 1.8, fontSize: { xs: "0.875rem", sm: "1rem" } }}
           dangerouslySetInnerHTML={{ __html: sanitizedText }}
         />
       );
     } catch (error) {
       console.error("Ошибка при рендеринге текста:", error);
-      return <Typography color="error">Ошибка: {error.message}</Typography>;
+      return (
+        <Typography color="error" sx={{ fontSize: "1rem" }}>
+          Ошибка: {error.message}
+        </Typography>
+      );
     }
   };
 
@@ -216,9 +286,21 @@ export default function CourseDetail() {
 
   if (!token) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-        <Typography>Loading...</Typography>
-      </Box>
+      <ThemeProvider theme={theme}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+            bgcolor: theme.palette.background.default,
+          }}
+        >
+          <Typography sx={{ color: theme.palette.text.primary, fontSize: "1.25rem" }}>
+            Loading...
+          </Typography>
+        </Box>
+      </ThemeProvider>
     );
   }
 
@@ -233,214 +315,219 @@ export default function CourseDetail() {
 
   if (!filteredLessons || filteredLessons.length === 0) {
     return (
-      <Box sx={{ p: 2, textAlign: "center" }}>
-        <Typography variant="h6">Нет доступных уроков.</Typography>
-      </Box>
+      <ThemeProvider theme={theme}>
+        <Box sx={{ p: 3, textAlign: "center", bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
+          <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontSize: "1.5rem" }}>
+            Нет доступных уроков.
+          </Typography>
+        </Box>
+      </ThemeProvider>
     );
   }
 
   return (
-    <>
-      <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          minHeight: "calc(100vh - 64px)",
-          bgcolor: "background.paper",
-          p: { xs: 1, sm: 2 },
-        }}
-      >
-        <Tabs
-          orientation={isMobile ? "horizontal" : "vertical"}
-          variant="scrollable"
-          value={activeTab}
-          onChange={handleChangeTab}
-          aria-label="Уроки курса"
-          sx={{
-            borderBottom: isMobile ? 1 : 0,
-            borderRight: isMobile ? 0 : 1,
-            borderColor: "divider",
-            width: { xs: "100%", sm: "250px" },
-            bgcolor: "background.default",
-            maxHeight: { xs: "auto", sm: "calc(100vh - 64px)" },
-            overflowY: "auto",
-            flexShrink: 0,
-          }}
-        >
-          {filteredLessons.map((lesson, index) => (
-            <Tab
-              key={lesson.id}
-              label={lesson.title}
-              sx={{
-                textTransform: "none",
-                fontWeight: "bold",
-                fontSize: { xs: "0.875rem", sm: "1rem" },
-                color: "text.secondary",
-                "&.Mui-selected": { color: "primary.main" },
-                minHeight: { xs: 48, sm: 56 },
-                px: { xs: 1, sm: 2 },
-              }}
-            />
-          ))}
-        </Tabs>
-
+    <ThemeProvider theme={theme}>
+      <Box sx={{ bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
+        <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
         <Box
           sx={{
-            flexGrow: 1,
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            minHeight: "calc(100vh - 64px)",
             p: { xs: 2, sm: 3 },
-            width: { xs: "90%", sm: "auto" },
           }}
         >
-          <Paper
-            elevation={3}
+          <Tabs
+            orientation={isMobile ? "horizontal" : "vertical"}
+            variant="scrollable"
+            value={activeTab}
+            onChange={handleChangeTab}
+            aria-label="Уроки курса"
             sx={{
-              p: { xs: 2, sm: 4 },
-              borderRadius: 2,
-              width: "100%",
-              boxSizing: "border-box",
+              borderBottom: isMobile ? 1 : 0,
+              borderRight: isMobile ? 0 : 1,
+              borderColor: "divider",
+              width: { xs: "100%", sm: "280px" },
+              bgcolor: theme.palette.background.paper,
+              maxHeight: { xs: "auto", sm: "calc(100vh - 64px)" },
+              overflowY: "auto",
+              flexShrink: 0,
             }}
           >
-            <LinearProgress
-              variant="determinate"
-              value={(getCompletedLessonsCount() / filteredLessons.length) * 100 || 0}
-              sx={{ mb: 2 }}
-            />
-            <Typography
-              variant="subtitle1"
-              sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
-            >
-              Пройдено {getCompletedLessonsCount()} из {filteredLessons.length} уроков
-            </Typography>
-
-            <Typography
-              variant="h6"
-              sx={{ fontWeight: "bold", my: 2, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}
-            >
-              {filteredLessons[activeTab].title}
-            </Typography>
-
-            {filteredLessons[activeTab].image && (
-              <Box
-                component="img"
-                src={filteredLessons[activeTab].image}
-                alt={`Lesson ${activeTab + 1}`}
+            {filteredLessons.map((lesson, index) => (
+              <Tab
+                key={lesson.id}
+                label={lesson.title}
                 sx={{
-                  width: "100%",
-                  height: { xs: "200px", sm: "300px" },
-                  objectFit: "cover",
-                  borderRadius: "8px",
-                  mb: 2,
+                  textTransform: "none",
+                  fontWeight: 500,
+                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                  color: theme.palette.text.secondary,
+                  "&.Mui-selected": { color: theme.palette.primary.main, bgcolor: "rgba(16, 185, 129, 0.1)" },
+                  minHeight: { xs: 48, sm: 60 },
+                  px: 3,
+                  py: 1.5,
                 }}
               />
-            )}
+            ))}
+          </Tabs>
 
-            <div
-              style={{
-                minHeight: "300px",
-                fontSize: isMobile ? "0.875rem" : "1rem",
-                border: "1px solid #e0e0e0",
-                padding: "10px",
-                borderRadius: "4px",
-              }}
+          <Box sx={{ flexGrow: 1, p: { xs: 2, sm: 4 } }}>
+            <Paper
+              elevation={3}
+              sx={{ p: { xs: 3, sm: 4 }, bgcolor: theme.palette.background.paper, width: "100%" }}
             >
-              {renderLessonContent()}
-            </div>
-            <Divider sx={{ my: 2 }} />
-
-            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
-              Видео-материалы:
-            </Typography>
-            {videoMaterials.length > 0 ? (
-              videoMaterials.map((material) => (
-                <Box key={material.material_id} sx={{ mb: 2 }}>
-                  <VideoPlayer material={material} />
-                </Box>
-              ))
-            ) : (
-              <Typography variant="body1" sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}>
-                Нет доступных видео.
+              <LinearProgress
+                variant="determinate"
+                value={(getCompletedLessonsCount() / filteredLessons.length) * 100 || 0}
+                sx={{ mb: 2, height: 8, borderRadius: 4, bgcolor: "#4b5563", "& .MuiLinearProgress-bar": { bgcolor: theme.palette.primary.main } }}
+              />
+              <Typography
+                variant="subtitle1"
+                sx={{ color: theme.palette.text.secondary, fontSize: { xs: "0.875rem", sm: "1rem" }, mb: 3 }}
+              >
+                Пройдено {getCompletedLessonsCount()} из {filteredLessons.length} уроков
               </Typography>
-            )}
 
-            <Typography variant="h5" sx={{ fontWeight: "bold", mt: 4, mb: 2, fontSize: { xs: "1.25rem", sm: "1.5rem" } }}>
-              Дополнительные материалы:
-            </Typography>
-            {filteredMaterials.length > 0 ? (
-              <MuiList>
-                {filteredMaterials.map((material) => (
-                  <ListItem
-                    key={material.material_id}
-                    sx={{ flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "flex-start", sm: "center" } }}
-                  >
-                    <ListItemText
-                      primary={material.title}
-                      secondary={`Тип: ${material.type}`}
-                      primaryTypographyProps={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}
-                      secondaryTypographyProps={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
-                    />
-                    {material.type === "test" ? (
-                      <a
-                        href={material.file_path}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ textDecoration: "none", marginTop: { xs: 1, sm: 0 } }}
-                      >
-                        <Button variant="outlined" color="primary" size="small">
-                          Перейти к тесту
-                        </Button>
-                      </a>
-                    ) : (
-                      <Button
-                        href={material.file_path}
-                        download={material.title || "file"}
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        sx={{ mt: { xs: 1, sm: 0 } }}
-                      >
-                        Скачать
-                      </Button>
-                    )}
-                  </ListItem>
-                ))}
-              </MuiList>
-            ) : (
-              <Typography variant="body1" sx={{ fontSize: { xs: "0.875rem", sm: "1rem" } }}>
-                Нет доступных материалов.
+              <Typography
+                variant="h6"
+                sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.5rem", sm: "1.75rem" }, mb: 3 }}
+              >
+                {filteredLessons[activeTab].title}
               </Typography>
-            )}
 
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 2,
-                mt: 4,
-              }}
-            >
-              <Button
-                variant="contained"
-                color={isLessonCompleted(filteredLessons[activeTab]?.id) ? "success" : "primary"}
-                onClick={() => handleCompleteLesson(filteredLessons[activeTab]?.id)}
-                disabled={isLessonCompleted(filteredLessons[activeTab]?.id)}
+              {filteredLessons[activeTab].image && (
+                <Box
+                  component="img"
+                  src={filteredLessons[activeTab].image}
+                  alt={`Lesson ${activeTab + 1}`}
+                  sx={{
+                    width: "100%",
+                    height: { xs: "200px", sm: "350px" },
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                    mb: 3,
+                  }}
+                />
+              )}
+
+              <Box
                 sx={{
-                  flexGrow: 1,
-                  borderRadius: 2,
-                  textTransform: "none",
-                  fontWeight: "bold",
-                  py: { xs: 1, sm: 1.5 },
-                  fontSize: { xs: "0.875rem", sm: "1rem" },
+                  minHeight: "250px",
+                  border: `1px solid ${theme.palette.divider}`,
+                  p: 2,
+                  borderRadius: "8px",
+                  bgcolor: "#2d3748", // gray-800
+                  mb: 3,
                 }}
               >
-                {isLessonCompleted(filteredLessons[activeTab]?.id) ? "Урок завершен" : "Завершить урок"}
-              </Button>
-            </Box>
-          </Paper>
+                {renderLessonContent()}
+              </Box>
+              <Divider sx={{ my: 3, bgcolor: theme.palette.divider }} />
+
+              <Typography
+                variant="h5"
+                sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.25rem", sm: "1.5rem" }, mb: 2 }}
+              >
+                Видео-материалы:
+              </Typography>
+              {videoMaterials.length > 0 ? (
+                videoMaterials.map((material) => (
+                  <Box key={material.material_id} sx={{ mb: 3 }}>
+                    <VideoPlayer material={material} />
+                  </Box>
+                ))
+              ) : (
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>
+                  Нет доступных видео.
+                </Typography>
+              )}
+
+              <Typography
+                variant="h5"
+                sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.25rem", sm: "1.5rem" }, mt: 4, mb: 2 }}
+              >
+                Дополнительные материалы:
+              </Typography>
+              {filteredMaterials.length > 0 ? (
+                <MuiList>
+                  {filteredMaterials.map((material) => (
+                    <ListItem
+                      key={material.material_id}
+                      sx={{ flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "flex-start", sm: "center" }, py: 1.5 }}
+                    >
+                      <ListItemText
+                        primary={material.title}
+                        secondary={`Тип: ${material.type}`}
+                        primaryTypographyProps={{ color: theme.palette.text.primary, fontSize: { xs: "0.875rem", sm: "1rem" } }}
+                        secondaryTypographyProps={{ color: theme.palette.text.secondary, fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+                      />
+                      {material.type === "test" ? (
+                        <a
+                          href={material.file_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ textDecoration: "none", marginTop: { xs: 1, sm: 0 } }}
+                        >
+                          <Button
+                            variant="outlined"
+                            color="secondary"
+                            size="small"
+                            sx={{ ml: { xs: 0, sm: 2 }, fontSize: "0.875rem", borderRadius: "8px" }}
+                          >
+                            Перейти к тесту
+                          </Button>
+                        </a>
+                      ) : (
+                        <Button
+                          href={material.file_path}
+                          download={material.title || "file"}
+                          variant="outlined"
+                          color="secondary"
+                          size="small"
+                          sx={{ ml: { xs: 0, sm: 2 }, mt: { xs: 1, sm: 0 }, fontSize: "0.875rem", borderRadius: "8px" }}
+                        >
+                          Скачать
+                        </Button>
+                      )}
+                    </ListItem>
+                  ))}
+                </MuiList>
+              ) : (
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>
+                  Нет доступных материалов.
+                </Typography>
+              )}
+
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  justifyContent: "flex-end",
+                  gap: 2,
+                  mt: 4,
+                }}
+              >
+                <Button
+                  variant="contained"
+                  color={isLessonCompleted(filteredLessons[activeTab]?.id) ? "success" : "primary"}
+                  onClick={() => handleCompleteLesson(filteredLessons[activeTab]?.id)}
+                  disabled={isLessonCompleted(filteredLessons[activeTab]?.id)}
+                  sx={{
+                    width: { xs: "100%", sm: "200px" },
+                    py: 1.5,
+                    fontSize: "1rem",
+                    "&:hover": { transform: "scale(1.02)" },
+                  }}
+                >
+                  {isLessonCompleted(filteredLessons[activeTab]?.id) ? "Урок завершен" : "Завершить урок"}
+                </Button>
+              </Box>
+            </Paper>
+          </Box>
         </Box>
       </Box>
-    </>
+    </ThemeProvider>
   );
 }

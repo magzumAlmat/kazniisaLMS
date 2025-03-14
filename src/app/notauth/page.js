@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useDispatch ,useSelector} from "react-redux";
 import { logoutAction } from "../../store/slices/authSlice";
 import { Container } from "@mui/material";
-import jwtDecode from "jwt-decode";
 const NotAuth = () => {
     const [userInfo, setUserInfo] = useState(null);
      const isAuth = useSelector((state) => state.auth.isAuth); // Получаем состояние авторизации
