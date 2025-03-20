@@ -1,5 +1,17 @@
 {
   "/layout/page": "app/layout/page.js",
+<<<<<<< HEAD
   "/courses/page": "app/courses/page.js",
   "/courses/[id]/page": "app/courses/[id]/page.js"
+=======
+<<<<<<< HEAD
+  "/courses/page": "app/courses/page.js",
+  "/courses/[id]/page": "app/courses/[id]/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/login/page": "app/login/page.js"
+=======
+  "/addlessons/page": "app/addlessons/page.js",
+  "/addcourse/page": "app/addcourse/page.js"
+>>>>>>> 78933ca88515492180030fd7411558a1fd40f06c
+>>>>>>> f554779886600750645b4c7d8a379e3867203ec5
 }
