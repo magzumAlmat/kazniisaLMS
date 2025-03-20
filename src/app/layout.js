@@ -17,7 +17,8 @@ import '@fontsource/roboto/700.css';
 // import useTokenInitialization from '../store/slices/authSlice';
 // import { NextIntlClientProvider } from 'next-intl';
 // import { useRouter } from 'next/navigation';
-
+import { I18nextProvider } from "react-i18next";
+import i18n from "../../i18n"; // Укажите правильный путь к i18n.js
 export default function RootLayout({ children}) {
   // const router = useRouter();
  // useTokenInitialization()
@@ -25,12 +26,15 @@ export default function RootLayout({ children}) {
   
 
   return (
-    <html lang="en">
+    <html lang={i18n.language || "ru"}>
       <ReduxProvider>
-        <body>{children}</body>
-        {/* <NextIntlClientProvider locale={locale} messages={require(`../../i18n/${locale}.json`)}> */}
+   
+      <body>
+        <I18nextProvider i18n={i18n}>
+          {children}
+        </I18nextProvider>
+      </body>
 
-       {/* </NextIntlClientProvider> */}
       </ReduxProvider>
     </html>
   )

@@ -1,0 +1,44 @@
+{
+  "title": "КазНИИСА LMS",
+  "welcome": "Добро пожаловать на платформу",
+  "topMenu": {
+    "home": "Главная",
+    "addRole": "Добавить роль",
+    "profile": "Профиль",
+    "logout": "Выйти",
+    "streams": "Потоки",
+    "courses": "Курсы",
+    "lessons": "Уроки",
+    "materials": "Материалы",
+    "progress": "Прогресс",
+    "notAuth": "Не авторизован"
+  },
+  "courses": {
+    "title": "Доступные курсы",
+    "noCourses": "Нет доступных курсов.",
+    "error": "Ошибка: {{message}}",
+    "loading": "Загрузка курсов...",
+    "progress": "Прогресс: {{value}}%",
+    "descriptionPlaceholder": "Описание отсутствует.",
+    "goToCourse": "Перейти к курсу"
+  },
+  "courseDetail": {
+    "loading": "Загрузка...",
+    "noLessons": "Нет доступных уроков.",
+    "noContent": "Нет содержимого для отображения.",
+    "videoUnavailable": "Видео недоступно.",
+    "videoNotSupported": "Ваш браузер не поддерживает воспроизведение видео.",
+    "noVideos": "Нет доступных видео.",
+    "noMaterials": "Нет доступных материалов.",
+    "materialsTitle": "Дополнительные материалы:",
+    "videosTitle": "Видео-материалы:",
+    "completeLesson": "Завершить урок",
+    "lessonCompleted": "Урок завершен",
+    "goToTest": "Перейти к тесту",
+    "download": "Скачать",
+    "type": "Тип: {{type}}",
+    "progressText": "Пройдено {{completed}} из {{total}} уроков",
+    "contentError": "Ошибка: {{message}}",
+    "lessonCompletedAlert": "Урок завершен"
+  }
+}

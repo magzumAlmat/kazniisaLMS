@@ -1,0 +1,44 @@
+{
+  "title": "КазНИИСА LMS",
+  "welcome": "Платформаға қош келдіңіз",
+  "topMenu": {
+    "home": "Басты бет",
+    "addRole": "Рөл қосу",
+    "profile": "Профиль",
+    "logout": "Шығу",
+    "streams": "Ағымдар",
+    "courses": "Курстар",
+    "lessons": "Сабақтар",
+    "materials": "Материалдар",
+    "progress": "Прогресс",
+    "notAuth": "Авторизацияланбаған"
+  },
+  "courses": {
+    "title": "Қолжетімді курстар",
+    "noCourses": "Қолжетімді курстар жоқ.",
+    "error": "Қате: {{message}}",
+    "loading": "Курстар жүктелуде...",
+    "progress": "Прогресс: {{value}}%",
+    "descriptionPlaceholder": "Сипаттама жоқ.",
+    "goToCourse": "Курсқа өту"
+  },
+  "courseDetail": {
+    "loading": "Жүктелуде...",
+    "noLessons": "Қолжетімді сабақтар жоқ.",
+    "noContent": "Көрсетуге арналған мазмұн жоқ.",
+    "videoUnavailable": "Видео қолжетімсіз.",
+    "videoNotSupported": "Сіздің браузеріңіз видеоны ойнатуды қолдамайды.",
+    "noVideos": "Қолжетімді видеолар жоқ.",
+    "noMaterials": "Қолжетімді материалдар жоқ.",
+    "materialsTitle": "Қосымша материалдар:",
+    "videosTitle": "Видео материалдар:",
+    "completeLesson": "Сабақты аяқтау",
+    "lessonCompleted": "Сабақ аяқталды",
+    "goToTest": "Тестке өту",
+    "download": "Жүктеу",
+    "type": "Түрі: {{type}}",
+    "progressText": "{{total}} сабақтың {{completed}}-ы аяқталды",
+    "contentError": "Қате: {{message}}",
+    "lessonCompletedAlert": "Сабақ аяқталды"
+  }
+}
