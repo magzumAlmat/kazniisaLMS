@@ -13,7 +13,9 @@ ul li{
     padding: 10px;
 }
 a{
-    text-decoration: none;
+    /* text-decoration: none; */
+    color: white;
+    text-decoration: revert-layer;
 }
 
 ul li a{

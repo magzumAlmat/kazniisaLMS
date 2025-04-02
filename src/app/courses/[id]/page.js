@@ -23,27 +23,18 @@ import TopMenu from "../../../components/topmenu";
 import DOMPurify from "dompurify";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
+// Импортируем необходимые плагины Editor.js
+import Header from "@editorjs/header"; // Для заголовков
+import List from "@editorjs/list";   // Для списков
+
 // Тема в стиле Next.js Template от lucasbaquinoo
 const theme = createTheme({
   palette: {
-    primary: {
-      main: "#10b981", // Зеленый акцент (emerald-500)
-      contrastText: "#fff",
-    },
-    secondary: {
-      main: "#3b82f6", // Синий акцент (blue-500)
-    },
-    success: {
-      main: "#22c55e", // Зеленый для завершенных уроков
-    },
-    background: {
-      default: "#1f2937", // Темно-серый фон (gray-800)
-      paper: "#374151", // Чуть светлее для панелей (gray-700)
-    },
-    text: {
-      primary: "#fff",
-      secondary: "#d1d5db", // Светло-серый для текста (gray-300)
-    },
+    primary: { main: "#10b981", contrastText: "#fff" },
+    secondary: { main: "#3b82f6" },
+    success: { main: "#22c55e" },
+    background: { default: "#1f2937", paper: "#374151" },
+    text: { primary: "#fff", secondary: "#d1d5db" },
   },
   typography: {
     fontFamily: "'Inter', 'Roboto', sans-serif",
@@ -54,49 +45,20 @@ const theme = createTheme({
     body2: { fontWeight: 400 },
   },
   components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: "none",
-          borderRadius: "8px",
-          padding: "8px 16px",
-          transition: "all 0.2s ease-in-out",
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-        },
-      },
-    },
-    MuiTabs: {
-      styleOverrides: {
-        root: {
-          borderColor: "#4b5563", // gray-600
-        },
-      },
-    },
+    MuiButton: { styleOverrides: { root: { textTransform: "none", borderRadius: "8px", padding: "8px 16px", transition: "all 0.2s ease-in-out" } } },
+    MuiPaper: { styleOverrides: { root: { borderRadius: "12px", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)" } } },
+    MuiTabs: { styleOverrides: { root: { borderColor: "#4b5563" } } },
   },
 });
 
 // Компонент VideoPlayer
 const VideoPlayer = ({ material }) => {
   if (!material || !material.file_path) {
-    return (
-      <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>
-        Видео недоступно.
-      </Typography>
-    );
+    return <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>Видео недоступно.</Typography>;
   }
   return (
     <Box>
-      <Typography
-        variant="h6"
-        sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.125rem", sm: "1.25rem" }, mb: 1 }}
-      >
+      <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.125rem", sm: "1.25rem" }, mb: 1 }}>
         {material.title}
       </Typography>
       <video controls style={{ width: "100%", maxHeight: "400px", borderRadius: "8px" }}>
@@ -125,9 +87,7 @@ export default function CourseDetail() {
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     setToken(storedToken);
-    if (!storedToken) {
-      router.push("/login");
-    }
+    if (!storedToken) router.push("/login");
   }, [router]);
 
   useEffect(() => {
@@ -141,11 +101,8 @@ export default function CourseDetail() {
 
   const fetchLessons = async () => {
     try {
-      const response = await axios.get(`${host}/api/lessons`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(`${host}/api/lessons`, { headers: { Authorization: `Bearer ${token}` } });
       const sortedLessons = response.data.sort((a, b) => a.id - b.id);
-      console.log("Sorted lessons:", sortedLessons);
       setLessons(sortedLessons);
     } catch (error) {
       console.error("Ошибка при загрузке уроков:", error);
@@ -155,9 +112,7 @@ export default function CourseDetail() {
 
   const fetchMaterials = async () => {
     try {
-      const response = await axios.get(`${host}/api/materials`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(`${host}/api/materials`, { headers: { Authorization: `Bearer ${token}` } });
       setMaterials(response.data);
     } catch (error) {
       console.error("Ошибка при загрузке материалов:", error);
@@ -166,23 +121,17 @@ export default function CourseDetail() {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(`${host}/api/auth/getAuthentificatedUserInfo`, { headers: { Authorization: `Bearer ${token}` } });
       setUserInfo(response.data);
     } catch (err) {
       console.error("Ошибка при загрузке информации о пользователе:", err);
-      if (err.response && err.response.status === 401) {
-        router.push("/login");
-      }
+      if (err.response && err.response.status === 401) router.push("/login");
     }
   };
 
   const fetchAllProgresses = async (userId, courseId) => {
     try {
-      const response = await axios.get(`${host}/api/course/progress/${userId}/${courseId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(`${host}/api/course/progress/${userId}/${courseId}`, { headers: { Authorization: `Bearer ${token}` } });
       setProgresses(response.data.lessons || []);
     } catch (error) {
       console.error("Ошибка при получении прогресса:", error);
@@ -190,25 +139,19 @@ export default function CourseDetail() {
   };
 
   useEffect(() => {
-    if (userInfo && token) {
-      fetchAllProgresses(userInfo.id, id);
-    }
+    if (userInfo && token) fetchAllProgresses(userInfo.id, id);
   }, [userInfo, id, token]);
 
   const filteredLessons = lessons.filter((lesson) => lesson.course_id === Number(id));
-  console.log("Filtered lessons:", filteredLessons);
 
   const renderLessonContent = () => {
     if (!filteredLessons.length || !filteredLessons[activeTab]?.content) {
-      return (
-        <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>
-          Нет содержимого для отображения.
-        </Typography>
-      );
+      return <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>Нет содержимого для отображения.</Typography>;
     }
   
     try {
       const rawContent = JSON.parse(filteredLessons[activeTab].content);
+      console.log(rawContent)
       const blocks = rawContent.blocks;
   
       if (!blocks || !Array.isArray(blocks)) {
@@ -219,6 +162,21 @@ export default function CourseDetail() {
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {blocks.map((block, index) => {
             switch (block.type) {
+              case "header":
+                return (
+                  <Typography
+                    key={block.id || index}
+                    variant={`h${block.data.level || 2}`}
+                    sx={{
+                      color: theme.palette.text.primary,
+                      fontWeight: 600,
+                      fontSize: { xs: "1.25rem", sm: "1.5rem" },
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    {DOMPurify.sanitize(block.data.text)}
+                  </Typography>
+                );
               case "paragraph":
                 const sanitizedText = DOMPurify.sanitize(block.data.text);
                 return (
@@ -233,23 +191,44 @@ export default function CourseDetail() {
                     dangerouslySetInnerHTML={{ __html: sanitizedText }}
                   />
                 );
+              case "list":
+                return (
+                  <MuiList
+                    key={block.id || index}
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      pl: 4, // Отступ для списка
+                      listStyleType: block.data.style === "ordered" ? "decimal" : "disc",
+                      "& li": { display: "list-item" }, // Убедимся, что элементы списка отображаются корректно
+                    }}
+                  >
+                    {block.data.items.map((item, i) => (
+                      console.log('all lists= ',item.content),
+                      <ListItem key={i} sx={{ p: 0, mb: 0.5 }}>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            color: theme.palette.text.secondary,
+                            fontSize: { xs: "0.875rem", sm: "1rem" },
+                          }}
+                        >
+                          {DOMPurify.sanitize(item.content)}
+                        </Typography>
+                      </ListItem>
+                    ))}
+                  </MuiList>
+                );
               case "image":
                 return (
                   <Box
                     key={block.id || index}
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 1,
-                      my: 2,
-                    }}
+                    sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, my: 2 }}
                   >
                     <Box
                       component="img"
                       src={block.data.file.url}
                       alt={block.data.caption || "Lesson image"}
-                      onError={(e) => (e.target.src = "/fallback-image.jpg")} // Запасное изображение
+                      onError={(e) => (e.target.src = "/fallback-image.jpg")}
                       sx={{
                         width: "100%",
                         maxWidth: "600px",
@@ -264,11 +243,7 @@ export default function CourseDetail() {
                     {block.data.caption && (
                       <Typography
                         variant="caption"
-                        sx={{
-                          color: theme.palette.text.secondary,
-                          fontSize: { xs: "0.75rem", sm: "0.875rem" },
-                          textAlign: "center",
-                        }}
+                        sx={{ color: theme.palette.text.secondary, fontSize: { xs: "0.75rem", sm: "0.875rem" }, textAlign: "center" }}
                       >
                         {DOMPurify.sanitize(block.data.caption)}
                       </Typography>
@@ -291,17 +266,11 @@ export default function CourseDetail() {
       );
     } catch (error) {
       console.error("Ошибка при рендеринге содержимого:", error);
-      return (
-        <Typography color="error" sx={{ fontSize: "1rem" }}>
-          Ошибка: {error.message}
-        </Typography>
-      );
+      return <Typography color="error" sx={{ fontSize: "1rem" }}>Ошибка: {error.message}</Typography>;
     }
   };
 
-  const handleChangeTab = (event, newValue) => {
-    setActiveTab(newValue);
-  };
+  const handleChangeTab = (event, newValue) => setActiveTab(newValue);
 
   const isLessonCompleted = (lessonId) => {
     const progress = progresses.find((p) => p.lesson_id === lessonId);
@@ -310,24 +279,15 @@ export default function CourseDetail() {
 
   const handleCompleteLesson = async (lessonId) => {
     const decoded = jwtDecode(token);
-    if (!completedLessons.includes(lessonId)) {
-      setCompletedLessons([...completedLessons, lessonId]);
-    }
+    if (!completedLessons.includes(lessonId)) setCompletedLessons([...completedLessons, lessonId]);
 
     try {
       await axios.put(
         `${host}/api/progress/update`,
-        {
-          user_id: decoded.id,
-          lesson_id: lessonId,
-          progress_percentage: 100,
-        },
+        { user_id: decoded.id, lesson_id: lessonId, progress_percentage: 100 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      const updatedProgresses = progresses.map((p) =>
-        p.lesson_id === lessonId ? { ...p, status: "completed" } : p
-      );
+      const updatedProgresses = progresses.map((p) => (p.lesson_id === lessonId ? { ...p, status: "completed" } : p));
       setProgresses(updatedProgresses);
       alert("Урок завершен");
       router.push(`/courses/${id}`);
@@ -346,40 +306,24 @@ export default function CourseDetail() {
   if (!token) {
     return (
       <ThemeProvider theme={theme}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100vh",
-            bgcolor: theme.palette.background.default,
-          }}
-        >
-          <Typography sx={{ color: theme.palette.text.primary, fontSize: "1.25rem" }}>
-            Loading...
-          </Typography>
+        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", bgcolor: theme.palette.background.default }}>
+          <Typography sx={{ color: theme.palette.text.primary, fontSize: "1.25rem" }}>Loading...</Typography>
         </Box>
       </ThemeProvider>
     );
   }
 
-  const filteredMaterials = materials.filter(
-    (material) => material.lesson_id === filteredLessons[activeTab]?.id
-  );
+  const filteredMaterials = materials.filter((material) => material.lesson_id === filteredLessons[activeTab]?.id);
   const videoMaterials = filteredMaterials.filter((material) => material.type === "video");
 
-  const getCompletedLessonsCount = () => {
-    return progresses.filter((p) => p.status === "completed").length;
-  };
+  const getCompletedLessonsCount = () => progresses.filter((p) => p.status === "completed").length;
 
   if (!filteredLessons || filteredLessons.length === 0) {
     return (
       <ThemeProvider theme={theme}>
         <Box sx={{ p: 3, textAlign: "center", bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
           <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
-          <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontSize: "1.5rem" }}>
-            Нет доступных уроков.
-          </Typography>
+          <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontSize: "1.5rem" }}>Нет доступных уроков.</Typography>
         </Box>
       </ThemeProvider>
     );
@@ -389,14 +333,7 @@ export default function CourseDetail() {
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
         <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
-            minHeight: "calc(100vh - 64px)",
-            p: { xs: 2, sm: 3 },
-          }}
-        >
+        <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, minHeight: "calc(100vh - 64px)", p: { xs: 2, sm: 3 } }}>
           <Tabs
             orientation={isMobile ? "horizontal" : "vertical"}
             variant="scrollable"
@@ -433,26 +370,17 @@ export default function CourseDetail() {
           </Tabs>
 
           <Box sx={{ flexGrow: 1, p: { xs: 2, sm: 4 } }}>
-            <Paper
-              elevation={3}
-              sx={{ p: { xs: 3, sm: 4 }, bgcolor: theme.palette.background.paper, width: "100%" }}
-            >
+            <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 }, bgcolor: theme.palette.background.paper, width: "100%" }}>
               <LinearProgress
                 variant="determinate"
                 value={(getCompletedLessonsCount() / filteredLessons.length) * 100 || 0}
                 sx={{ mb: 2, height: 8, borderRadius: 4, bgcolor: "#4b5563", "& .MuiLinearProgress-bar": { bgcolor: theme.palette.primary.main } }}
               />
-              <Typography
-                variant="subtitle1"
-                sx={{ color: theme.palette.text.secondary, fontSize: { xs: "0.875rem", sm: "1rem" }, mb: 3 }}
-              >
+              <Typography variant="subtitle1" sx={{ color: theme.palette.text.secondary, fontSize: { xs: "0.875rem", sm: "1rem" }, mb: 3 }}>
                 Пройдено {getCompletedLessonsCount()} из {filteredLessons.length} уроков
               </Typography>
 
-              <Typography
-                variant="h6"
-                sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.5rem", sm: "1.75rem" }, mb: 3 }}
-              >
+              <Typography variant="h6" sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.5rem", sm: "1.75rem" }, mb: 3 }}>
                 {filteredLessons[activeTab].title}
               </Typography>
 
@@ -461,34 +389,16 @@ export default function CourseDetail() {
                   component="img"
                   src={filteredLessons[activeTab].image}
                   alt={`Lesson ${activeTab + 1}`}
-                  sx={{
-                    width: "100%",
-                    height: { xs: "200px", sm: "350px" },
-                    objectFit: "cover",
-                    borderRadius: "8px",
-                    mb: 3,
-                  }}
+                  sx={{ width: "100%", height: { xs: "200px", sm: "350px" }, objectFit: "cover", borderRadius: "8px", mb: 3 }}
                 />
               )}
 
-              <Box
-                sx={{
-                  minHeight: "250px",
-                  border: `1px solid ${theme.palette.divider}`,
-                  p: 2,
-                  borderRadius: "8px",
-                  bgcolor: "#2d3748", // gray-800
-                  mb: 3,
-                }}
-              >
+              <Box sx={{ minHeight: "250px", border: `1px solid ${theme.palette.divider}`, p: 2, borderRadius: "8px", bgcolor: "#2d3748", mb: 3 }}>
                 {renderLessonContent()}
               </Box>
               <Divider sx={{ my: 3, bgcolor: theme.palette.divider }} />
 
-              <Typography
-                variant="h5"
-                sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.25rem", sm: "1.5rem" }, mb: 2 }}
-              >
+              <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.25rem", sm: "1.5rem" }, mb: 2 }}>
                 Видео-материалы:
               </Typography>
               {videoMaterials.length > 0 ? (
@@ -498,24 +408,16 @@ export default function CourseDetail() {
                   </Box>
                 ))
               ) : (
-                <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>
-                  Нет доступных видео.
-                </Typography>
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>Нет доступных видео.</Typography>
               )}
 
-              <Typography
-                variant="h5"
-                sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.25rem", sm: "1.5rem" }, mt: 4, mb: 2 }}
-              >
+              <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontSize: { xs: "1.25rem", sm: "1.5rem" }, mt: 4, mb: 2 }}>
                 Дополнительные материалы:
               </Typography>
               {filteredMaterials.length > 0 ? (
                 <MuiList>
                   {filteredMaterials.map((material) => (
-                    <ListItem
-                      key={material.material_id}
-                      sx={{ flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "flex-start", sm: "center" }, py: 1.5 }}
-                    >
+                    <ListItem key={material.material_id} sx={{ flexDirection: { xs: "column", sm: "row" }, alignItems: { xs: "flex-start", sm: "center" }, py: 1.5 }}>
                       <ListItemText
                         primary={material.title}
                         secondary={`Тип: ${material.type}`}
@@ -523,18 +425,8 @@ export default function CourseDetail() {
                         secondaryTypographyProps={{ color: theme.palette.text.secondary, fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
                       />
                       {material.type === "test" ? (
-                        <a
-                          href={material.file_path}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ textDecoration: "none", marginTop: { xs: 1, sm: 0 } }}
-                        >
-                          <Button
-                            variant="outlined"
-                            color="secondary"
-                            size="small"
-                            sx={{ ml: { xs: 0, sm: 2 }, fontSize: "0.875rem", borderRadius: "8px" }}
-                          >
+                        <a href={material.file_path} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", marginTop: { xs: 1, sm: 0 } }}>
+                          <Button variant="outlined" color="secondary" size="small" sx={{ ml: { xs: 0, sm: 2 }, fontSize: "0.875rem", borderRadius: "8px" }}>
                             Перейти к тесту
                           </Button>
                         </a>
@@ -554,31 +446,16 @@ export default function CourseDetail() {
                   ))}
                 </MuiList>
               ) : (
-                <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>
-                  Нет доступных материалов.
-                </Typography>
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: "1rem" }}>Нет доступных материалов.</Typography>
               )}
 
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", sm: "row" },
-                  justifyContent: "flex-end",
-                  gap: 2,
-                  mt: 4,
-                }}
-              >
+              <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "flex-end", gap: 2, mt: 4 }}>
                 <Button
                   variant="contained"
                   color={isLessonCompleted(filteredLessons[activeTab]?.id) ? "success" : "primary"}
                   onClick={() => handleCompleteLesson(filteredLessons[activeTab]?.id)}
                   disabled={isLessonCompleted(filteredLessons[activeTab]?.id)}
-                  sx={{
-                    width: { xs: "100%", sm: "200px" },
-                    py: 1.5,
-                    fontSize: "1rem",
-                    "&:hover": { transform: "scale(1.02)" },
-                  }}
+                  sx={{ width: { xs: "100%", sm: "200px" }, py: 1.5, fontSize: "1rem", "&:hover": { transform: "scale(1.02)" } }}
                 >
                   {isLessonCompleted(filteredLessons[activeTab]?.id) ? "Урок завершен" : "Завершить урок"}
                 </Button>
