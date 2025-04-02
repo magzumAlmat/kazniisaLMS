@@ -50,9 +50,15 @@ export default function LessonsPage() {
   // Функция загрузки изображения на сервер
   const uploadImageByFile = async (file) => {
     try {
+      const fileSizeMB = file.size / (1024 * 1024);
+      console.log(`Uploading file: ${file.name}, Size: ${fileSizeMB.toFixed(2)}MB`);
+      if (fileSizeMB > 900) {
+        throw new Error("File exceeds 900MB limit");
+      }
+
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("name", file.name.split(".")[0]); // Имя без расширения
+      formData.append("name", file.name.split(".")[0]);
 
       const response = await fetch(`${host}/api/upload`, {
         method: "POST",
@@ -63,7 +69,8 @@ export default function LessonsPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Ошибка загрузки изображения");
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
@@ -77,7 +84,7 @@ export default function LessonsPage() {
       console.error("Ошибка при загрузке изображения:", error);
       return {
         success: 0,
-        message: "Ошибка загрузки изображения",
+        message: error.message || "Ошибка загрузки изображения",
       };
     }
   };
