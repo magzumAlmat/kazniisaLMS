@@ -12,6 +12,8 @@ import {
   Grid,
   CircularProgress,
   Box,
+  Paper,
+  Divider,
 } from "@mui/material";
 import Link from "next/link";
 import TopMenu from "../../components/topmenu";
@@ -30,7 +32,7 @@ const theme = createTheme({
       main: "#3b82f6", // Синий акцент (blue-500)
     },
     background: {
-      default: "#1f2937", // Темно-серый фон (gray-800)
+      default: "#fff", // Темно-серый фон (gray-800)
       paper: "#374151", // Чуть светлее для панелей (gray-700)
     },
     text: {
@@ -173,7 +175,108 @@ export default function Courses() {
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
         <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
-      
+
+
+        <ThemeProvider theme={theme}>
+      <Box style={{background:'#1f2937'}}
+        sx={{
+          bgcolor: theme.palette.background.default,
+          minHeight: "100vh",
+          py: { xs: 4, md: 8 ,lg:3}, // Отступы сверху и снизу
+        }}
+      >
+        <Container maxWidth="md">
+          <Paper
+            elevation={3}
+            sx={{
+              p: { xs: 3, md: 5 ,lg:3}, // Внутренние отступы
+              textAlign: "center",
+              bgcolor: theme.palette.background.paper,
+            }}
+          >
+            <Typography
+              variant="h4"
+              component="h1"
+              sx={{
+                
+                mb: 3,
+                fontSize: { xs: "1.75rem", md: "2.5rem" }, // Адаптивный размер шрифта
+              }}
+            >
+              Добро пожаловать на платформу buildingSmart Kazakhstan!
+            </Typography>
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: theme.palette.text.secondary,
+                mb: 2,
+                fontSize: { xs: "1rem", md: "1.1rem" },
+              }}
+            >
+              Образовательная платформа по информационному моделированию для специалистов
+              строительной отрасли.
+            </Typography>
+
+            <Divider
+              sx={{
+                my: 3,
+                borderColor: theme.palette.primary.light,
+                borderWidth: "1px",
+              }}
+            />
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: theme.palette.text.primary,
+                mb: 3,
+                fontSize: { xs: "1rem", md: "1.1rem" },
+                textAlign: "left", // Выравнивание текста слева для читаемости
+              }}
+            >
+              Здесь вы найдете курсы, разработанные с учетом практических задач и требований
+              современного строительства. Осваивайте инструменты BIM, повышайте квалификацию и
+              внедряйте цифровые технологии на всех этапах жизненного цикла объекта — от
+              проектирования до эксплуатации.
+            </Typography>
+
+            <Typography
+              variant="body1"
+              sx={{
+                color: theme.palette.text.primary,
+                mb: 4,
+                fontSize: { xs: "1rem", md: "1.1rem" },
+                textAlign: "left",
+              }}
+            >
+              Платформа создана для тех, кто хочет работать эффективно, точно и в соответствии с
+              актуальными стандартами и технологиями.
+            </Typography>
+
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              sx={{
+                fontSize: "1rem",
+                px: 4,
+                py: 1.5,
+                "&:hover": {
+                  bgcolor: theme.palette.primary.dark,
+                  transform: "scale(1.02)",
+                  transition: "all 0.2s ease-in-out",
+                },
+              }}
+              onClick={() => router.push('/courses')} // Замените на реальную навигацию
+            >
+              Начать обучение
+            </Button>
+          </Paper>
+        </Container>
+      </Box>
+    </ThemeProvider>
+
       </Box>
     </ThemeProvider>
   );

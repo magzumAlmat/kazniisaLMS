@@ -252,7 +252,7 @@ const LoginPage = () => {
                 >
                   Войти
                 </Button>
-                <Button
+                {/* <Button
                   variant="contained"
                 
                   onClick={() => (window.location.href = `${host}/api/auth/google`)}
@@ -263,7 +263,7 @@ const LoginPage = () => {
                   }}
                 >
                   <GoogleIcon sx={{ bgcolor: "#059669",mr: 1 }} />
-                </Button>
+                </Button> */}
               </Stack>
 
               {/* Ссылки */}

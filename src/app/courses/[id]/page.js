@@ -206,32 +206,91 @@ export default function CourseDetail() {
         </Typography>
       );
     }
-
+  
     try {
       const rawContent = JSON.parse(filteredLessons[activeTab].content);
       const blocks = rawContent.blocks;
-
+  
       if (!blocks || !Array.isArray(blocks)) {
         throw new Error("Некорректный формат данных: отсутствует массив blocks");
       }
-
-      const paragraphBlock = blocks.find((block) => block.type === "paragraph");
-      if (!paragraphBlock) {
-        throw new Error("Блок типа 'paragraph' не найден");
-      }
-
-      const text = paragraphBlock.data.text;
-      const sanitizedText = DOMPurify.sanitize(text);
-
+  
       return (
-        <Typography
-          variant="body1"
-          sx={{ color: theme.palette.text.secondary, lineHeight: 1.8, fontSize: { xs: "0.875rem", sm: "1rem" } }}
-          dangerouslySetInnerHTML={{ __html: sanitizedText }}
-        />
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {blocks.map((block, index) => {
+            switch (block.type) {
+              case "paragraph":
+                const sanitizedText = DOMPurify.sanitize(block.data.text);
+                return (
+                  <Typography
+                    key={block.id || index}
+                    variant="body1"
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      lineHeight: 1.8,
+                      fontSize: { xs: "0.875rem", sm: "1rem" },
+                    }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedText }}
+                  />
+                );
+              case "image":
+                return (
+                  <Box
+                    key={block.id || index}
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 1,
+                      my: 2,
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={block.data.file.url}
+                      alt={block.data.caption || "Lesson image"}
+                      onError={(e) => (e.target.src = "/fallback-image.jpg")} // Запасное изображение
+                      sx={{
+                        width: "100%",
+                        maxWidth: "600px",
+                        height: "auto",
+                        borderRadius: "8px",
+                        border: block.data.withBorder ? "2px solid #fff" : "none",
+                        backgroundColor: block.data.withBackground ? "#2d3748" : "transparent",
+                        objectFit: "cover",
+                        ...(block.data.stretched && { width: "100%", maxWidth: "none" }),
+                      }}
+                    />
+                    {block.data.caption && (
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: theme.palette.text.secondary,
+                          fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                          textAlign: "center",
+                        }}
+                      >
+                        {DOMPurify.sanitize(block.data.caption)}
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              default:
+                return (
+                  <Typography
+                    key={block.id || index}
+                    color="warning"
+                    sx={{ fontSize: "1rem" }}
+                  >
+                    Неизвестный тип блока: {block.type}
+                  </Typography>
+                );
+            }
+          })}
+        </Box>
       );
     } catch (error) {
-      console.error("Ошибка при рендеринге текста:", error);
+      console.error("Ошибка при рендеринге содержимого:", error);
       return (
         <Typography color="error" sx={{ fontSize: "1rem" }}>
           Ошибка: {error.message}

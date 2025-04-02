@@ -11,7 +11,7 @@ import {
   Container,
   Grid,
   CircularProgress,
-  Box,
+  Box,Paper
 } from "@mui/material";
 import Link from "next/link";
 import TopMenu from "../../components/topmenu";
@@ -55,6 +55,7 @@ const theme = createTheme({
         },
       },
     },
+    
     MuiCard: {
       styleOverrides: {
         root: {
@@ -178,12 +179,22 @@ export default function Courses() {
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
         <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
+      
+        <Paper
+                      elevation={3}
+                      sx={{
+                        p: { xs: 3, md: 5 }, // Внутренние отступы
+                        textAlign: "center",
+                        bgcolor: theme.palette.background.paper,
+                      }}
+                    >
         <Container
           sx={{
             py: { xs: 4, sm: 6 },
             px: { xs: 2, sm: 3 },
           }}
         >
+         
           <Typography
             variant="h4"
             gutterBottom
@@ -274,6 +285,7 @@ export default function Courses() {
             </Grid>
           )}
         </Container>
+        </Paper>
       </Box>
     </ThemeProvider>
   );
