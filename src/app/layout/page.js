@@ -185,6 +185,7 @@ export default function Courses() {
           py: { xs: 4, md: 8 ,lg:3}, // Отступы сверху и снизу
         }}
       >
+
         <Container maxWidth="md">
           <Paper
             elevation={3}
@@ -254,24 +255,7 @@ export default function Courses() {
               актуальными стандартами и технологиями.
             </Typography>
 
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              sx={{
-                fontSize: "1rem",
-                px: 4,
-                py: 1.5,
-                "&:hover": {
-                  bgcolor: theme.palette.primary.dark,
-                  transform: "scale(1.02)",
-                  transition: "all 0.2s ease-in-out",
-                },
-              }}
-              onClick={() => router.push('/courses')} // Замените на реальную навигацию
-            >
-              Начать обучение
-            </Button>
+           
           </Paper>
         </Container>
       </Box>
