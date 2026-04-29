@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<h1 align="center">🔄 KazNIISA LMS — Full Stack</h1>
 
-## Getting Started
+<p align="center">
+  <img src="https://img.shields.io/badge/status-active-success?style=flat-square"/>
+  <img src="https://img.shields.io/badge/type-fullstack-6C63FF?style=flat-square"/>
+  <img src="https://img.shields.io/github/last-commit/magzumAlmat/kazniisaLMS?style=flat-square"/>
+  <img src="https://img.shields.io/github/languages/top/magzumAlmat/kazniisaLMS?style=flat-square"/>
+</p>
 
-First, run the development server:
+<p align="center"><i>Complete Learning Management System for KazNIISA institute with course management, document handling, and user administration.</i></p>
+
+---
+
+## 🛠️ Tech Stack
+
+![React](https://img.shields.io/badge/-React-informational?style=flat-square) ![Node.js](https://img.shields.io/badge/-Node.js-informational?style=flat-square) ![Express](https://img.shields.io/badge/-Express-informational?style=flat-square) ![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-informational?style=flat-square) ![Sequelize](https://img.shields.io/badge/-Sequelize-informational?style=flat-square) ![Docker](https://img.shields.io/badge/-Docker-informational?style=flat-square)
+
+## ✨ Features
+
+- ✅ Full course lifecycle management
+- ✅ Document compiler & viewer
+- ✅ Role-based access control
+- ✅ Student progress analytics
+- ✅ Docker deployment
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ (or Python 3.8+ for Python projects)
+- npm or yarn
+- PostgreSQL 14+
+
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/magzumAlmat/kazniisaLMS.git
+
+# Navigate to the project
+cd kazniisaLMS
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# Run the application
+npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 👤 Author
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+**Almat Magzum** — Full-Stack JavaScript Developer
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- GitHub: [@magzumAlmat](https://github.com/magzumAlmat)
+- Email: almat.magzum@gmail.com
+- Location: Almaty, Kazakhstan
 
-## Learn More
+## 📄 License
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+This project is open source and available under the [MIT License](LICENSE).
