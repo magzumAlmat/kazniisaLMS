@@ -1,8 +1,23 @@
 {
-  "/login/page": "app/login/page.js",
-  "/layout/page": "app/layout/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/addcourse/page": "app/addcourse/page.js",
   "/addlessons/page": "app/addlessons/page.js",
+  "/addmaterial/page": "app/addmaterial/page.js",
+  "/addprogress/page": "app/addprogress/page.js",
+  "/addrole/page": "app/addrole/page.js",
+  "/addstreams/page": "app/addstreams/page.js",
   "/courses/[id]/page": "app/courses/[id]/page.js",
   "/courses/page": "app/courses/page.js",
-  "/addcourse/page": "app/addcourse/page.js"
+  "/forgotpassword/page": "app/forgotpassword/page.js",
+  "/layout/page": "app/layout/page.js",
+  "/lessons/page": "app/lessons/page.js",
+  "/library/page": "app/library/page.js",
+  "/login/page": "app/login/page.js",
+  "/notauth/page": "app/notauth/page.js",
+  "/profile/page": "app/profile/page.js",
+  "/progressstatus/[id]/page": "app/progressstatus/[id]/page.js",
+  "/progressstatus/page": "app/progressstatus/page.js",
+  "/register/page": "app/register/page.js",
+  "/reset-password/page": "app/reset-password/page.js",
+  "/page": "app/page.js"
 }

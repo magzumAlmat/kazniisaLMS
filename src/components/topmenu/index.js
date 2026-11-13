@@ -25,6 +25,8 @@ const TopMenu = ({ userInfo, handleLogout }) => {
     const menuItems = {
       1: [
         { text: "Главная", href: "/layout" },
+        { text: "Курсы", href: "/courses" },
+        { text: "Библиотека", href: "/library" },
         { text: "Добавить роль", href: "/addrole" },
         { text: "Профиль", href: "/profile" },
         { text: "Выйти", onClick: handleLogout },
@@ -33,6 +35,7 @@ const TopMenu = ({ userInfo, handleLogout }) => {
         { text: "Главная", href: "/layout" },
         { text: "Потоки", href: "/addstreams" },
         { text: "Курсы", href: "/addcourse" },
+        { text: "Библиотека", href: "/library" },
         { text: "Предметы", href: "/addlessons" },
         { text: "Материалы", href: "/addmaterial" },
         { text: "Прогресс", href: "/progressstatus" },
@@ -42,6 +45,7 @@ const TopMenu = ({ userInfo, handleLogout }) => {
       3: [
         { text: "Главная", href: "/layout" },
         { text: "Курсы", href: "/courses" },
+        { text: "Библиотека", href: "/library" },
         { text: "Профиль", href: "/profile" },
         { text: "Выйти", onClick: handleLogout },
       ],
@@ -107,7 +111,6 @@ const TopMenu = ({ userInfo, handleLogout }) => {
               alt="Logo"
               sx={{ height: { xs: 30, sm: 40 }, mr: 1 }} // Размер логотипа и отступ справа
             />
-            {/* Можно добавить текст рядом с логотипом, если нужно */}
           </Typography>
           <Box sx={{ display: { xs: "none", sm: "flex" }, gap: { xs: 1, sm: 2, md: 3 }, flexWrap: "wrap" }}>
             {renderMenuByRole().map((item, index) => (
