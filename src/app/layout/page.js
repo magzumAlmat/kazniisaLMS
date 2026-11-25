@@ -3,41 +3,39 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllCoursesAction, logoutAction } from "../../store/slices/authSlice";
 import {
-  Card,
-  CardContent,
-  CardActions,
   Button,
   Typography,
   Container,
-  Grid,
   CircularProgress,
   Box,
   Paper,
   Divider,
+  Stack,
 } from "@mui/material";
+import SchoolIcon from "@mui/icons-material/School";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import Link from "next/link";
 import TopMenu from "../../components/topmenu";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// Тема в стиле Next.js Template от lucasbaquinoo
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#10b981", // Зеленый акцент (emerald-500)
+      main: "#10b981", // Emerald 500
       contrastText: "#fff",
     },
     secondary: {
-      main: "#3b82f6", // Синий акцент (blue-500)
+      main: "#3b82f6", // Blue 500
     },
     background: {
-      default: "#fff", // Темно-серый фон (gray-800)
-      paper: "#374151", // Чуть светлее для панелей (gray-700)
+      default: "#1f2937", // Gray 800
+      paper: "#374151", // Gray 700
     },
     text: {
       primary: "#fff",
-      secondary: "#d1d5db", // Светло-серый для текста (gray-300)
+      secondary: "#d1d5db",
     },
   },
   typography: {
@@ -52,36 +50,22 @@ const theme = createTheme({
         root: {
           textTransform: "none",
           borderRadius: "8px",
-          padding: "8px 16px",
+          padding: "10px 20px",
+          fontWeight: 600,
           transition: "all 0.2s ease-in-out",
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
-          transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-          "&:hover": {
-            transform: "translateY(-4px)",
-            boxShadow: "0 6px 20px rgba(16, 185, 129, 0.3)",
-          },
         },
       },
     },
   },
 });
 
-export default function Courses() {
+export default function LayoutMain() {
   const dispatch = useDispatch();
   const router = useRouter();
   const { courses, loadingCourses, coursesError } = useSelector((state) => state.auth);
-  const isAuth = useSelector((state) => state.auth.isAuth);
   const [userInfo, setUserInfo] = useState(null);
-  const [progresses, setProgresses] = useState({});
   const [token, setToken] = useState(null);
-  const host = process.env.NEXT_PUBLIC_HOST;
+  const host = process.env.NEXT_PUBLIC_HOST || "https://lms.kazniisa.kz";
 
   useEffect(() => {
     const storedToken = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -112,29 +96,6 @@ export default function Courses() {
     }
   };
 
-  const fetchAllProgresses = async (userId, courseId) => {
-    try {
-      const response = await axios.get(`${host}/api/course/progress/${userId}/${courseId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = response.data.course_progress;
-      setProgresses((prev) => ({
-        ...prev,
-        [courseId]: data,
-      }));
-    } catch (error) {
-      console.error("Ошибка при получении прогресса:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (userInfo && courses && courses.length > 0 && token) {
-      courses.forEach((course) => {
-        fetchAllProgresses(userInfo.id, course.id);
-      });
-    }
-  }, [userInfo, courses, token]);
-
   const handleLogout = () => {
     dispatch(logoutAction());
     localStorage.removeItem("token");
@@ -159,108 +120,131 @@ export default function Courses() {
     );
   }
 
-  if (coursesError) {
-    return (
-      <ThemeProvider theme={theme}>
-        <Container sx={{ py: 4, bgcolor: theme.palette.background.default }}>
-          <Typography variant="h6" color="error" align="center">
-            Ошибка: {coursesError}
-          </Typography>
-        </Container>
-      </ThemeProvider>
-    );
-  }
-
   return (
     <ThemeProvider theme={theme}>
       <Box sx={{ bgcolor: theme.palette.background.default, minHeight: "100vh" }}>
         <TopMenu userInfo={userInfo} handleLogout={handleLogout} />
 
-
-        <ThemeProvider theme={theme}>
-      <Box style={{background:'#1f2937'}}
-        sx={{
-          bgcolor: theme.palette.background.default,
-          minHeight: "100vh",
-          py: { xs: 4, md: 8 ,lg:3}, // Отступы сверху и снизу
-        }}
-      >
-
-        <Container maxWidth="md">
-          <Paper
-            elevation={3}
-            sx={{
-              p: { xs: 3, md: 5 ,lg:3}, // Внутренние отступы
-              textAlign: "center",
-              bgcolor: theme.palette.background.paper,
-            }}
-          >
-            <Typography
-              variant="h4"
-              component="h1"
+        <Box
+          sx={{
+            bgcolor: theme.palette.background.default,
+            minHeight: "calc(100vh - 64px)",
+            py: { xs: 4, md: 8, lg: 6 },
+          }}
+        >
+          <Container maxWidth="md">
+            <Paper
+              elevation={3}
               sx={{
-                
-                mb: 3,
-                fontSize: { xs: "1.75rem", md: "2.5rem" }, // Адаптивный размер шрифта
+                p: { xs: 3, md: 5 },
+                textAlign: "center",
+                bgcolor: theme.palette.background.paper,
+                borderRadius: "14px",
+                border: "1px solid rgba(255, 255, 255, 0.08)",
               }}
             >
-              Добро пожаловать на платформу buildingSmart Kazakhstan!
-            </Typography>
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{
+                  mb: 2.5,
+                  fontWeight: 700,
+                  fontSize: { xs: "1.75rem", md: "2.3rem" },
+                  color: "#fff",
+                }}
+              >
+                Добро пожаловать на платформу buildingSmart Kazakhstan!
+              </Typography>
 
-            <Typography
-              variant="body1"
-              sx={{
-                color: theme.palette.text.secondary,
-                mb: 2,
-                fontSize: { xs: "1rem", md: "1.1rem" },
-              }}
-            >
-              Образовательная платформа по информационному моделированию для специалистов
-              строительной отрасли.
-            </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  mb: 3,
+                  fontSize: { xs: "1.05rem", md: "1.15rem" },
+                }}
+              >
+                Образовательная платформа по информационному моделированию для специалистов строительной отрасли.
+              </Typography>
 
-            <Divider
-              sx={{
-                my: 3,
-                borderColor: theme.palette.primary.light,
-                borderWidth: "1px",
-              }}
-            />
+              <Divider
+                sx={{
+                  my: 3,
+                  borderColor: "rgba(255, 255, 255, 0.12)",
+                  borderWidth: "1px",
+                }}
+              />
 
-            <Typography
-              variant="body1"
-              sx={{
-                color: theme.palette.text.primary,
-                mb: 3,
-                fontSize: { xs: "1rem", md: "1.1rem" },
-                textAlign: "left", // Выравнивание текста слева для читаемости
-              }}
-            >
-              Здесь вы найдете курсы, разработанные с учетом практических задач и требований
-              современного строительства. Осваивайте инструменты BIM, повышайте квалификацию и
-              внедряйте цифровые технологии на всех этапах жизненного цикла объекта — от
-              проектирования до эксплуатации.
-            </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: theme.palette.text.primary,
+                  mb: 3,
+                  fontSize: { xs: "1rem", md: "1.05rem" },
+                  textAlign: "left",
+                  lineHeight: 1.6,
+                }}
+              >
+                Здесь вы найдете курсы, разработанные с учетом практических задач и требований современного строительства. Осваивайте инструменты BIM, повышайте квалификацию и внедряйте цифровые технологии на всех этапах жизненного цикла объекта — от проектирования до эксплуатации.
+              </Typography>
 
-            <Typography
-              variant="body1"
-              sx={{
-                color: theme.palette.text.primary,
-                mb: 4,
-                fontSize: { xs: "1rem", md: "1.1rem" },
-                textAlign: "left",
-              }}
-            >
-              Платформа создана для тех, кто хочет работать эффективно, точно и в соответствии с
-              актуальными стандартами и технологиями.
-            </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: theme.palette.text.primary,
+                  mb: 4,
+                  fontSize: { xs: "1rem", md: "1.05rem" },
+                  textAlign: "left",
+                  lineHeight: 1.6,
+                }}
+              >
+                Платформа создана для тех, кто хочет работать эффективно, точно и в соответствии с актуальными стандартами и технологиями. В разделе электронной библиотеки вам доступны нормативные стандарты СТ РК ISO 19650, руководства openBIM и исследования рынка.
+              </Typography>
 
-           
-          </Paper>
-        </Container>
-      </Box>
-    </ThemeProvider>
-
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                justifyContent="center"
+                sx={{ mt: 3 }}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  component={Link}
+                  href="/courses"
+                  startIcon={<SchoolIcon />}
+                  sx={{
+                    fontSize: "1rem",
+                    py: 1.3,
+                    px: 3.5,
+                    boxShadow: "0 4px 14px rgba(16, 185, 129, 0.35)",
+                  }}
+                >
+                  Перейти к курсам
+                </Button>
+                <Button
+                  variant="outlined"
+                  component={Link}
+                  href="/library"
+                  startIcon={<MenuBookIcon />}
+                  sx={{
+                    fontSize: "1rem",
+                    py: 1.3,
+                    px: 3.5,
+                    color: "#fff",
+                    borderColor: "rgba(255, 255, 255, 0.3)",
+                    "&:hover": {
+                      borderColor: theme.palette.primary.main,
+                      bgcolor: "rgba(16, 185, 129, 0.1)",
+                    },
+                  }}
+                >
+                  Электронная библиотека
+                </Button>
+              </Stack>
+            </Paper>
+          </Container>
+        </Box>
       </Box>
     </ThemeProvider>
   );
